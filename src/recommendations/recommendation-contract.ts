@@ -8,6 +8,7 @@ export const MatchStrengthSchema = z.enum(["personalized_match", "partial_match"
 
 export const RecommendationRequestSchema = z.strictObject({
   query: z.string().trim().min(1).max(2000).optional(),
+  session_key: z.string().trim().min(1).max(120).optional(),
   profile: PreferenceProfileSchema.optional(),
   limit: z.number().int().min(1).max(10).default(5),
 });
@@ -35,8 +36,15 @@ export const RecommendationItemSchema = z.strictObject({
   deadline_status: DeadlineStatusSchema,
   score: z.number().min(0).max(1),
   match_strength: MatchStrengthSchema,
+  match_reasons: z.array(z.string().trim().min(1)).min(1).max(3).optional(),
   score_breakdown: RecommendationScoreBreakdownSchema,
   citations: z.array(ChatCitationSchema).min(1),
+});
+
+export const RecommendationPrivacyMetadataSchema = z.strictObject({
+  preference_ranking_enabled: z.boolean(),
+  profile_source: z.enum(["request_profile", "preference_service", "none"]),
+  storage_scope: z.enum(["none", "session", "persistent"]),
 });
 
 export const RecommendationResponseSchema = z.strictObject({
@@ -44,10 +52,12 @@ export const RecommendationResponseSchema = z.strictObject({
   generated_at: z.iso.datetime(),
   trace_id: z.string().min(1),
   preference_mode: z.enum(["preference", "no_preference"]),
+  privacy_metadata: RecommendationPrivacyMetadataSchema,
 });
 
 export type MatchStrength = z.infer<typeof MatchStrengthSchema>;
 export type RecommendationRequest = z.infer<typeof RecommendationRequestSchema>;
 export type RecommendationScoreBreakdown = z.infer<typeof RecommendationScoreBreakdownSchema>;
 export type RecommendationItem = z.infer<typeof RecommendationItemSchema>;
+export type RecommendationPrivacyMetadata = z.infer<typeof RecommendationPrivacyMetadataSchema>;
 export type RecommendationResponse = z.infer<typeof RecommendationResponseSchema>;

@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 current_phase: 04
-status: phase_4_wave_2_complete
+status: phase_4_wave_3_complete
 last_updated: "2026-05-04T00:00:00.000Z"
 progress:
   total_phases: 6
   completed_phases: 3
   total_plans: 20
-  completed_plans: 18
-  percent: 90
+  completed_plans: 19
+  percent: 95
 ---
 
 # State: ERICA Career Chat
@@ -54,6 +54,7 @@ See: `.planning/PROJECT.md` (updated 2026-05-03)
 | `.planning/phases/03-source-grounded-chat-mvp/03-USER-SETUP.md` | Created |
 | `.planning/phases/04-personalization-and-recommendations/04-01-SUMMARY.md` | Created |
 | `.planning/phases/04-personalization-and-recommendations/04-02-SUMMARY.md` | Created |
+| `.planning/phases/04-personalization-and-recommendations/04-03-SUMMARY.md` | Created |
 
 ## Decisions
 
@@ -83,6 +84,8 @@ See: `.planning/PROJECT.md` (updated 2026-05-03)
 - 04-02 source-quality scoring explicitly rewards active/recent/detail-cited candidates and penalizes stale/generic/boilerplate-heavy candidates
 - 04-02 ranking uses score-based reranking with exact weights: base retrieval 0.30, major 0.20, target_role 0.20, optional preferences 0.10, source quality 0.15, and freshness 0.05
 - 04-02 no-preference ranking returns `general_recommendation` items and favors active/latest/source-grounded candidates without requiring a profile
+- 04-03 match reasons use fixed Korean templates, inline numeric citations, explicit preference labels only when score evidence exists, and weak-match `일반 안내`/`참고 정보` labels
+- 04-03 RecommendationService composes retrieval, optional preference state, ranking, reason validation, response schema validation, trace IDs, and privacy metadata without exposing raw chunk text or session-only optional free text
 
 ## Active Assumptions
 
@@ -94,6 +97,6 @@ See: `.planning/PROJECT.md` (updated 2026-05-03)
 
 ## Next Action
 
-Phase 4 Wave 2 recommendation contracts and ranking are complete. Continue with Phase 4 Wave 3 match reasons and RecommendationService orchestration.
+Phase 4 Wave 3 match reasons and RecommendationService orchestration are complete. Continue with Phase 4 Wave 4 personalization evaluation CLI and verification gate.
 
 Resume file: .planning/phases/04-personalization-and-recommendations/04-CONTEXT.md

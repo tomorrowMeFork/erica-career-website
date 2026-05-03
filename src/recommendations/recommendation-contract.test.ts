@@ -138,9 +138,15 @@ describe("RecommendationResponseSchema", () => {
       generated_at: "2026-05-04T00:00:00.000Z",
       trace_id: "trace-1",
       preference_mode: "no_preference",
+      privacy_metadata: {
+        preference_ranking_enabled: false,
+        profile_source: "none",
+        storage_scope: "none",
+      },
     });
 
     expect(parsed.recommendations[0]?.posted_at).toBe("2026-05-01T00:00:00.000Z");
     expect(parsed.recommendations[0]?.citations[0]?.deadline_status).toBe("active");
+    expect(parsed.privacy_metadata.preference_ranking_enabled).toBe(false);
   });
 });

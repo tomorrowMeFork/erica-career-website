@@ -161,7 +161,7 @@ Plans:
 - [x] 04-02-PLAN.md — Add recommendation response contracts, source-quality scoring, and deterministic score-based preference/no-preference ranking.
 
 **Wave 3** *(blocked on Wave 2 completion)*
-- [ ] 04-03-PLAN.md — Compose Korean citation-bearing match reasons and RecommendationService orchestration over retrieval and ranking.
+- [x] 04-03-PLAN.md — Compose Korean citation-bearing match reasons and RecommendationService orchestration over retrieval and ranking.
 
 **Wave 4** *(blocked on Wave 3 completion)*
 - [ ] 04-04-PLAN.md — Add deterministic personalization evaluation CLI, npm script, and full verification gate.
