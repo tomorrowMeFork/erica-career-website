@@ -1,5 +1,5 @@
 ---
-status: diagnosed
+status: testing
 phase: 03-source-grounded-chat-mvp
 source:
   - 03-01-SUMMARY.md
@@ -8,14 +8,19 @@ source:
   - 03-04-SUMMARY.md
   - 03-05-SUMMARY.md
   - 03-06-SUMMARY.md
+  - 03-07-SUMMARY.md
   - 03-VERIFICATION.md
 started: 2026-05-03T12:36:20Z
-updated: 2026-05-03T13:07:06Z
+updated: 2026-05-03T13:26:10Z
 ---
 
 ## Current Test
 
-[testing complete]
+number: 6
+name: Live Smoke Gap Retest
+expected: |
+  After the 03-07 gap closure, running `npm run chat:smoke -- "ERICA 현장실습 모집 공고 알려줘"` with local `.env` provider values configured should load `.env` automatically, avoid the old `OPENAI_COMPAT_BASE_URL is required` error, use the smoke CLI's longer configurable timeout, and return only safe JSON fields (`answer`, `citations`, `refusal_tier`, `confidence`, `trace_id`) without exposing provider secrets, prompt text, or raw retrieved source text.
+awaiting: user response
 
 ## Tests
 
@@ -41,12 +46,16 @@ result: pass
 expected: Opening `.env.example` should show the optional OpenAI-compatible provider variables `OPENAI_COMPAT_BASE_URL`, `OPENAI_COMPAT_API_KEY`, and `OPENAI_COMPAT_MODEL` with placeholder values only, plus guidance not to commit real API keys.
 result: pass
 
+### 6. Live Smoke Gap Retest
+expected: After the 03-07 gap closure, running `npm run chat:smoke -- "ERICA 현장실습 모집 공고 알려줘"` with local `.env` provider values configured should load `.env` automatically, avoid the old `OPENAI_COMPAT_BASE_URL is required` error, use the smoke CLI's longer configurable timeout, and return only safe JSON fields (`answer`, `citations`, `refusal_tier`, `confidence`, `trace_id`) without exposing provider secrets, prompt text, or raw retrieved source text.
+result: [pending]
+
 ## Summary
 
-total: 5
+total: 6
 passed: 4
 issues: 1
-pending: 0
+pending: 1
 skipped: 0
 blocked: 0
 
