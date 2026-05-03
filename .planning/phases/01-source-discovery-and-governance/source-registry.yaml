@@ -1,0 +1,144 @@
+sources:
+  - source_id: cdp-root
+    canonical_url: https://cdp.hanyang.ac.kr/
+    source_name: 한양대 커리어 개발센터
+    source_type: root
+    content_type: html
+    category: CDP root discovery
+    approval_scope: seed_urls_only
+    approval_basis: user_assertion
+    approval_status: pending_review
+    auth_required: false
+    auth_mode: none
+    review_status: pending
+    allowed_collection_method: none_until_review
+    checklist_reference: source-access-review.md#cdp-root
+    robots_status: disallow_all_raw_evidence
+    tos_status: not_reviewed
+    rate_limit_posture: moderate_1_2s_low_concurrency
+    refresh_cadence: weekly_when_approved
+    owner_label: 한양대학교 커리어개발팀
+    last_checked_at: "2026-05-03T00:00:00Z"
+    scheduled_crawling_enabled: false
+    notes: "robots.txt returns Disallow: / for User-agent: *. Generic markdown fetch failed with JavaScript error; root likely requires browser automation or targeted HTTP inspection. No ToS page located during research. Category subpages are separate source intents. CDP root serves as the top-level discovery anchor for career and recruitment subpages."
+    next_action: Complete access review checklist at source-access-review.md#cdp-root before enabling any collection method.
+
+  - source_id: cdp-career-category-discovery
+    canonical_url: https://cdp.hanyang.ac.kr/
+    source_name: CDP 취업정보
+    source_type: category_discovery
+    content_type: html
+    category: CDP 취업정보 하위항목 전체
+    approval_scope: seed_urls_only
+    approval_basis: user_assertion
+    approval_status: pending_review
+    auth_required: false
+    auth_mode: none
+    review_status: pending
+    allowed_collection_method: none_until_review
+    checklist_reference: source-access-review.md#cdp-career-category-discovery
+    robots_status: disallow_all_raw_evidence
+    tos_status: not_reviewed
+    rate_limit_posture: moderate_1_2s_low_concurrency
+    refresh_cadence: daily_when_approved
+    owner_label: 한양대학교 커리어개발팀
+    last_checked_at: "2026-05-03T00:00:00Z"
+    scheduled_crawling_enabled: false
+    notes: "robots.txt returns Disallow: / for User-agent: *. Exact 취업정보 category URLs not yet enumerated; CDP root fetch failed through generic markdown fetcher. Category URLs require browser/manual discovery within seed scope (Plan 03). No ToS page located. Shares CDP host with cdp-root and cdp-recruit-category-discovery but represents a distinct source intent."
+    next_action: Complete access review checklist at source-access-review.md#cdp-career-category-discovery before enabling any collection method. Category URL enumeration depends on Plan 03 discovery.
+
+  - source_id: cdp-recruit-category-discovery
+    canonical_url: https://cdp.hanyang.ac.kr/
+    source_name: CDP 채용정보
+    source_type: category_discovery
+    content_type: html
+    category: CDP 채용정보 하위항목 전체
+    approval_scope: seed_urls_only
+    approval_basis: user_assertion
+    approval_status: pending_review
+    auth_required: false
+    auth_mode: none
+    review_status: pending
+    allowed_collection_method: none_until_review
+    checklist_reference: source-access-review.md#cdp-recruit-category-discovery
+    robots_status: disallow_all_raw_evidence
+    tos_status: not_reviewed
+    rate_limit_posture: moderate_1_2s_low_concurrency
+    refresh_cadence: daily_when_approved
+    owner_label: 한양대학교 커리어개발팀
+    last_checked_at: "2026-05-03T00:00:00Z"
+    scheduled_crawling_enabled: false
+    notes: "robots.txt returns Disallow: / for User-agent: *. Exact 채용정보 category URLs not yet enumerated; CDP root fetch failed through generic markdown fetcher. Category URLs require browser/manual discovery within seed scope (Plan 03). No ToS page located. Freshness is critical: stale recruitment listings must be detected and excluded or marked. Shares CDP host with cdp-root and cdp-career-category-discovery but represents a distinct source intent."
+    next_action: Complete access review checklist at source-access-review.md#cdp-recruit-category-discovery before enabling any collection method. Category URL enumeration depends on Plan 03 discovery.
+
+  - source_id: book-success-story-viewer
+    canonical_url: https://book.hanyang.ac.kr/Viewer/YKCF2I67RO4B
+    source_name: 취업성공후기 뷰어
+    source_type: document_viewer
+    content_type: viewer
+    category: 취업성공후기
+    approval_scope: seed_urls_only
+    approval_basis: user_assertion
+    approval_status: pending_review
+    auth_required: false
+    auth_mode: none
+    review_status: pending
+    allowed_collection_method: none_until_review
+    checklist_reference: source-access-review.md#book-success-story-viewer
+    robots_status: disallow_all_raw_evidence
+    tos_status: not_reviewed
+    rate_limit_posture: moderate_1_2s_low_concurrency
+    refresh_cadence: monthly_or_on_manual_change_when_approved
+    owner_label: 한양대학교 커리어개발팀
+    last_checked_at: "2026-05-03T00:00:00Z"
+    scheduled_crawling_enabled: false
+    notes: "robots.txt returns Disallow: / for User-agent: *. Viewer page exposes Korean title '[E 커리어개발팀] 2024 EBS 취업성공후기_한양인의 취업지식기부' with search/print/download UI labels. Viewer may render PDF pages or images; exact asset format needs identification during discovery. No ToS page located. Success stories serve as qualitative career advice and examples requiring source title/page citations."
+    next_action: Complete access review checklist at source-access-review.md#book-success-story-viewer before enabling any collection method. Identify downloadable original or page assets during discovery.
+
+  - source_id: cdp-student-guide-pdf
+    canonical_url: https://cdp.hanyang.ac.kr/office/%EB%A7%A4%EB%89%B4%EC%96%BC_%ED%95%99%EC%83%9D.pdf
+    source_name: CDP 학생 매뉴얼 PDF
+    source_type: pdf
+    content_type: pdf
+    category: CDP 학생 매뉴얼
+    approval_scope: seed_urls_only
+    approval_basis: user_assertion
+    approval_status: pending_review
+    auth_required: false
+    auth_mode: none
+    review_status: reviewed
+    allowed_collection_method: approved_manual_download
+    checklist_reference: source-access-review.md#cdp-student-guide-pdf
+    robots_status: disallow_all_raw_evidence
+    tos_status: not_reviewed
+    rate_limit_posture: moderate_1_2s_low_concurrency
+    refresh_cadence: monthly_or_on_manual_change_when_approved
+    owner_label: 한양대학교 커리어개발팀
+    last_checked_at: "2026-05-03T00:00:00Z"
+    scheduled_crawling_enabled: false
+    notes: "robots.txt returns Disallow: / for User-agent: *. Direct PDF URL returned a PDF header with 52 pages. PDF parsing will require page-level citations and refresh checks. No ToS page located. Content grounds answers about CDP usage, student processes, and official guidance. Shares CDP host with cdp-root but represents a distinct document intent."
+    next_action: Complete access review checklist at source-access-review.md#cdp-student-guide-pdf before enabling any collection method.
+
+  - source_id: ibus-employment-board
+    canonical_url: https://ibus.hanyang.ac.kr/front/recruit/r-1
+    source_name: 경상대학 취업정보 게시판
+    source_type: board
+    content_type: html
+    category: ERICA 경상대학 취업정보
+    approval_scope: seed_urls_only
+    approval_basis: user_assertion
+    approval_status: pending_review
+    auth_required: false
+    auth_mode: none
+    review_status: reviewed
+    allowed_collection_method: approved_bounded_browser_discovery
+    checklist_reference: source-access-review.md#ibus-employment-board
+    robots_status: allow_empty_disallow
+    tos_status: not_reviewed
+    rate_limit_posture: moderate_1_2s_low_concurrency
+    refresh_cadence: daily_when_approved
+    owner_label: 한양 ERICA 경상대학교
+    last_checked_at: "2026-05-03T00:00:00Z"
+    scheduled_crawling_enabled: false
+    notes: "robots.txt returns an empty Disallow: line (allowing all). Board is publicly reachable with Korean title '취업정보', 12 listings per page, dates, hit counts, detail links (/front/recruit/r-1/view?id=...), and pagination to at least page 163. No ToS page located. Faculty-specific scope for ERICA College of Business and Economics; do not treat as campus-wide. Detail URLs should be recorded as patterns but not bulk-ingested during discovery."
+    next_action: Complete access review checklist at source-access-review.md#ibus-employment-board before enabling any collection method. Record pagination depth assumptions but do not ingest all pages during Phase 1.
