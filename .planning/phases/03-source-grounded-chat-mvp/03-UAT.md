@@ -1,5 +1,5 @@
 ---
-status: testing
+status: complete
 phase: 03-source-grounded-chat-mvp
 source:
   - 03-01-SUMMARY.md
@@ -11,16 +11,12 @@ source:
   - 03-07-SUMMARY.md
   - 03-VERIFICATION.md
 started: 2026-05-03T12:36:20Z
-updated: 2026-05-03T13:26:10Z
+updated: 2026-05-03T13:35:43Z
 ---
 
 ## Current Test
 
-number: 6
-name: Live Smoke Gap Retest
-expected: |
-  After the 03-07 gap closure, running `npm run chat:smoke -- "ERICA 현장실습 모집 공고 알려줘"` with local `.env` provider values configured should load `.env` automatically, avoid the old `OPENAI_COMPAT_BASE_URL is required` error, use the smoke CLI's longer configurable timeout, and return only safe JSON fields (`answer`, `citations`, `refusal_tier`, `confidence`, `trace_id`) without exposing provider secrets, prompt text, or raw retrieved source text.
-awaiting: user response
+[testing complete]
 
 ## Tests
 
@@ -34,9 +30,10 @@ result: pass
 
 ### 3. Live Korean Chat Smoke With Citations
 expected: With `OPENAI_COMPAT_BASE_URL`, `OPENAI_COMPAT_API_KEY`, and `OPENAI_COMPAT_MODEL` configured locally, running `npm run chat:smoke -- "ERICA 현장실습 모집 공고 알려줘"` should return a Korean answer with inline numeric citations, structured citation/freshness metadata, `refusal_tier`, `confidence`, and `trace_id`, without exposing provider secrets, prompt text, or raw retrieved chunk text.
-result: issue
+result: pass
+previous_result: issue
 reported: "User first ran `npm run chat:smoke -- \"ERICA 현장실습 모집 공고 알려줘\"` and got `chat_smoke_failed: OPENAI_COMPAT_BASE_URL is required for OpenAI-compatible chat provider configuration` despite `.env` containing the variables. After sourcing `.env`, the command ran but returned `refusal_tier: hard_refuse`, `citations: []`, and the generic insufficient-evidence answer instead of a Korean cited response."
-severity: major
+resolution: "Fixed by 03-07 dotenv autoload and configurable 90s smoke timeout; Test 6 live smoke retest passed with a Korean cited normal answer and safe output fields."
 
 ### 4. Insufficient-Evidence Refusal Behavior
 expected: The Phase 3 chat path should not fabricate guidance for an unsupported question like `ERICA 기숙사 식단 알려줘`; the deterministic gate should cover this case as a hard refusal with zero citations, and any live/manual check should show transparent Korean uncertainty instead of unrelated career guidance.
@@ -48,21 +45,21 @@ result: pass
 
 ### 6. Live Smoke Gap Retest
 expected: After the 03-07 gap closure, running `npm run chat:smoke -- "ERICA 현장실습 모집 공고 알려줘"` with local `.env` provider values configured should load `.env` automatically, avoid the old `OPENAI_COMPAT_BASE_URL is required` error, use the smoke CLI's longer configurable timeout, and return only safe JSON fields (`answer`, `citations`, `refusal_tier`, `confidence`, `trace_id`) without exposing provider secrets, prompt text, or raw retrieved source text.
-result: [pending]
+result: pass
 
 ## Summary
 
 total: 6
-passed: 4
-issues: 1
-pending: 1
+passed: 6
+issues: 0
+pending: 0
 skipped: 0
 blocked: 0
 
 ## Gaps
 
 - truth: "With local OpenAI-compatible provider configuration present, `npm run chat:smoke -- \"ERICA 현장실습 모집 공고 알려줘\"` should return a Korean cited smoke response instead of missing-env failure."
-  status: failed
+  status: resolved
   reason: "User reported: `.env` already has the variables. Without sourcing `.env`, the smoke CLI fails with `OPENAI_COMPAT_BASE_URL is required`; after sourcing `.env`, the answerable 현장실습 query returns `hard_refuse` with zero citations instead of a cited Korean answer."
   severity: major
   test: 3
@@ -81,3 +78,4 @@ blocked: 0
     - "Allow the smoke CLI/provider factory to use a configurable or longer timeout for live provider smoke testing."
     - "Add deterministic tests that prove `.env` loading is wired and provider timeouts are reported safely without secrets."
   debug_session: "ses_2120ecfffffe9NaVstXNrQDXX0, ses_2120ece8effevzTT0l6JedojI6"
+  resolution: "03-07 added `import \"dotenv/config\"`, `createSmokeProvider(process.env)`, `OPENAI_COMPAT_TIMEOUT_MS=90000`, deterministic smoke config tests, and the user-confirmed live smoke retest passed."

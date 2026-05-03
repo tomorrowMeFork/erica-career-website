@@ -1,7 +1,7 @@
 ---
 phase: 03-source-grounded-chat-mvp
-verified: 2026-05-03T12:13:51Z
-status: human_needed
+verified: 2026-05-03T13:35:43Z
+status: pass
 score: 10/10 must-haves verified
 overrides_applied: 0
 re_verification:
@@ -15,15 +15,16 @@ re_verification:
 human_verification:
   - test: "Run live smoke chat with a configured OpenAI-compatible provider."
     expected: "A Korean query returns a Korean answer with inline citations, structured citations/freshness metadata, trace_id, and no prompt/source text or secret leakage."
-    why_human: "Live provider behavior and end-to-end model quality cannot be verified without credentials and an external LLM call; this verification intentionally did not read .env or use live provider credentials."
+    result: pass
+    evidence: "User ran `npm run chat:smoke -- \"ERICA 현장실습 모집 공고 알려줘\"` with local provider configuration; output was Korean, `refusal_tier: normal_answer`, included inline citations, structured citation/freshness metadata, confidence, and trace_id, with no provider secrets, prompt text, or raw retrieved chunks printed."
 ---
 
 # Phase 3: Source-Grounded Chat MVP Verification Report
 
 **Phase Goal:** Ship the first usable Korean chat flow that answers from indexed sources with citations and transparent uncertainty.  
-**Verified:** 2026-05-03T12:13:51Z  
-**Status:** human_needed  
-**Re-verification:** Yes — after gap closure for the RAG-04 no-answer verifier block.
+**Verified:** 2026-05-03T13:35:43Z  
+**Status:** pass  
+**Re-verification:** Yes — after gap closure for the RAG-04 no-answer verifier block and the 03-07 live smoke gap.
 
 ## Goal Achievement
 
@@ -40,7 +41,7 @@ human_verification:
 | 7 | Provider boundary is OpenAI-compatible, env-configured, mockable, and secret-safe. | ✓ VERIFIED | `src/chat/openai-compatible-provider.ts` reads only `OPENAI_COMPAT_*` env names through the factory, requires HTTPS, omits credentials, redacts API keys in errors, and exposes safe config without secrets. Tests use injected provider/fetch mocks. |
 | 8 | Every chat cycle writes append-only audit JSONL metadata with source IDs/scores, prompt version, safe model config, timestamps, citation IDs, and guardrails. | ✓ VERIFIED | `src/audit/audit-log.ts` schema and `ChatService.writeAudit()` include retrieved chunks, prompt version, model config, response timestamp, citation IDs, and guardrails; success avoids prompt snapshots while refusal/guardrail/failure paths store limited snapshots. Full tests passed. |
 | 9 | Deterministic Phase 3 eval gate exercises retrieval, citations, refusals, hostile-source isolation, audit path, and optional D-27 judge dimensions without default credentials. | ✓ VERIFIED | `scripts/evaluate-rag-mvp.ts` has no `forceHardRefusal` path. The no-answer eval case uses default evidence policy (`evidencePolicyForCase` only special-cases `forceSoftHedge`). Direct eval inspection returned `ok: true`, `judgeEnabled: false`, no-answer `tier: hard_refuse`, `citations: 0`, `failures: []`. |
-| 10 | Local smoke CLI exists and fails safely when provider env is missing. | ✓ VERIFIED | `scripts/chat-smoke.ts` wires loader → BM25 → OpenAI-compatible provider → ChatService and prints only answer/citations/refusal_tier/confidence/trace_id. `npm run chat:smoke` with no env failed safely naming only `OPENAI_COMPAT_BASE_URL`; no secret values were read or printed. |
+| 10 | Local smoke CLI exists, loads configured provider env for live smoke, and fails safely when provider env is missing. | ✓ VERIFIED | `scripts/chat-smoke.ts` wires loader → BM25 → OpenAI-compatible provider → ChatService and prints only answer/citations/refusal_tier/confidence/trace_id. Missing-env smoke failed safely naming only `OPENAI_COMPAT_BASE_URL`; after 03-07, user-confirmed live smoke returned `normal_answer` with Korean answer, structured citations/freshness metadata, confidence, and trace_id without secret/prompt/raw-source leakage. |
 
 **Score:** 10/10 truths verified
 
@@ -58,7 +59,7 @@ human_verification:
 | `src/chat/chat-service.ts` | Chat orchestration and audit writing | ✓ VERIFIED | Production default evidence policy is used unless explicitly injected; hard refusal bypasses provider and audits refusal metadata. |
 | `src/audit/audit-log.ts` | Append-only metadata audit JSONL | ✓ VERIFIED | Schema-validated append-only audit with metadata-only normal path and limited snapshots for refusal/failure. |
 | `scripts/evaluate-rag-mvp.ts` | Deterministic RAG MVP eval gate | ✓ VERIFIED | No-answer case exercises default policy; optional judge is env-gated and skipped without credentials. |
-| `scripts/chat-smoke.ts` | Local Korean smoke CLI | ✓ VERIFIED | Constructs real service path and safe output shape. |
+| `scripts/chat-smoke.ts` | Local Korean smoke CLI | ✓ VERIFIED | Constructs real service path, loads `.env` via first-line `dotenv/config`, forwards the smoke timeout, and preserves safe output shape. |
 
 ### Key Link Verification
 
@@ -94,6 +95,7 @@ human_verification:
 | Typecheck | `npm run typecheck` | exited 0 | ✓ PASS |
 | Full test suite | `npm test` | 17 files / 133 tests passed | ✓ PASS |
 | Smoke CLI missing env | `npm run chat:smoke` | failed safely: `OPENAI_COMPAT_BASE_URL is required...`; no values printed | ✓ PASS |
+| Live provider smoke | `npm run chat:smoke -- "ERICA 현장실습 모집 공고 알려줘"` | User-confirmed Korean `normal_answer` with inline citations, structured citation/freshness metadata, `confidence`, and `trace_id`; no secrets, prompt text, or raw retrieved chunks printed | ✓ PASS |
 | LSP diagnostics | `lsp_diagnostics /Users/wantap/workspace/Capstone/New/src` | 0 errors; 2 unrelated deprecation hints in Phase 1 source-governance schema | ✓ PASS |
 
 ### Requirements Coverage
@@ -117,21 +119,21 @@ human_verification:
 
 No blocker anti-patterns were found in Phase 3 chat/retrieval/eval files.
 
-### Human Verification Required
+### Human Verification Completed
 
 #### 1. Live provider smoke
 
 **Test:** Configure `OPENAI_COMPAT_BASE_URL`, `OPENAI_COMPAT_API_KEY`, and `OPENAI_COMPAT_MODEL`, then run `npm run chat:smoke -- "ERICA 현장실습 모집 공고 알려줘"`.  
 **Expected:** Korean answer with inline citations, structured citation/freshness metadata, trace_id, and no prompt/source text or secret values printed.  
-**Why human:** This requires a live external provider; verifier did not read `.env` or make live LLM calls.
+**Result:** PASS. User ran the live smoke command with local provider configuration after 03-07; output returned a cited Korean `normal_answer` and safe response fields only.
 
 ### Gaps Summary
 
-No blocking gaps remain. The previous RAG-04 blocker is closed: production-default `ChatService + Bm25Retriever(loadKnowledgeBaseChunks())` now hard-refuses the out-of-domain dorm-menu query via evidence policy (`generic_overlap_only`) without forced thresholds, and deterministic eval exercises that default path. The only remaining item is a live-provider smoke check that cannot be automated without credentials.
+No blocking gaps remain. The previous RAG-04 blocker is closed: production-default `ChatService + Bm25Retriever(loadKnowledgeBaseChunks())` now hard-refuses the out-of-domain dorm-menu query via evidence policy (`generic_overlap_only`) without forced thresholds, and deterministic eval exercises that default path. The previous live-provider smoke gap is also closed by 03-07 and user-confirmed UAT Test 6.
 
-**Verdict:** PASS / no blocker. Overall verification artifact status is `human_needed` only because live provider behavior requires a credentialed human smoke test.
+**Verdict:** PASS / no blocker.
 
 ---
 
-_Verified: 2026-05-03T12:13:51Z_  
+_Verified: 2026-05-03T13:35:43Z_  
 _Verifier: the agent (gsd-verifier)_
