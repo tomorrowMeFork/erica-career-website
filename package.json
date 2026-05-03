@@ -11,6 +11,7 @@
     "ingest:playwright:sources": "tsx scripts/ingest-playwright-sources.ts",
     "verify:knowledge-base": "tsx scripts/verify-knowledge-base.ts",
     "evaluate:rag:mvp": "tsx scripts/evaluate-rag-mvp.ts",
+    "evaluate:personalization": "tsx scripts/evaluate-personalization.ts",
     "chat:smoke": "tsx scripts/chat-smoke.ts"
   },
   "dependencies": {

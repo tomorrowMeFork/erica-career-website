@@ -164,7 +164,7 @@ Plans:
 - [x] 04-03-PLAN.md — Compose Korean citation-bearing match reasons and RecommendationService orchestration over retrieval and ranking.
 
 **Wave 4** *(blocked on Wave 3 completion)*
-- [ ] 04-04-PLAN.md — Add deterministic personalization evaluation CLI, npm script, and full verification gate.
+- [x] 04-04-PLAN.md — Add deterministic personalization evaluation CLI, npm script, and full verification gate.
 
 ### Phase 5: Student-Facing Experience
 

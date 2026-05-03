@@ -2,29 +2,29 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-current_phase: 04
-status: phase_4_wave_3_complete
+current_phase: 05
+status: phase_4_complete
 last_updated: "2026-05-04T00:00:00.000Z"
 progress:
   total_phases: 6
-  completed_phases: 3
+  completed_phases: 4
   total_plans: 20
-  completed_plans: 19
-  percent: 95
+  completed_plans: 20
+  percent: 100
 ---
 
 # State: ERICA Career Chat
 
 **Initialized:** 2026-05-03  
 **Initialization mode:** Manual GSD initialization because `gsd-sdk` was unavailable in the shell.  
-**Current phase:** 04
+**Current phase:** 05
 
 ## Project Reference
 
 See: `.planning/PROJECT.md` (updated 2026-05-03)
 
 **Core value:** Students can ask career and recruitment questions in Korean and receive current, source-cited, personally relevant answers from Hanyang ERICA employment information.  
-**Current focus:** Phase 04 — personalization-and-recommendations
+**Current focus:** Phase 05 — student-facing-experience
 
 ## Artifacts
 
@@ -55,6 +55,7 @@ See: `.planning/PROJECT.md` (updated 2026-05-03)
 | `.planning/phases/04-personalization-and-recommendations/04-01-SUMMARY.md` | Created |
 | `.planning/phases/04-personalization-and-recommendations/04-02-SUMMARY.md` | Created |
 | `.planning/phases/04-personalization-and-recommendations/04-03-SUMMARY.md` | Created |
+| `.planning/phases/04-personalization-and-recommendations/04-04-SUMMARY.md` | Created |
 
 ## Decisions
 
@@ -86,6 +87,7 @@ See: `.planning/PROJECT.md` (updated 2026-05-03)
 - 04-02 no-preference ranking returns `general_recommendation` items and favors active/latest/source-grounded candidates without requiring a profile
 - 04-03 match reasons use fixed Korean templates, inline numeric citations, explicit preference labels only when score evidence exists, and weak-match `일반 안내`/`참고 정보` labels
 - 04-03 RecommendationService composes retrieval, optional preference state, ranking, reason validation, response schema validation, trace IDs, and privacy metadata without exposing raw chunk text or session-only optional free text
+- 04-04 personalization evaluation is deterministic and local-only, covering lifecycle, reranking, no-preference fallback, weak matches, expired downranking, hostile-source safety, and persistence consent without `.env`, live data, crawling, or model providers
 
 ## Active Assumptions
 
@@ -97,6 +99,6 @@ See: `.planning/PROJECT.md` (updated 2026-05-03)
 
 ## Next Action
 
-Phase 4 Wave 3 match reasons and RecommendationService orchestration are complete. Continue with Phase 4 Wave 4 personalization evaluation CLI and verification gate.
+Phase 4 personalization and recommendations are complete. Start Phase 5 through the required UI planning route before implementing student-facing experience work.
 
 Resume file: .planning/phases/04-personalization-and-recommendations/04-CONTEXT.md
