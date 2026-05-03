@@ -444,19 +444,21 @@ export function SafetyDisclaimer() {
 
 | # | Claim | Section | Risk if Wrong |
 |---|-------|---------|---------------|
-| A1 | A new `app/api/operator-status/route.ts` may be useful in addition to a CLI. [ASSUMED] | Recommended Project Structure | If the team wants CLI-only EVAL-04, planner should omit the route and keep status local CLI/documentation only. |
+| A1 | A new `app/api/operator-status/route.ts` may be useful in addition to a CLI. [RESOLVED: CLI-only for Phase 6; route deferred] | Recommended Project Structure | EVAL-04 ships CLI-only. If a route is needed later, the freshness reader is already decoupled and can be wrapped. |
 | A2 | `data/evaluation/phase6-reference-qa.json` is the preferred dataset location. [ASSUMED] | Recommended Project Structure | If project prefers `test/fixtures` or `scripts/fixtures`, move the dataset but keep schema and content. |
 
-## Open Questions
+## Open Questions (RESOLVED)
 
 1. **Should EVAL-04 ship CLI-only or CLI plus local API route?**
-   - What we know: Context permits “local-only status endpoint or CLI command.” [VERIFIED: `06-CONTEXT.md`]
+   - What we know: Context permits "local-only status endpoint or CLI command." [VERIFIED: `06-CONTEXT.md`]
    - What's unclear: Whether a UI/operator route is desired for first user test.
    - Recommendation: Plan CLI first; add route only if low effort and protected from live network/env access. [ASSUMED]
+   - **Resolution (2026-05-04):** EVAL-04 ships CLI-only for Phase 6. No local API route is required. The `scripts/operator-freshness-status.ts` CLI script reads local manifests and prints a safe JSON summary. An optional route is deferred beyond release readiness. Assumption A1 is updated: `app/api/operator-status/route.ts` is no longer a Phase 6 deliverable.
 2. **What stale threshold should freshness status use?**
    - What we know: Manifests have `generated_at` and `fetched_at` timestamps. [VERIFIED: `data/knowledge-base/*/manifest.json`]
    - What's unclear: No locked number of days exists in planning docs.
    - Recommendation: Use conservative configurable defaults in code (for example, fixture data never blocks, collected listings warn after a short threshold) and document that threshold as release-policy configurable. [ASSUMED]
+   - **Resolution (2026-05-04):** Freshness stale threshold uses a documented configurable deterministic default. Fixture data (source IDs starting with `fixture-`) is never considered stale. Collected listing sources warn after 7 days since the latest `fetched_at` value in the manifest. The threshold constant and source-type overrides are exported from `scripts/operator-freshness-status.ts` so release policy can be adjusted without code restructuring. This default is deterministic and requires no env vars or network access.
 
 ## Environment Availability
 

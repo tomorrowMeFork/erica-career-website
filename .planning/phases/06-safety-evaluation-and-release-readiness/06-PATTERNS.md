@@ -10,8 +10,8 @@
 |-------------------|------|-----------|----------------|---------------|
 | `scripts/evaluate-release-readiness.ts` | utility / eval script | request-response + transform | `scripts/evaluate-rag-mvp.ts` | exact |
 | `scripts/evaluate-release-readiness.test.ts` | test | request-response + transform | `scripts/evaluate-rag-mvp.test.ts` | exact |
-| `scripts/evaluate-phase6-safety.ts` | static verifier | file-I/O + transform | `scripts/verify-phase5-ui.ts` | exact |
-| `scripts/evaluate-phase6-safety.test.ts` | test | file-I/O + transform | `scripts/verify-phase5-ui.test.ts` | exact |
+| `scripts/verify-phase6-safety.ts` | static verifier | file-I/O + transform | `scripts/verify-phase5-ui.ts` | exact |
+| `scripts/verify-phase6-safety.test.ts` | test | file-I/O + transform | `scripts/verify-phase5-ui.test.ts` | exact |
 | `data/evaluation/phase6-reference-qa.ts` | fixture / utility | transform | `scripts/evaluate-rag-mvp.ts` | role-match |
 | `src/operations/freshness-status.ts` | service / utility | file-I/O + transform | `src/knowledge-base/jsonl-loader.ts` + `scripts/verify-knowledge-base.ts` | exact |
 | `src/operations/freshness-status.test.ts` | test | file-I/O + transform | `scripts/verify-phase5-ui.test.ts` | role-match |
@@ -243,7 +243,7 @@ expect(judgedPrompts.join("\n")).not.toContain("secret-test-key");
 
 ---
 
-### `scripts/evaluate-phase6-safety.ts` (static verifier, file-I/O + transform)
+### `scripts/verify-phase6-safety.ts` (static verifier, file-I/O + transform)
 
 **Analog:** `scripts/verify-phase5-ui.ts`
 
@@ -303,7 +303,7 @@ if (import.meta.url === `file://${process.argv[1]}`) {
 
 ---
 
-### `scripts/evaluate-phase6-safety.test.ts` (test, file-I/O + transform)
+### `scripts/verify-phase6-safety.test.ts` (test, file-I/O + transform)
 
 **Analog:** `scripts/verify-phase5-ui.test.ts`
 
