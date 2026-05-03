@@ -10,7 +10,8 @@
     "ingest:cdp-pdf:sample": "tsx scripts/ingest-cdp-pdf-sample.ts",
     "ingest:playwright:sources": "tsx scripts/ingest-playwright-sources.ts",
     "verify:knowledge-base": "tsx scripts/verify-knowledge-base.ts",
-    "evaluate:rag:mvp": "tsx scripts/evaluate-rag-mvp.ts"
+    "evaluate:rag:mvp": "tsx scripts/evaluate-rag-mvp.ts",
+    "chat:smoke": "tsx scripts/chat-smoke.ts"
   },
   "dependencies": {
     "cheerio": "^1.2.0",
