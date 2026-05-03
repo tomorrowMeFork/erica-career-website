@@ -15,6 +15,8 @@ const fixtureFetchedAt = "2026-05-03T00:00:00.000Z";
 
 const DEFAULT_COLLECT_MAX_PAGES = 1;
 const DEFAULT_COLLECT_DELAY_MS = 1_200;
+const MAX_COLLECT_MAX_PAGES = 5;
+const MIN_COLLECT_DELAY_MS = 1_200;
 
 type CliArgs = {
   fixture: boolean;
@@ -28,11 +30,7 @@ function readEnvInt(key: string, defaultValue: number): number {
   if (!raw) {
     return defaultValue;
   }
-  const parsed = Number.parseInt(raw, 10);
-  if (!Number.isInteger(parsed) || parsed <= 0) {
-    throw new Error(`${key} must be a positive integer, got: ${raw}`);
-  }
-  return parsed;
+  return parsePositiveInt(raw, key);
 }
 
 async function delay(ms: number): Promise<void> {
@@ -40,7 +38,7 @@ async function delay(ms: number): Promise<void> {
 }
 
 async function runCli(): Promise<void> {
-  const args = parseArgs(process.argv.slice(2));
+  const args = normalizeBounds(parseArgs(process.argv.slice(2)));
   const registry = loadSourceRegistryForIngestion(registryPath);
   const decision = args.fixture ? fixtureOnlyDecision() : assertCanIngestSource(registry, sourceId, "public_html");
   const approvalEvidenceText = args.fixture ? fixtureOnlyApprovalEvidence() : await readFile(approvalRecordPath, "utf8");
@@ -134,6 +132,7 @@ async function runBoundedMultiPageCollection(
       }
 
       console.log(`ibus bounded collection: fetching detail ${entry.canonical_url}`);
+      await delay(args.delay_ms);
       const detailHtml = await fetchApprovedText(decision, entry.canonical_url, {
         approval_evidence_text: approvalEvidenceText,
         timeout_ms: 10_000,
@@ -205,11 +204,7 @@ function parseArgs(argv: readonly string[]): CliArgs {
       if (!value) {
         throw new Error("--pages requires a number");
       }
-      const parsed = Number.parseInt(value, 10);
-      if (!Number.isInteger(parsed) || parsed < 1) {
-        throw new Error("--pages must be a positive integer");
-      }
-      maxPages = parsed;
+      maxPages = parsePositiveInt(value, "--pages");
       index += 1;
       continue;
     }
@@ -218,11 +213,7 @@ function parseArgs(argv: readonly string[]): CliArgs {
       if (!value) {
         throw new Error("--delay requires a number");
       }
-      const parsed = Number.parseInt(value, 10);
-      if (!Number.isInteger(parsed) || parsed < 0) {
-        throw new Error("--delay must be a non-negative integer");
-      }
-      delayMs = parsed;
+      delayMs = parsePositiveInt(value, "--delay");
       index += 1;
       continue;
     }
@@ -235,6 +226,27 @@ function parseArgs(argv: readonly string[]): CliArgs {
     max_pages: maxPages ?? readEnvInt("COLLECT_MAX_PAGES", DEFAULT_COLLECT_MAX_PAGES),
     delay_ms: delayMs ?? readEnvInt("COLLECT_DELAY_MS", DEFAULT_COLLECT_DELAY_MS),
   };
+}
+
+function parsePositiveInt(value: string, label: string): number {
+  if (!/^\d+$/u.test(value)) {
+    throw new Error(`${label} must be a positive integer, got: ${value}`);
+  }
+  const parsed = Number(value);
+  if (!Number.isSafeInteger(parsed) || parsed <= 0) {
+    throw new Error(`${label} must be a positive integer, got: ${value}`);
+  }
+  return parsed;
+}
+
+function normalizeBounds(args: CliArgs): CliArgs {
+  if (args.max_pages > MAX_COLLECT_MAX_PAGES) {
+    throw new Error(`--pages/COLLECT_MAX_PAGES must be <= ${MAX_COLLECT_MAX_PAGES}`);
+  }
+  if (!args.fixture && args.delay_ms < MIN_COLLECT_DELAY_MS) {
+    throw new Error(`--delay/COLLECT_DELAY_MS must be >= ${MIN_COLLECT_DELAY_MS} for live collection`);
+  }
+  return args;
 }
 
 function fixtureOnlyDecision(): IngestionAccessDecision {
