@@ -83,7 +83,7 @@ Plans:
 - [x] 02-05-PLAN.md — Wire approval-gated sample ingestion commands and deterministic JSONL knowledge-base verification.
 
 **Wave 5** *(reopened after `sources.txt` coverage correction)*
-- [ ] 02-06-PLAN.md — Complete authenticated/bounded collection coverage for every `sources.txt` source intent or record evidence-backed blockers.
+- [x] 02-06-PLAN.md — Complete authenticated/bounded collection coverage for every `sources.txt` source intent or record evidence-backed blockers.
 
 ### Phase 3: Source-Grounded Chat MVP
 
