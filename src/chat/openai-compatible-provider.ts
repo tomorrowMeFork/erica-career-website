@@ -67,7 +67,7 @@ export class OpenAiCompatibleChatProvider implements ChatModelProvider {
 
     const payload = await readJsonPayload(response);
     if (!response.ok) {
-      throw new Error(buildProviderErrorMessage(response.status, this.baseUrl.host, payload));
+      throw new Error(buildProviderErrorMessage(response.status, this.baseUrl.host, payload, this.apiKey));
     }
 
     return {
@@ -139,12 +139,19 @@ function extractAssistantContent(payload: unknown): string {
   return content;
 }
 
-function buildProviderErrorMessage(status: number, host: string, payload: unknown): string {
+function buildProviderErrorMessage(status: number, host: string, payload: unknown, apiKey: string): string {
   const providerError = extractProviderError(payload);
   const detail = providerError
-    ? `${providerError.type ?? "provider_error"}: ${providerError.message ?? "unknown provider error"}`
+    ? `${redactProviderErrorText(providerError.type ?? "provider_error", apiKey)}: ${redactProviderErrorText(providerError.message ?? "unknown provider error", apiKey)}`
     : "provider_error: unknown provider error";
   return `OpenAI-compatible chat provider failed with HTTP ${status} from ${host}: ${detail}`;
+}
+
+function redactProviderErrorText(value: string, apiKey: string): string {
+  return value
+    .replaceAll(apiKey, "[redacted]")
+    .replace(/Authorization\s*:\s*Bearer\s+[^\s,;]+/giu, "Authorization: Bearer [redacted]")
+    .replace(/OPENAI_COMPAT_[A-Z_]*\s*=\s*[^\s,;]+/gu, "OPENAI_COMPAT_[redacted]");
 }
 
 function extractProviderError(payload: unknown): OpenAiCompatibleError | undefined {
@@ -170,6 +177,9 @@ function parseHttpsBaseUrl(value: string): URL {
   const parsedUrl = new URL(assertNonEmpty(value, "OPENAI_COMPAT_BASE_URL"));
   if (parsedUrl.protocol !== "https:") {
     throw new Error("OPENAI_COMPAT_BASE_URL must use HTTPS");
+  }
+  if (parsedUrl.username.length > 0 || parsedUrl.password.length > 0 || parsedUrl.search.length > 0 || parsedUrl.hash.length > 0) {
+    throw new Error("OPENAI_COMPAT_BASE_URL must not include credentials, query parameters, or fragments");
   }
   return parsedUrl;
 }

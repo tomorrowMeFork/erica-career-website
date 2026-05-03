@@ -84,14 +84,14 @@ function buildEvidenceMessage(input: BuildChatPromptInput, citationMap: readonly
     const anchor = result.chunk.citation_anchors[0];
     const lines = [
       `<chunk chunk_id="${escapeAttribute(result.chunk.chunk_id)}" citation_number="${citation?.citation_id ?? index + 1}">`,
-      `title: ${sanitizePromptText(result.chunk.title)}`,
-      `official_url: ${sanitizePromptText(anchor?.url ?? result.chunk.canonical_url)}`,
+      `title: ${escapeMarkup(sanitizePromptText(result.chunk.title))}`,
+      `official_url: ${escapeMarkup(sanitizePromptText(anchor?.url ?? result.chunk.canonical_url))}`,
       `fetched_at: ${result.chunk.fetched_at}`,
       ...(result.chunk.posted_at ? [`posted_at: ${result.chunk.posted_at}`] : []),
       ...(result.chunk.deadline_status ? [`deadline_status: ${result.chunk.deadline_status}`] : []),
       ...(anchor?.page_number !== undefined ? [`page_number: ${anchor.page_number}`] : []),
       "text:",
-      sanitizePromptText(result.chunk.text),
+      escapeMarkup(sanitizePromptText(result.chunk.text)),
       "</chunk>",
     ];
     return lines.join("\n");
@@ -124,5 +124,9 @@ function buildCitation(result: RetrievedChunk, citationId: number): ChatCitation
 }
 
 function escapeAttribute(value: string): string {
-  return sanitizePromptText(value).replace(/&/gu, "&amp;").replace(/"/gu, "&quot;").replace(/</gu, "&lt;");
+  return escapeMarkup(sanitizePromptText(value)).replace(/"/gu, "&quot;");
+}
+
+function escapeMarkup(value: string): string {
+  return value.replace(/&/gu, "&amp;").replace(/</gu, "&lt;").replace(/>/gu, "&gt;");
 }
