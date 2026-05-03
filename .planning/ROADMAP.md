@@ -123,7 +123,7 @@ Plans:
 - [x] 03-04-PLAN.md — Implement OpenAI-compatible provider boundary and untrusted retrieved-context prompt builder.
 
 **Wave 4** *(blocked on Wave 3 completion)*
-- [ ] 03-05-PLAN.md — Wire ChatService orchestration and append-only audit logging for every query cycle.
+- [x] 03-05-PLAN.md — Wire ChatService orchestration and append-only audit logging for every query cycle.
 
 **Wave 5** *(blocked on Wave 4 completion)*
 - [ ] 03-06-PLAN.md — Add deterministic Phase 3 RAG evaluation gate and local Korean chat smoke command.

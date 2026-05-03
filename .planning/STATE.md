@@ -4,13 +4,13 @@ milestone: v1.0
 milestone_name: milestone
 current_phase: 03
 status: phase_3_in_progress
-last_updated: "2026-05-03T11:37:04.464Z"
+last_updated: "2026-05-03T11:49:56.000Z"
 progress:
   total_phases: 6
   completed_phases: 2
   total_plans: 15
-  completed_plans: 13
-  percent: 87
+  completed_plans: 14
+  percent: 93
 ---
 
 # State: ERICA Career Chat
@@ -49,6 +49,7 @@ See: `.planning/PROJECT.md` (updated 2026-05-03)
 | `.planning/phases/03-source-grounded-chat-mvp/03-02-SUMMARY.md` | Created |
 | `.planning/phases/03-source-grounded-chat-mvp/03-03-SUMMARY.md` | Created |
 | `.planning/phases/03-source-grounded-chat-mvp/03-04-SUMMARY.md` | Created |
+| `.planning/phases/03-source-grounded-chat-mvp/03-05-SUMMARY.md` | Created |
 | `.planning/phases/03-source-grounded-chat-mvp/03-USER-SETUP.md` | Created |
 
 ## Decisions
@@ -68,6 +69,8 @@ See: `.planning/PROJECT.md` (updated 2026-05-03)
 - 03-04 OpenAI-compatible provider configuration is read from OPENAI_COMPAT_* env values only at construction time and safe config/errors never include the API key
 - 03-04 prompt builder keeps system/developer instructions outside retrieved source text and places hostile chunks only inside untrusted retrieved-context tags
 - 03-04 citation maps are built from RetrievedChunk citation anchors and freshness metadata before model generation, not from model-supplied source labels
+- 03-05 audit records hash user queries by default and store safe model config, retrieved chunk IDs/scores, prompt version, citation IDs, guardrail results, and response timestamps without API keys or full successful prompts
+- 03-05 ChatService skips provider calls for hard refusals and fails closed to guarded hard refusals on hostile, citationless, malformed, or provider-error paths
 
 ## Active Assumptions
 
@@ -79,6 +82,6 @@ See: `.planning/PROJECT.md` (updated 2026-05-03)
 
 ## Next Action
 
-Continue Phase 3 with 03-05 ChatService orchestration and append-only audit logging using the provider boundary, prompt guardrails, evidence policy, and output validation artifacts.
+Continue Phase 3 with 03-06 deterministic RAG evaluation gate and local Korean chat smoke command using the completed ChatService and audit logging flow.
 
 Resume file: None
