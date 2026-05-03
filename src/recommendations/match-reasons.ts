@@ -28,10 +28,10 @@ export function buildMatchReasons(
 
   const reasons: string[] = [];
   if (scoredCandidate.score_breakdown.major_match_score > 0) {
-    reasons.push(`- 맞춤 추천: 전공(${profile.major}) 관련 근거가 공고 정보에서 확인됩니다 ${citationMarker}`);
+    reasons.push(`- 맞춤 추천: 입력한 전공 선호 관련 근거가 공고 정보에서 확인됩니다 ${citationMarker}`);
   }
   if (scoredCandidate.score_breakdown.target_role_match_score > 0) {
-    reasons.push(`- 맞춤 추천: 관심직무(${profile.target_role})와 연결되는 모집/프로그램 단서가 있습니다 ${citationMarker}`);
+    reasons.push(`- 맞춤 추천: 입력한 관심직무 선호와 연결되는 모집/프로그램 단서가 있습니다 ${citationMarker}`);
   }
   if (reasons.length === 0 && scoredCandidate.score_breakdown.optional_preference_score > 0) {
     reasons.push(`- 맞춤 추천: 입력한 선택 선호와 일부 맞는 조건이 확인됩니다 ${citationMarker}`);

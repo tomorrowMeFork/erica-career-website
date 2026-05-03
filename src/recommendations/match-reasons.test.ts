@@ -96,6 +96,37 @@ describe("buildMatchReasons", () => {
     const generalReasons = buildMatchReasons(recommendation({ match_strength: "general_recommendation" }), 1);
     expect(generalReasons.join(" ")).toContain("일반 안내");
   });
+
+  it("does not echo raw profile.major or profile.target_role into generated reasons", () => {
+    const maliciousProfile: PreferenceProfile = {
+      major: "<script>alert('xss')</script>",
+      target_role: "'); DROP TABLE users;--",
+      industry: [],
+      region: [],
+      employment_type: [],
+      deadline_sensitivity: "balanced",
+    };
+
+    const reasons = buildMatchReasons(recommendation(), 1, maliciousProfile);
+    const joined = reasons.join(" ");
+
+    expect(joined).not.toContain("<script>alert('xss')</script>");
+    expect(joined).not.toContain("'); DROP TABLE users;--");
+    expect(joined).toContain("전공");
+    expect(joined).toContain("관심직무");
+    expect(joined).toContain("[1]");
+    expect(validateRecommendationReasons(reasons, [1])).toEqual({ ok: true, reasons });
+  });
+
+  it("uses generic Korean labels for preference-based match reasons", () => {
+    const reasons = buildMatchReasons(recommendation(), 1, profile);
+    const joined = reasons.join(" ");
+
+    expect(joined).toContain("입력한 전공 선호");
+    expect(joined).toContain("입력한 관심직무 선호");
+    expect(joined).not.toContain(profile.major);
+    expect(joined).not.toContain(profile.target_role);
+  });
 });
 
 describe("validateRecommendationReasons", () => {

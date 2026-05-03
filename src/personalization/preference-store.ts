@@ -21,6 +21,7 @@ const consentErrorMessage = "preference persistence requires explicit consent, r
 type StoredPreferenceRecord = {
   profile: PersistentPreferenceProfile;
   storage_scope: "session" | "persistent";
+  expires_at?: Date;
 };
 
 export function requirePreferencePersistenceConsent(consent: unknown): PreferenceConsent {
@@ -44,6 +45,18 @@ export class InMemoryPreferenceStore implements PreferenceStore {
       });
     }
 
+    if (record.storage_scope === "persistent" && record.expires_at !== undefined) {
+      const now = new Date();
+      if (now >= record.expires_at) {
+        this.records.delete(sessionKey);
+        return PreferenceStateSchema.parse({
+          preference_ranking_enabled: false,
+          profile: null,
+          storage_scope: "none",
+        });
+      }
+    }
+
     return PreferenceStateSchema.parse({
       preference_ranking_enabled: true,
       profile: record.profile,
@@ -60,11 +73,14 @@ export class InMemoryPreferenceStore implements PreferenceStore {
   }
 
   async writePersistent(sessionKey: string, profile: unknown, consent: unknown): Promise<void> {
-    requirePreferencePersistenceConsent(consent);
+    const parsedConsent = requirePreferencePersistenceConsent(consent);
     const parsedProfile = PreferenceProfileSchema.parse(profile);
+    const consentedAt = new Date(parsedConsent.consented_at);
+    const expiresAt = new Date(consentedAt.getTime() + parsedConsent.retention_days * 86_400_000);
     this.records.set(sessionKey, {
       profile: toPersistentPreferenceProfile(parsedProfile),
       storage_scope: "persistent",
+      expires_at: expiresAt,
     });
   }
 

@@ -26,10 +26,10 @@ Requirements for the initial release. Each maps to roadmap phases.
 
 ### Personalization
 
-- [ ] **PERS-01**: User can set explicit preferences such as major, target job type, industry, region, employment type, and deadline sensitivity.
-- [ ] **PERS-02**: System ranks or filters recommendations using explicit preferences and explains the match reasons.
-- [ ] **PERS-03**: User can update or clear personalization preferences.
-- [ ] **PERS-04**: System can answer without personalization when the user has not provided preferences.
+- [x] **PERS-01**: User can set explicit preferences such as major, target job type, industry, region, employment type, and deadline sensitivity.
+- [x] **PERS-02**: System ranks or filters recommendations using explicit preferences and explains the match reasons.
+- [x] **PERS-03**: User can update or clear personalization preferences.
+- [x] **PERS-04**: System can answer without personalization when the user has not provided preferences.
 
 ### User Experience
 
@@ -43,10 +43,10 @@ Requirements for the initial release. Each maps to roadmap phases.
 
 - [ ] **SAFE-01**: System displays that answers are informational and users should verify important details on official source pages.
 - [ ] **SAFE-02**: System does not claim official Hanyang endorsement or guaranteed job outcomes.
-- [ ] **SAFE-03**: System stores only the minimum personalization data needed for MVP behavior.
-- [ ] **SAFE-04**: System provides a visible way to clear stored preferences and chat history if persistence exists.
+- [x] **SAFE-03**: System stores only the minimum personalization data needed for MVP behavior.
+- [x] **SAFE-04**: System provides a visible way to clear stored preferences and chat history if persistence exists.
 - [ ] **SAFE-05**: Scheduled crawling is blocked until source access rules and load expectations are reviewed.
-- [ ] **SAFE-06**: Personalization storage requires explicit consent, retention rules, and deletion behavior before user preferences or chat history are persisted.
+- [x] **SAFE-06**: Personalization storage requires explicit consent, retention rules, and deletion behavior before user preferences or chat history are persisted.
 
 ### Evaluation and Operations
 
@@ -103,10 +103,10 @@ Which phases cover which requirements. Updated during roadmap creation.
 | RAG-04 | Phase 3 | Complete |
 | RAG-05 | Phase 3 | Complete |
 | RAG-06 | Phase 3 | Complete |
-| PERS-01 | Phase 4 | Pending |
-| PERS-02 | Phase 4 | Pending |
-| PERS-03 | Phase 4 | Pending |
-| PERS-04 | Phase 4 | Pending |
+| PERS-01 | Phase 4 | Complete |
+| PERS-02 | Phase 4 | Complete |
+| PERS-03 | Phase 4 | Complete |
+| PERS-04 | Phase 4 | Complete |
 | UX-01 | Phase 5 | Pending |
 | UX-02 | Phase 5 | Pending |
 | UX-03 | Phase 5 | Pending |
@@ -114,10 +114,10 @@ Which phases cover which requirements. Updated during roadmap creation.
 | UX-05 | Phase 5 | Pending |
 | SAFE-01 | Phase 6 | Pending |
 | SAFE-02 | Phase 6 | Pending |
-| SAFE-03 | Phase 4 | Pending |
-| SAFE-04 | Phase 4 | Pending |
+| SAFE-03 | Phase 4 | Complete |
+| SAFE-04 | Phase 4 | Complete |
 | SAFE-05 | Phase 1 | Pending |
-| SAFE-06 | Phase 4 | Pending |
+| SAFE-06 | Phase 4 | Complete |
 | EVAL-01 | Phase 6 | Pending |
 | EVAL-02 | Phase 6 | Pending |
 | EVAL-03 | Phase 6 | Pending |
@@ -132,4 +132,4 @@ Which phases cover which requirements. Updated during roadmap creation.
 
 ---
 *Requirements defined: 2026-05-03*  
-*Last updated: 2026-05-03 after initial definition*
+*Last updated: 2026-05-04 after Phase 4 security review fixes*

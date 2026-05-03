@@ -99,4 +99,56 @@ describe("InMemoryPreferenceStore", () => {
     });
     expect((await store.read("session-b")).profile?.major).toBe("경영학부");
   });
+
+  it("returns persistent profile before retention expires", async () => {
+    const store = new InMemoryPreferenceStore();
+
+    const futureConsent = {
+      consented_at: "2099-12-01T00:00:00.000Z",
+      retention_days: 90,
+      deletion_supported: true,
+    };
+
+    await store.writePersistent("session-retention", profile, futureConsent);
+
+    const state = await store.read("session-retention");
+    expect(state.preference_ranking_enabled).toBe(true);
+    expect(state.storage_scope).toBe("persistent");
+    expect(state.profile?.major).toBe("컴퓨터학부");
+  });
+
+  it("clears persistent profile and returns empty state after retention expires", async () => {
+    const store = new InMemoryPreferenceStore();
+
+    const expiredConsent = {
+      consented_at: "2020-01-01T00:00:00.000Z",
+      retention_days: 1,
+      deletion_supported: true,
+    };
+
+    await store.writePersistent("session-expired", profile, expiredConsent);
+
+    await expect(store.read("session-expired")).resolves.toEqual({
+      preference_ranking_enabled: false,
+      profile: null,
+      storage_scope: "none",
+    });
+
+    await expect(store.read("session-expired")).resolves.toEqual({
+      preference_ranking_enabled: false,
+      profile: null,
+      storage_scope: "none",
+    });
+  });
+
+  it("does not apply retention expiry to session-scoped records", async () => {
+    const store = new InMemoryPreferenceStore();
+
+    await store.writeSession("session-only", profile);
+
+    const state = await store.read("session-only");
+    expect(state.preference_ranking_enabled).toBe(true);
+    expect(state.storage_scope).toBe("session");
+    expect(state.profile?.major).toBe("컴퓨터학부");
+  });
 });
