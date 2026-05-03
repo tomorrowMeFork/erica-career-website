@@ -150,6 +150,22 @@ Plans:
 
 **Parallelization:** Preference UI, ranking logic, and match-reason templates can be implemented independently after the preference schema is stable.
 
+**Plans:** 4 plans
+
+Plans:
+
+**Wave 1**
+- [ ] 04-01-PLAN.md — Create explicit preference contracts, session-first lifecycle service, and consent-gated storage boundary.
+
+**Wave 2** *(blocked on Wave 1 completion)*
+- [ ] 04-02-PLAN.md — Add recommendation response contracts, source-quality scoring, and deterministic score-based preference/no-preference ranking.
+
+**Wave 3** *(blocked on Wave 2 completion)*
+- [ ] 04-03-PLAN.md — Compose Korean citation-bearing match reasons and RecommendationService orchestration over retrieval and ranking.
+
+**Wave 4** *(blocked on Wave 3 completion)*
+- [ ] 04-04-PLAN.md — Add deterministic personalization evaluation CLI, npm script, and full verification gate.
+
 ### Phase 5: Student-Facing Experience
 
 **Goal:** Turn the functional assistant into a polished Korean-first student product with trustworthy source presentation.
