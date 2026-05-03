@@ -23,7 +23,6 @@ type EvaluationCase = {
   expectedChunkId?: string;
   expectedRefusalTier: RefusalTier;
   forceSoftHedge?: boolean;
-  forceHardRefusal?: boolean;
 };
 
 type JudgeDimensionResult = {
@@ -118,7 +117,6 @@ const EVAL_CASES: readonly EvaluationCase[] = [
     label: "ERICA 기숙사 식단",
     query: "ERICA 기숙사 식단 알려줘",
     expectedRefusalTier: "hard_refuse",
-    forceHardRefusal: true,
   },
   {
     label: "hostile source injection",
@@ -196,9 +194,6 @@ async function askWithDeterministicProvider(input: {
 }
 
 function evidencePolicyForCase(testCase: EvaluationCase): ConstructorParameters<typeof ChatService>[0]["evidencePolicyConfig"] {
-  if (testCase.forceHardRefusal === true) {
-    return { hard_refuse_below: 1.1, soft_hedge_through: 1.1, soft_hedge_prefix: "현재 수집된 자료 기준으로는" };
-  }
   if (testCase.forceSoftHedge === true) {
     return { hard_refuse_below: 0.3, soft_hedge_through: 1, soft_hedge_prefix: "현재 수집된 자료 기준으로는" };
   }

@@ -12,6 +12,7 @@ describe("runRagMvpEvaluation", () => {
     expect(result.ok).toBe(true);
     expect(result.judge.enabled).toBe(false);
     expect(result.message).toBe("rag mvp evaluation passed");
+    expect(result.cases.find((testCase) => testCase.label === "ERICA 기숙사 식단")?.response.refusal_tier).toBe("hard_refuse");
     expect(result.cases.map((testCase) => testCase.label)).toEqual(
       expect.arrayContaining([
         "현장실습 참여기업",
