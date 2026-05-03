@@ -36,4 +36,26 @@ describe("/api/chat", () => {
     expect(text).toContain("요청을 처리하지 못했어요");
     expect(text).not.toContain("OPENAI_COMPAT_API_KEY");
   });
+
+  it("returns 400 for invalid request schema input", async () => {
+    const ask = vi.fn();
+    overrideServicesForTest({ chat: { ask } });
+
+    const response = await POST(new Request("https://app.test/api/chat", { method: "POST", body: JSON.stringify({ query: "", top_k: 99 }) }));
+    const text = await response.text();
+
+    expect(response.status).toBe(400);
+    expect(text).toContain("요청 형식이 올바르지 않아요");
+    expect(ask).not.toHaveBeenCalled();
+  });
+
+  it("returns 400 for malformed JSON", async () => {
+    const ask = vi.fn();
+    overrideServicesForTest({ chat: { ask } });
+
+    const response = await POST(new Request("https://app.test/api/chat", { method: "POST", body: "{" }));
+
+    expect(response.status).toBe(400);
+    expect(ask).not.toHaveBeenCalled();
+  });
 });
