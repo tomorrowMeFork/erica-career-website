@@ -116,7 +116,7 @@ Plans:
 - [x] 03-01-PLAN.md — Create chat response contracts and fail-closed Phase 2 JSONL chunk loader.
 
 **Wave 2** *(blocked on Wave 1 completion)*
-- [ ] 03-02-PLAN.md — Implement BM25-style Korean retrieval with synonym expansion, boilerplate exclusion, and freshness/deadline ranking.
+- [x] 03-02-PLAN.md — Implement BM25-style Korean retrieval with synonym expansion, boilerplate exclusion, and freshness/deadline ranking.
 
 **Wave 3** *(blocked on Wave 2 completion)*
 - [ ] 03-03-PLAN.md — Implement evidence-tier policy and fail-closed citation/output validation.

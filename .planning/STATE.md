@@ -4,13 +4,13 @@ milestone: v1.0
 milestone_name: milestone
 current_phase: 03
 status: phase_3_in_progress
-last_updated: "2026-05-03T11:13:00.000Z"
+last_updated: "2026-05-03T11:22:13.779Z"
 progress:
   total_phases: 6
   completed_phases: 2
   total_plans: 15
-  completed_plans: 10
-  percent: 67
+  completed_plans: 11
+  percent: 73
 ---
 
 # State: ERICA Career Chat
@@ -46,6 +46,7 @@ See: `.planning/PROJECT.md` (updated 2026-05-03)
 | `.planning/phases/02-ingestion-and-knowledge-base/source-coverage-status.md` | Created |
 | `.planning/phases/03-source-grounded-chat-mvp/03-CONTEXT.md` | Created |
 | `.planning/phases/03-source-grounded-chat-mvp/03-01-SUMMARY.md` | Created |
+| `.planning/phases/03-source-grounded-chat-mvp/03-02-SUMMARY.md` | Created |
 
 ## Decisions
 
@@ -56,6 +57,9 @@ See: `.planning/PROJECT.md` (updated 2026-05-03)
 - Registry-backed gate coverage tests verify all 6 sources are approved only through expected methods
 - 03-01 keeps raw retrieved source text out of normal chat response contracts while preserving structured citations and freshness metadata
 - 03-01 loads verified Phase 2 JSONL chunks through KnowledgeChunkSchema and fails closed on invalid citations or source trust markers
+- 03-02 preserves the BM25-style lexical baseline behind a Retriever interface and defers embeddings, vector stores, LLM calls, and semantic retrieval
+- 03-02 excludes boilerplate-only chunks from normal retrieval results when answerable or mixed evidence exists, while keeping mixed service pages retrievable with a penalty
+- 03-02 boosts active listings and penalizes expired listing-like evidence without penalizing unknown-deadline campus-service or guidebook chunks
 
 ## Active Assumptions
 
@@ -67,6 +71,6 @@ See: `.planning/PROJECT.md` (updated 2026-05-03)
 
 ## Next Action
 
-Continue Phase 3 with 03-02 retrieval implementation using the 03-01 chat contracts and fail-closed KB loader.
+Continue Phase 3 with 03-03 evidence-tier policy and fail-closed citation/output validation using 03-02 retrieval scores and ranking features.
 
 Resume file: None
