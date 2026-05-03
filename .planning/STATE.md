@@ -2,9 +2,9 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-current_phase: 05
-status: phase_5_complete
-last_updated: "2026-05-03T20:21:05.013Z"
+current_phase: 06
+status: phase_6_context_complete
+last_updated: "2026-05-04T12:00:00.000Z"
 progress:
   total_phases: 6
   completed_phases: 5
@@ -17,14 +17,14 @@ progress:
 
 **Initialized:** 2026-05-03  
 **Initialization mode:** Manual GSD initialization because `gsd-sdk` was unavailable in the shell.  
-**Current phase:** 05
+**Current phase:** 06
 
 ## Project Reference
 
 See: `.planning/PROJECT.md` (updated 2026-05-03)
 
 **Core value:** Students can ask career and recruitment questions in Korean and receive current, source-cited, personally relevant answers from Hanyang ERICA employment information.  
-**Current focus:** Phase 05 — student-facing-experience
+**Current focus:** Phase 06 — safety, evaluation, and release readiness
 
 ## Artifacts
 
@@ -56,6 +56,8 @@ See: `.planning/PROJECT.md` (updated 2026-05-03)
 | `.planning/phases/04-personalization-and-recommendations/04-02-SUMMARY.md` | Created |
 | `.planning/phases/04-personalization-and-recommendations/04-03-SUMMARY.md` | Created |
 | `.planning/phases/04-personalization-and-recommendations/04-04-SUMMARY.md` | Created |
+| `.planning/phases/06-safety-evaluation-and-release-readiness/06-CONTEXT.md` | Created |
+| `.planning/phases/06-safety-evaluation-and-release-readiness/06-DISCUSSION-LOG.md` | Created |
 
 ## Decisions
 
@@ -88,6 +90,14 @@ See: `.planning/PROJECT.md` (updated 2026-05-03)
 - 04-03 match reasons use fixed Korean templates, inline numeric citations, explicit preference labels only when score evidence exists, and weak-match `일반 안내`/`참고 정보` labels
 - 04-03 RecommendationService composes retrieval, optional preference state, ranking, reason validation, response schema validation, trace IDs, and privacy metadata without exposing raw chunk text or session-only optional free text
 - 04-04 personalization evaluation is deterministic and local-only, covering lifecycle, reranking, no-preference fallback, weak matches, expired downranking, hostile-source safety, and persistence consent without `.env`, live data, crawling, or model providers
+- 06-01 safety disclaimer is Korean-first, informational-use, references official source pages, and never claims official Hanyang endorsement or guaranteed outcomes
+- 06-02 evaluation suite is deterministic/local by default with optional env-gated live/provider checks only when configured, no `.env` reading/printing
+- 06-03 reference QA dataset covers CDP usage, listings/deadlines, success stories, guidebook/PDF, no-answer/refusal, personalization recommendation, and hostile-source/prompt injection
+- 06-04 retrieval evaluation measures expected source/chunk in top results and freshness/deadline metadata preservation
+- 06-05 answer evaluation checks citation accuracy, faithfulness, Korean quality, refusal behavior, unsafe claims, and source-link/freshness preservation
+- 06-06 freshness/operator status exposes local ingestion manifest freshness, last successful sample ingestion/eval status, and stale/unknown warnings without production crawling
+- 06-07 manual release checklist covers one ingestion-to-cited-answer E2E path, web UI, preference clear, privacy controls, no-answer, hostile-source, mobile/desktop citation inspection, disclaimer, no-endorsement, and no-secret leakage
+- 06-08 no production crawling, SSO, official endorsement claims, saved jobs/reminders/resume tools, or private/authenticated pages in Phase 6
 
 ## Active Assumptions
 
@@ -99,6 +109,6 @@ See: `.planning/PROJECT.md` (updated 2026-05-03)
 
 ## Next Action
 
-Phase 5 student-facing experience is complete. Next action: start Phase 6 safety, evaluation, and release readiness when ready.
+Phase 6 context is complete. Next action: run `/gsd-plan-phase 6` to create detailed implementation plans for safety disclaimers, evaluation suite, freshness status, and release checklist.
 
 Resume file: None
