@@ -1,7 +1,12 @@
 {
   "type": "module",
   "scripts": {
+    "dev": "next dev",
+    "build:web": "next build",
+    "start:web": "next start",
     "test": "vitest run",
+    "test:ui": "vitest run components app lib --environment jsdom",
+    "qa:web": "playwright test",
     "typecheck": "tsc --noEmit",
     "validate:sources": "tsx src/source-governance/validate-source-registry.ts .planning/phases/01-source-discovery-and-governance/source-registry.yaml",
     "discover:cdp": "tsx scripts/discover-cdp-seed-scope.ts",
@@ -12,18 +17,34 @@
     "verify:knowledge-base": "tsx scripts/verify-knowledge-base.ts",
     "evaluate:rag:mvp": "tsx scripts/evaluate-rag-mvp.ts",
     "evaluate:personalization": "tsx scripts/evaluate-personalization.ts",
-    "chat:smoke": "tsx scripts/chat-smoke.ts"
+    "chat:smoke": "tsx scripts/chat-smoke.ts",
+    "verify:phase5-ui": "tsx scripts/verify-phase5-ui.ts"
   },
   "dependencies": {
+    "@tailwindcss/postcss": "4.2.4",
     "cheerio": "^1.2.0",
     "dotenv": "^17.4.2",
+    "lucide-react": "1.14.0",
+    "next": "16.2.4",
     "p-limit": "^7.3.0",
     "pdf-parse": "^2.4.5",
+    "postcss": "8.5.13",
+    "react": "19.2.5",
+    "react-dom": "19.2.5",
+    "tailwindcss": "4.2.4",
     "yaml": "^2.8.4",
     "zod": "^4.4.2"
   },
   "devDependencies": {
     "@types/node": "^24.10.0",
+    "@types/react": "19.2.14",
+    "@types/react-dom": "19.2.3",
+    "@testing-library/react": "16.3.2",
+    "@testing-library/user-event": "14.6.1",
+    "@playwright/test": "1.59.1",
+    "eslint": "10.3.0",
+    "eslint-config-next": "16.2.4",
+    "jsdom": "29.1.1",
     "playwright": "^1.59.1",
     "tsx": "^4.20.6",
     "typescript": "^5.9.3",
