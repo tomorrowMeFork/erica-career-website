@@ -1,5 +1,3 @@
-"use client";
-
 export function ChatComposer({ query, onQueryChange, onSubmit, isLoading, maxLength = 2000 }: { query: string; onQueryChange: (query: string) => void; onSubmit: () => void; isLoading: boolean; maxLength?: number }) {
   const disabled = isLoading || query.trim().length === 0;
   return (
