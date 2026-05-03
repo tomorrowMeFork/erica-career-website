@@ -4,13 +4,13 @@ milestone: v1.0
 milestone_name: milestone
 current_phase: 03
 status: phase_3_in_progress
-last_updated: "2026-05-03T11:22:13.779Z"
+last_updated: "2026-05-03T11:29:31.755Z"
 progress:
   total_phases: 6
   completed_phases: 2
   total_plans: 15
-  completed_plans: 11
-  percent: 73
+  completed_plans: 12
+  percent: 80
 ---
 
 # State: ERICA Career Chat
@@ -47,6 +47,7 @@ See: `.planning/PROJECT.md` (updated 2026-05-03)
 | `.planning/phases/03-source-grounded-chat-mvp/03-CONTEXT.md` | Created |
 | `.planning/phases/03-source-grounded-chat-mvp/03-01-SUMMARY.md` | Created |
 | `.planning/phases/03-source-grounded-chat-mvp/03-02-SUMMARY.md` | Created |
+| `.planning/phases/03-source-grounded-chat-mvp/03-03-SUMMARY.md` | Created |
 
 ## Decisions
 
@@ -60,6 +61,8 @@ See: `.planning/PROJECT.md` (updated 2026-05-03)
 - 03-02 preserves the BM25-style lexical baseline behind a Retriever interface and defers embeddings, vector stores, LLM calls, and semantic retrieval
 - 03-02 excludes boilerplate-only chunks from normal retrieval results when answerable or mixed evidence exists, while keeping mixed service pages retrievable with a penalty
 - 03-02 boosts active listings and penalizes expired listing-like evidence without penalizing unknown-deadline campus-service or guidebook chunks
+- 03-03 evidence policy implements D-17 through D-20 exact thresholds and hard-refusal overrides for zero chunks, boilerplate-only evidence, and missing citations
+- 03-03 output validation fails closed on schema errors, Korean-first violations, citationless factual answers, invented citation markers, unsafe endorsement/outcome claims, and prompt-injection compliance phrases
 
 ## Active Assumptions
 
@@ -71,6 +74,6 @@ See: `.planning/PROJECT.md` (updated 2026-05-03)
 
 ## Next Action
 
-Continue Phase 3 with 03-03 evidence-tier policy and fail-closed citation/output validation using 03-02 retrieval scores and ranking features.
+Continue Phase 3 with 03-04 provider boundary and untrusted retrieved-context prompt builder using 03-03 evidence policy and output validation guardrails.
 
 Resume file: None
