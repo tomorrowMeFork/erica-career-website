@@ -21,6 +21,29 @@ describe("preference components", () => {
     expect(screen.getByText(/현재 세션 전용/u)).toBeTruthy();
   });
 
+  it("includes controlled optional fields in save payloads", () => {
+    const onSet = vi.fn();
+    render(<PreferencePanel state={{ preference_ranking_enabled: false, profile: null, storage_scope: "none" }} sessionKey="session-a" onSet={onSet} onUpdate={vi.fn()} onClear={vi.fn()} onRead={vi.fn()} />);
+    fireEvent.change(screen.getByLabelText("전공"), { target: { value: "컴퓨터학부" } });
+    fireEvent.change(screen.getByLabelText("희망 직무"), { target: { value: "백엔드 개발자" } });
+    fireEvent.click(screen.getByText("선택 조건 더보기"));
+    fireEvent.change(screen.getByLabelText("산업"), { target: { value: "IT, 교육" } });
+    fireEvent.change(screen.getByLabelText("지역"), { target: { value: "서울" } });
+    fireEvent.change(screen.getByLabelText("고용 형태"), { target: { value: "인턴" } });
+    fireEvent.change(screen.getByLabelText("마감 민감도"), { target: { value: "urgent_first" } });
+    fireEvent.change(screen.getByLabelText("추가 메모"), { target: { value: "현장실습 선호" } });
+    fireEvent.click(screen.getByRole("button", { name: "추천 조건 저장" }));
+    expect(onSet).toHaveBeenCalledWith("session-a", {
+      major: "컴퓨터학부",
+      target_role: "백엔드 개발자",
+      industry: ["IT", "교육"],
+      region: ["서울"],
+      employment_type: ["인턴"],
+      deadline_sensitivity: "urgent_first",
+      session_only_optional_text: "현장실습 선호",
+    });
+  });
+
   it("shows storage labels and safe settings confirmations", async () => {
     render(<><StorageScopeChip storageScope="session" rankingEnabled /><StorageScopeChip storageScope="none" /><StorageScopeChip storageScope="persistent" /><SettingsMenu onClearPreferences={vi.fn()} onClearChatHistory={vi.fn()} /></>);
     expect(screen.getByText(/현재 세션에만 저장/u)).toBeTruthy();
