@@ -4,6 +4,7 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 
 import { StudentDashboard } from "../dashboard/student-dashboard.js";
 import { AssistantAnswer } from "./assistant-answer.js";
+import { ChatMessageList } from "./chat-message-list.js";
 
 const citation = { citation_id: 1, chunk_id: "chunk-1", record_id: "record-1", source_id: "ibus", title: "채용 공고", url: "https://example.edu/jobs", fetched_at: "2026-05-03T00:00:00.000Z", posted_at: "2026-05-01T00:00:00.000Z", deadline_status: "active" as const };
 const recommendation = { recommendation_id: "rec-1", chunk_id: "chunk-1", record_id: "record-1", source_id: "ibus", title: "백엔드 인턴", category: "jobs", url: "https://example.edu/jobs", fetched_at: "2026-05-03T00:00:00.000Z", posted_at: "2026-05-01T00:00:00.000Z", deadline_status: "active" as const, score: 0.9, match_strength: "personalized_match" as const, match_reasons: ["전공 조건과 연결됩니다 [1]"], score_breakdown: { base_retrieval_score: 0.5, major_match_score: 0.2, target_role_match_score: 0.1, optional_preference_score: 0, source_quality_score: 0.1, freshness_score: 0, final_score: 0.9 }, citations: [citation] };
@@ -33,6 +34,20 @@ describe("chat dashboard components", () => {
     render(<AssistantAnswer response={{ answer: "근거 부족", citations: [], refusal_tier: "hard_refuse", confidence: 0, trace_id: "trace" }} recommendations={[recommendation]} onOpenCitation={vi.fn()} />);
     expect(screen.getByText("확인된 근거가 부족해 답변할 수 없어요. 공식 출처에서 최신 정보를 확인해 주세요.")).toBeTruthy();
     expect(screen.getByText("맞춤 추천 · 점수 0.90")).toBeTruthy();
+    expect(screen.getByText(/게시일 2026-05-01 · 수집일 2026-05-03/u)).toBeTruthy();
+    expect(screen.getByRole("link", { name: "백엔드 인턴 공식 페이지 새 창으로 열기" })).toBeTruthy();
     expect(screen.getByText("전공 조건과 연결됩니다 [1]")).toBeTruthy();
+  });
+
+  it("scopes repeated citation IDs to the assistant message that opened them", () => {
+    const firstCitation = { ...citation, chunk_id: "chunk-a", title: "첫 번째 답변 출처", url: "https://example.edu/first" };
+    const secondCitation = { ...citation, chunk_id: "chunk-b", title: "두 번째 답변 출처", url: "https://example.edu/second" };
+    const onOpenCitation = vi.fn();
+    render(<ChatMessageList messages={[
+      { id: "a1", role: "assistant", status: "complete", response: { answer: "첫 답변 [1]", citations: [firstCitation], refusal_tier: "normal_answer", confidence: 0.8, trace_id: "trace-a" } },
+      { id: "a2", role: "assistant", status: "complete", response: { answer: "둘째 답변 [1]", citations: [secondCitation], refusal_tier: "normal_answer", confidence: 0.8, trace_id: "trace-b" } },
+    ]} onOpenCitation={onOpenCitation} />);
+    fireEvent.click(screen.getAllByRole("button", { name: "1번 출처 보기" })[1]);
+    expect(onOpenCitation).toHaveBeenCalledWith(secondCitation, [secondCitation], expect.any(HTMLButtonElement));
   });
 });

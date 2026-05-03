@@ -1,5 +1,3 @@
-"use client";
-
 export function CitationTrigger({ count, onOpen }: { count: number; onOpen: (opener?: HTMLElement) => void }) {
   if (count === 0) return null;
   return (
