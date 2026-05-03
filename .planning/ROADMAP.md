@@ -155,7 +155,7 @@ Plans:
 Plans:
 
 **Wave 1**
-- [ ] 04-01-PLAN.md — Create explicit preference contracts, session-first lifecycle service, and consent-gated storage boundary.
+- [x] 04-01-PLAN.md — Create explicit preference contracts, session-first lifecycle service, and consent-gated storage boundary.
 
 **Wave 2** *(blocked on Wave 1 completion)*
 - [ ] 04-02-PLAN.md — Add recommendation response contracts, source-quality scoring, and deterministic score-based preference/no-preference ranking.

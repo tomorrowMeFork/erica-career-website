@@ -2,29 +2,29 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-current_phase: 03
-status: phase_3_complete
-last_updated: "2026-05-03T15:49:48.103Z"
+current_phase: 04
+status: phase_4_wave_1_complete
+last_updated: "2026-05-04T00:00:00.000Z"
 progress:
   total_phases: 6
   completed_phases: 3
   total_plans: 20
-  completed_plans: 16
-  percent: 80
+  completed_plans: 17
+  percent: 85
 ---
 
 # State: ERICA Career Chat
 
 **Initialized:** 2026-05-03  
 **Initialization mode:** Manual GSD initialization because `gsd-sdk` was unavailable in the shell.  
-**Current phase:** 03
+**Current phase:** 04
 
 ## Project Reference
 
 See: `.planning/PROJECT.md` (updated 2026-05-03)
 
 **Core value:** Students can ask career and recruitment questions in Korean and receive current, source-cited, personally relevant answers from Hanyang ERICA employment information.  
-**Current focus:** Phase 03 — source-grounded-chat-mvp
+**Current focus:** Phase 04 — personalization-and-recommendations
 
 ## Artifacts
 
@@ -52,6 +52,7 @@ See: `.planning/PROJECT.md` (updated 2026-05-03)
 | `.planning/phases/03-source-grounded-chat-mvp/03-05-SUMMARY.md` | Created |
 | `.planning/phases/03-source-grounded-chat-mvp/03-06-SUMMARY.md` | Created |
 | `.planning/phases/03-source-grounded-chat-mvp/03-USER-SETUP.md` | Created |
+| `.planning/phases/04-personalization-and-recommendations/04-01-SUMMARY.md` | Created |
 
 ## Decisions
 
@@ -74,6 +75,9 @@ See: `.planning/PROJECT.md` (updated 2026-05-03)
 - 03-05 ChatService skips provider calls for hard refusals and fails closed to guarded hard refusals on hostile, citationless, malformed, or provider-error paths
 - 03-06 default evaluation uses deterministic local retrieval/mock checks with optional OPENAI_COMPAT_* D-27 judging only when all judge env names are present
 - 03-06 chat smoke prints only answer, citations, refusal_tier, confidence, and trace_id while redacting provider errors
+- 04-01 preference lifecycle starts from explicit `major` and `target_role`, keeps optional free text session-only, and returns only minimized structured preference state
+- 04-01 persistent preference writes fail closed unless consent timestamp, bounded retention, and deletion support are valid
+- 04-01 clearing preferences removes stored structured profile state for the selected session and disables preference-based ranking
 
 ## Active Assumptions
 
@@ -85,6 +89,6 @@ See: `.planning/PROJECT.md` (updated 2026-05-03)
 
 ## Next Action
 
-Phase 3 source-grounded chat MVP is complete. Run Phase 3 UAT/verification, then plan Phase 4 personalization and recommendations.
+Phase 4 Wave 1 preference lifecycle foundation is complete. Continue with Phase 4 Wave 2 recommendation response contracts and ranking.
 
 Resume file: .planning/phases/04-personalization-and-recommendations/04-CONTEXT.md
