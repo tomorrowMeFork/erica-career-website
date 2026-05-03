@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 current_phase: 03
-status: phase_3_in_progress
-last_updated: "2026-05-03T11:49:56.000Z"
+status: phase_3_complete
+last_updated: "2026-05-03T11:59:12.000Z"
 progress:
   total_phases: 6
   completed_phases: 2
   total_plans: 15
-  completed_plans: 14
-  percent: 93
+  completed_plans: 15
+  percent: 100
 ---
 
 # State: ERICA Career Chat
@@ -50,6 +50,7 @@ See: `.planning/PROJECT.md` (updated 2026-05-03)
 | `.planning/phases/03-source-grounded-chat-mvp/03-03-SUMMARY.md` | Created |
 | `.planning/phases/03-source-grounded-chat-mvp/03-04-SUMMARY.md` | Created |
 | `.planning/phases/03-source-grounded-chat-mvp/03-05-SUMMARY.md` | Created |
+| `.planning/phases/03-source-grounded-chat-mvp/03-06-SUMMARY.md` | Created |
 | `.planning/phases/03-source-grounded-chat-mvp/03-USER-SETUP.md` | Created |
 
 ## Decisions
@@ -71,6 +72,8 @@ See: `.planning/PROJECT.md` (updated 2026-05-03)
 - 03-04 citation maps are built from RetrievedChunk citation anchors and freshness metadata before model generation, not from model-supplied source labels
 - 03-05 audit records hash user queries by default and store safe model config, retrieved chunk IDs/scores, prompt version, citation IDs, guardrail results, and response timestamps without API keys or full successful prompts
 - 03-05 ChatService skips provider calls for hard refusals and fails closed to guarded hard refusals on hostile, citationless, malformed, or provider-error paths
+- 03-06 default evaluation uses deterministic local retrieval/mock checks with optional OPENAI_COMPAT_* D-27 judging only when all judge env names are present
+- 03-06 chat smoke prints only answer, citations, refusal_tier, confidence, and trace_id while redacting provider errors
 
 ## Active Assumptions
 
@@ -82,6 +85,6 @@ See: `.planning/PROJECT.md` (updated 2026-05-03)
 
 ## Next Action
 
-Continue Phase 3 with 03-06 deterministic RAG evaluation gate and local Korean chat smoke command using the completed ChatService and audit logging flow.
+Phase 3 source-grounded chat MVP is complete. Run Phase 3 UAT/verification, then plan Phase 4 personalization and recommendations.
 
 Resume file: None
