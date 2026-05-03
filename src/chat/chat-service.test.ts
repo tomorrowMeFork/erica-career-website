@@ -6,6 +6,8 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 
 import { ChatAuditRecordSchema } from "../audit/audit-log.js";
 import type { KnowledgeChunk } from "../ingestion/normalized-record.js";
+import { loadKnowledgeBaseChunks } from "../knowledge-base/jsonl-loader.js";
+import { Bm25Retriever } from "../retrieval/bm25-retriever.js";
 import type { RetrievedChunk, Retriever } from "../retrieval/retriever.js";
 import { ChatService } from "./chat-service.js";
 import type { ChatModelProvider, ChatModelRequest, ChatModelResponse } from "./provider.js";
@@ -150,6 +152,25 @@ describe("ChatService", () => {
     expect(response.citations).toEqual([]);
     expect(readAudit(auditPath)).toHaveLength(1);
     expect(readAudit(auditPath)[0]?.prompt_snapshot_reason).toBe("refusal");
+  });
+
+  it("hard-refuses default retrieval when only generic ERICA evidence overlaps", async () => {
+    const auditPath = join(createTempDir(), "audit.jsonl");
+    const provider = createProvider(normalProviderContent("unused"));
+    const service = new ChatService({
+      retriever: new Bm25Retriever(loadKnowledgeBaseChunks()),
+      provider,
+      auditLogPath: auditPath,
+      traceIdGenerator: () => "trace-default-refusal",
+    });
+
+    const response = await service.ask({ query: "ERICA 기숙사 식단 알려줘" });
+
+    expect(provider.complete).not.toHaveBeenCalled();
+    expect(response.refusal_tier).toBe("hard_refuse");
+    expect(response.answer).toContain("충분한 근거");
+    expect(response.citations).toEqual([]);
+    expect(readAudit(auditPath)[0]?.refusal_tier).toBe("hard_refuse");
   });
 
   it("preserves soft hedge answers for weak evidence", async () => {

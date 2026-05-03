@@ -13,6 +13,8 @@ export const DEFAULT_EVIDENCE_POLICY: EvidencePolicyConfig = {
   soft_hedge_prefix: "현재 수집된 자료 기준으로는",
 };
 
+const genericCampusTerms = new Set(["erica", "한양", "한양대", "한양대학교"]);
+
 export type EvidenceEvaluation = {
   refusal_tier: RefusalTier;
   confidence: number;
@@ -37,9 +39,11 @@ export function evaluateEvidence(
   }
 
   const topConfidence = clampConfidence(results[0]?.normalized_score ?? 0);
+  const topResult = results[0];
   const boilerplateOnlyChunkIds = options.boilerplateOnlyChunkIds ?? new Set<string>();
   const everyResultIsBoilerplateOnly = results.every((result) => boilerplateOnlyChunkIds.has(result.chunk.chunk_id));
   const hasMissingCitationAnchors = results.some((result) => result.chunk.citation_anchors.length === 0);
+  const meaningfulTopMatches = topResult?.matched_terms.filter((term) => !genericCampusTerms.has(term.toLowerCase())) ?? [];
 
   if (everyResultIsBoilerplateOnly) {
     reasons.push("boilerplate_only_results");
@@ -51,6 +55,14 @@ export function evaluateEvidence(
 
   if (topConfidence < config.hard_refuse_below) {
     reasons.push("below_hard_refuse_threshold");
+  }
+
+  if (topResult === undefined || topResult.ranking_features.lexical_score <= 0) {
+    reasons.push("weak_absolute_score");
+  }
+
+  if (meaningfulTopMatches.length === 0) {
+    reasons.push("generic_overlap_only");
   }
 
   if (reasons.length > 0) {

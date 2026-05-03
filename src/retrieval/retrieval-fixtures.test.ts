@@ -55,6 +55,17 @@ describe("Bm25Retriever over Phase 2 fixtures", () => {
     }
   });
 
+  it("does not treat generic ERICA-only overlap as answerable dorm-menu evidence", async () => {
+    const retriever = new Bm25Retriever(loadKnowledgeBaseChunks());
+
+    const results = await retriever.retrieve({ query: "ERICA 기숙사 식단 알려줘" });
+    const meaningfulMatches = results[0]?.matched_terms.filter((term) => term.toLowerCase() !== "erica") ?? [];
+
+    expect(results.length).toBeGreaterThan(0);
+    expect(results[0]?.matched_terms).toEqual(["erica"]);
+    expect(meaningfulMatches).toEqual([]);
+  });
+
   it.each([
     "현장실습 참여기업",
     "컨설팅룸예약",
