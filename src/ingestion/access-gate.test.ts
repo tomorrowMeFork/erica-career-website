@@ -1,5 +1,4 @@
 import { readFileSync } from "node:fs";
-import { parse } from "yaml";
 import { describe, expect, it } from "vitest";
 import {
   assertCanIngestSource,
@@ -133,8 +132,7 @@ describe("source registry gate coverage", () => {
   let registry: SourceRegistry;
 
   try {
-    const fileText = readFileSync(registryPath, "utf8");
-    const parsedYaml = parse(fileText);
+    readFileSync(registryPath, "utf8");
     registry = loadSourceRegistryForIngestion(registryPath);
   } catch {
     registry = { sources: [] };
