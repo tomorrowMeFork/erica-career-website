@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 current_phase: 04
-status: phase_4_wave_1_complete
+status: phase_4_wave_2_complete
 last_updated: "2026-05-04T00:00:00.000Z"
 progress:
   total_phases: 6
   completed_phases: 3
   total_plans: 20
-  completed_plans: 17
-  percent: 85
+  completed_plans: 18
+  percent: 90
 ---
 
 # State: ERICA Career Chat
@@ -53,6 +53,7 @@ See: `.planning/PROJECT.md` (updated 2026-05-03)
 | `.planning/phases/03-source-grounded-chat-mvp/03-06-SUMMARY.md` | Created |
 | `.planning/phases/03-source-grounded-chat-mvp/03-USER-SETUP.md` | Created |
 | `.planning/phases/04-personalization-and-recommendations/04-01-SUMMARY.md` | Created |
+| `.planning/phases/04-personalization-and-recommendations/04-02-SUMMARY.md` | Created |
 
 ## Decisions
 
@@ -78,6 +79,10 @@ See: `.planning/PROJECT.md` (updated 2026-05-03)
 - 04-01 preference lifecycle starts from explicit `major` and `target_role`, keeps optional free text session-only, and returns only minimized structured preference state
 - 04-01 persistent preference writes fail closed unless consent timestamp, bounded retention, and deletion support are valid
 - 04-01 clearing preferences removes stored structured profile state for the selected session and disables preference-based ranking
+- 04-02 recommendation contracts preserve `ChatCitationSchema` freshness/source metadata while excluding raw source text and session-only optional free text from normal item outputs
+- 04-02 source-quality scoring explicitly rewards active/recent/detail-cited candidates and penalizes stale/generic/boilerplate-heavy candidates
+- 04-02 ranking uses score-based reranking with exact weights: base retrieval 0.30, major 0.20, target_role 0.20, optional preferences 0.10, source quality 0.15, and freshness 0.05
+- 04-02 no-preference ranking returns `general_recommendation` items and favors active/latest/source-grounded candidates without requiring a profile
 
 ## Active Assumptions
 
@@ -89,6 +94,6 @@ See: `.planning/PROJECT.md` (updated 2026-05-03)
 
 ## Next Action
 
-Phase 4 Wave 1 preference lifecycle foundation is complete. Continue with Phase 4 Wave 2 recommendation response contracts and ranking.
+Phase 4 Wave 2 recommendation contracts and ranking are complete. Continue with Phase 4 Wave 3 match reasons and RecommendationService orchestration.
 
 Resume file: .planning/phases/04-personalization-and-recommendations/04-CONTEXT.md
