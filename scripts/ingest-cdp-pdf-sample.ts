@@ -30,7 +30,7 @@ async function runCli(): Promise<void> {
   const approvalRecordText = args.fixture ? fixtureOnlyApprovalEvidence() : await readFile(approvalRecordPath, "utf8");
   const pdfBytes = args.fixture
     ? new Uint8Array(await readFile(pdfFixturePath))
-    : await fetchApprovedBytes(decision, source.canonical_url, { approval_evidence_text: approvalRecordText, timeout_ms: 10_000 });
+    : await fetchApprovedBytes(decision, source.canonical_url, { approval_evidence_text: approvalRecordText, timeout_ms: 60_000 });
   const fetchedAt = args.fixture ? fixtureFetchedAt : new Date().toISOString();
   const pages = await extractPdfPages(pdfBytes);
   const records = buildPdfPageRecords({
