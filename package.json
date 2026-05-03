@@ -18,7 +18,8 @@
     "evaluate:rag:mvp": "tsx scripts/evaluate-rag-mvp.ts",
     "evaluate:personalization": "tsx scripts/evaluate-personalization.ts",
     "chat:smoke": "tsx scripts/chat-smoke.ts",
-    "verify:phase5-ui": "tsx scripts/verify-phase5-ui.ts"
+    "verify:phase5-ui": "tsx scripts/verify-phase5-ui.ts",
+    "verify:phase6-safety": "tsx scripts/verify-phase6-safety.ts"
   },
   "dependencies": {
     "@tailwindcss/postcss": "4.2.4",
