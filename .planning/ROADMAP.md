@@ -82,6 +82,9 @@ Plans:
 **Wave 4** *(blocked on Wave 3 completion)*
 - [x] 02-05-PLAN.md — Wire approval-gated sample ingestion commands and deterministic JSONL knowledge-base verification.
 
+**Wave 5** *(reopened after `sources.txt` coverage correction)*
+- [ ] 02-06-PLAN.md — Complete authenticated/bounded collection coverage for every `sources.txt` source intent or record evidence-backed blockers.
+
 ### Phase 3: Source-Grounded Chat MVP
 
 **Goal:** Ship the first usable Korean chat flow that answers from indexed sources with citations and transparent uncertainty.

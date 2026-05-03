@@ -2,22 +2,22 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-current_phase: Phase 2 complete. Ready to plan Phase 3 Source-Grounded Chat MVP.
-status: phase_2_complete
-last_updated: "2026-05-03T07:46:42Z"
+current_phase: Phase 2 reopened for full sources.txt authenticated collection coverage.
+status: phase_2_reopened
+last_updated: "2026-05-03T08:15:00Z"
 progress:
   total_phases: 6
-  completed_phases: 2
-  total_plans: 8
+  completed_phases: 1
+  total_plans: 9
   completed_plans: 8
-  percent: 33
+  percent: 30
 ---
 
 # State: ERICA Career Chat
 
 **Initialized:** 2026-05-03  
 **Initialization mode:** Manual GSD initialization because `gsd-sdk` was unavailable in the shell.  
-**Current phase:** Phase 2 complete. Ready to plan Phase 3 Source-Grounded Chat MVP.
+**Current phase:** Phase 2 reopened for full sources.txt authenticated collection coverage.
 
 ## Project Reference
 
@@ -54,4 +54,4 @@ See: `.planning/PROJECT.md` (updated 2026-05-03)
 
 ## Next Action
 
-Continue with Phase 3 planning: source-grounded Korean chat MVP with citations, refusal behavior, retrieval isolation, and audit logging.
+Continue with Phase 2 Plan 02-06: authenticated/bounded collection coverage for every `sources.txt` source intent, starting from CDP `취업정보` and `채용정보` observed URLs.
