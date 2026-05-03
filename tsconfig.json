@@ -10,7 +10,7 @@
       "node",
       "vitest"
     ],
-    "jsx": "preserve",
+    "jsx": "react-jsx",
     "lib": [
       "dom",
       "dom.iterable",
@@ -40,6 +40,7 @@
     "components/**/*.ts",
     "components/**/*.tsx",
     "lib/**/*.ts",
+    "vitest.config.ts",
     "src/**/*.ts",
     "scripts/**/*.ts",
     ".next/types/**/*.ts",
