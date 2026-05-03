@@ -4,13 +4,13 @@ milestone: v1.0
 milestone_name: milestone
 current_phase: 03
 status: phase_3_in_progress
-last_updated: "2026-05-03T11:29:31.755Z"
+last_updated: "2026-05-03T11:37:04.464Z"
 progress:
   total_phases: 6
   completed_phases: 2
   total_plans: 15
-  completed_plans: 12
-  percent: 80
+  completed_plans: 13
+  percent: 87
 ---
 
 # State: ERICA Career Chat
@@ -48,6 +48,8 @@ See: `.planning/PROJECT.md` (updated 2026-05-03)
 | `.planning/phases/03-source-grounded-chat-mvp/03-01-SUMMARY.md` | Created |
 | `.planning/phases/03-source-grounded-chat-mvp/03-02-SUMMARY.md` | Created |
 | `.planning/phases/03-source-grounded-chat-mvp/03-03-SUMMARY.md` | Created |
+| `.planning/phases/03-source-grounded-chat-mvp/03-04-SUMMARY.md` | Created |
+| `.planning/phases/03-source-grounded-chat-mvp/03-USER-SETUP.md` | Created |
 
 ## Decisions
 
@@ -63,6 +65,9 @@ See: `.planning/PROJECT.md` (updated 2026-05-03)
 - 03-02 boosts active listings and penalizes expired listing-like evidence without penalizing unknown-deadline campus-service or guidebook chunks
 - 03-03 evidence policy implements D-17 through D-20 exact thresholds and hard-refusal overrides for zero chunks, boilerplate-only evidence, and missing citations
 - 03-03 output validation fails closed on schema errors, Korean-first violations, citationless factual answers, invented citation markers, unsafe endorsement/outcome claims, and prompt-injection compliance phrases
+- 03-04 OpenAI-compatible provider configuration is read from OPENAI_COMPAT_* env values only at construction time and safe config/errors never include the API key
+- 03-04 prompt builder keeps system/developer instructions outside retrieved source text and places hostile chunks only inside untrusted retrieved-context tags
+- 03-04 citation maps are built from RetrievedChunk citation anchors and freshness metadata before model generation, not from model-supplied source labels
 
 ## Active Assumptions
 
@@ -74,6 +79,6 @@ See: `.planning/PROJECT.md` (updated 2026-05-03)
 
 ## Next Action
 
-Continue Phase 3 with 03-04 provider boundary and untrusted retrieved-context prompt builder using 03-03 evidence policy and output validation guardrails.
+Continue Phase 3 with 03-05 ChatService orchestration and append-only audit logging using the provider boundary, prompt guardrails, evidence policy, and output validation artifacts.
 
 Resume file: None

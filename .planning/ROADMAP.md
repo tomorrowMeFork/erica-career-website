@@ -120,7 +120,7 @@ Plans:
 
 **Wave 3** *(blocked on Wave 2 completion)*
 - [x] 03-03-PLAN.md — Implement evidence-tier policy and fail-closed citation/output validation.
-- [ ] 03-04-PLAN.md — Implement OpenAI-compatible provider boundary and untrusted retrieved-context prompt builder.
+- [x] 03-04-PLAN.md — Implement OpenAI-compatible provider boundary and untrusted retrieved-context prompt builder.
 
 **Wave 4** *(blocked on Wave 3 completion)*
 - [ ] 03-05-PLAN.md — Wire ChatService orchestration and append-only audit logging for every query cycle.
