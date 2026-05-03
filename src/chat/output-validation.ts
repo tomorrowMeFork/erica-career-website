@@ -1,10 +1,10 @@
 import { z } from "zod";
 
-import { ChatResponseSchema, type ChatResponse, type RefusalTier } from "./chat-contract.js";
+import { ChatCitationSchema, ChatResponseSchema, RefusalTierSchema, type ChatResponse, type RefusalTier } from "./chat-contract.js";
 
 export type ValidateChatResponseOutputInput = {
   response: unknown;
-  allowedCitationIds: readonly number[];
+  citationMap: readonly ChatResponse["citations"][number][];
   expectedTier: RefusalTier;
 };
 
@@ -21,16 +21,39 @@ const unsafeOutputPhrases = [
   "이전 지시를 무시",
 ] as const;
 
+const ProviderCitationChoiceSchema = z.looseObject({ citation_id: z.number().int().positive() });
+const ProviderChatResponseCandidateSchema = z.object({
+  answer: z.string().min(1),
+  citations: z.array(ProviderCitationChoiceSchema),
+  refusal_tier: RefusalTierSchema,
+  confidence: z.number().min(0).max(1),
+  trace_id: z.string().min(1),
+});
+
 export function validateChatResponseOutput(input: ValidateChatResponseOutputInput): ValidateChatResponseOutputResult {
-  const parsed = ChatResponseSchema.safeParse(input.response);
+  const parsed = ProviderChatResponseCandidateSchema.safeParse(input.response);
   if (!parsed.success) {
     return { ok: false, failures: [`schema validation failed: ${summarizeZodError(parsed.error)}`] };
   }
 
-  const response = parsed.data;
+  const canonicalCitations = new Map<number, ChatResponse["citations"][number]>();
+  for (const citation of input.citationMap) {
+    const canonical = ChatCitationSchema.safeParse(citation);
+    if (!canonical.success) {
+      return { ok: false, failures: [`canonical citation validation failed: ${summarizeZodError(canonical.error)}`] };
+    }
+    canonicalCitations.set(canonical.data.citation_id, canonical.data);
+  }
+
+  const response = {
+    ...parsed.data,
+    citations: parsed.data.citations.flatMap((citation) => {
+      const canonical = canonicalCitations.get(citation.citation_id);
+      return canonical === undefined ? [] : [canonical];
+    }),
+  };
   const failures: string[] = [];
-  const citationIds = new Set(response.citations.map((citation) => citation.citation_id));
-  const allowedCitationIds = new Set(input.allowedCitationIds);
+  const citationIds = new Set(parsed.data.citations.map((citation) => citation.citation_id));
   const markerIds = extractCitationMarkerIds(response.answer);
 
   if (!hangulSyllablePattern.test(response.answer)) {
@@ -55,13 +78,13 @@ export function validateChatResponseOutput(input: ValidateChatResponseOutputInpu
     if (!citationIds.has(markerId)) {
       failures.push(`citation marker [${markerId}] has no matching citation object`);
     }
-    if (!allowedCitationIds.has(markerId)) {
+    if (!canonicalCitations.has(markerId)) {
       failures.push(`citation marker [${markerId}] is not allowed for this evidence set`);
     }
   }
 
   for (const citationId of citationIds) {
-    if (!allowedCitationIds.has(citationId)) {
+    if (!canonicalCitations.has(citationId)) {
       failures.push(`citation object ${citationId} is not allowed for this evidence set`);
     }
   }
@@ -70,7 +93,12 @@ export function validateChatResponseOutput(input: ValidateChatResponseOutputInpu
     return { ok: false, failures };
   }
 
-  return { ok: true, response };
+  const finalResponse = ChatResponseSchema.safeParse(response);
+  if (!finalResponse.success) {
+    return { ok: false, failures: [`canonical response validation failed: ${summarizeZodError(finalResponse.error)}`] };
+  }
+
+  return { ok: true, response: finalResponse.data };
 }
 
 function extractCitationMarkerIds(answer: string): number[] {

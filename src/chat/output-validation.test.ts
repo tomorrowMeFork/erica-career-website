@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 
 import { DEFAULT_EVIDENCE_POLICY, buildHardRefusalAnswer, evaluateEvidence } from "./evidence-policy.js";
 import { validateChatResponseOutput } from "./output-validation.js";
+import type { ChatResponse } from "./chat-contract.js";
 import type { KnowledgeChunk } from "../ingestion/normalized-record.js";
 import type { RetrievedChunk } from "../retrieval/retriever.js";
 
@@ -107,13 +108,13 @@ const validListingResponse = {
   refusal_tier: "normal_answer",
   confidence: 0.82,
   trace_id: "trace-listing-1",
-};
+} satisfies ChatResponse;
 
 describe("validateChatResponseOutput", () => {
   it("accepts a Korean listing answer with mapped inline citations and freshness metadata", () => {
     const result = validateChatResponseOutput({
       response: validListingResponse,
-      allowedCitationIds: [1],
+      citationMap: validListingResponse.citations,
       expectedTier: "normal_answer",
     });
 
@@ -137,7 +138,16 @@ describe("validateChatResponseOutput", () => {
         ],
         trace_id: "trace-pdf-1",
       },
-      allowedCitationIds: [1],
+      citationMap: [
+        {
+          ...validListingResponse.citations[0],
+          title: "HY-CDP 학생 가이드북",
+          url: "https://cdp.hanyang.ac.kr/guide/student.pdf#page=1",
+          posted_at: null,
+          deadline_status: "unknown",
+          page_number: 1,
+        },
+      ],
       expectedTier: "normal_answer",
     });
 
@@ -153,7 +163,7 @@ describe("validateChatResponseOutput", () => {
         confidence: 0,
         trace_id: "trace-refusal-1",
       },
-      allowedCitationIds: [],
+      citationMap: [],
       expectedTier: "hard_refuse",
     });
 
@@ -163,7 +173,7 @@ describe("validateChatResponseOutput", () => {
   it("rejects citationless factual Korean mock-model output", () => {
     const result = validateChatResponseOutput({
       response: { ...validListingResponse, answer: "ERICA 현장실습 모집 공고는 채용 게시판에서 확인할 수 있습니다." },
-      allowedCitationIds: [1],
+      citationMap: validListingResponse.citations,
       expectedTier: "normal_answer",
     });
 
@@ -175,7 +185,7 @@ describe("validateChatResponseOutput", () => {
     (unsafePhrase) => {
       const result = validateChatResponseOutput({
         response: { ...validListingResponse, answer: `${unsafePhrase}. ERICA 채용 정보입니다. [1]` },
-        allowedCitationIds: [1],
+        citationMap: validListingResponse.citations,
         expectedTier: "normal_answer",
       });
 
@@ -189,13 +199,55 @@ describe("validateChatResponseOutput", () => {
   it("rejects citation markers that do not map to structured citations", () => {
     const result = validateChatResponseOutput({
       response: { ...validListingResponse, answer: "ERICA 상담예약은 공식 페이지에서 확인할 수 있습니다. [2]" },
-      allowedCitationIds: [1, 2],
+      citationMap: validListingResponse.citations,
       expectedTier: "normal_answer",
     });
 
     expect(result.ok).toBe(false);
     if (!result.ok) {
       expect(result.failures).toContain("citation marker [2] has no matching citation object");
+    }
+  });
+
+  it("canonicalizes provider-controlled citation metadata from the retrieved citation map", () => {
+    const result = validateChatResponseOutput({
+      response: {
+        ...validListingResponse,
+        citations: [
+          {
+            citation_id: 1,
+            chunk_id: "attacker-chunk",
+            record_id: "attacker-record",
+            source_id: "attacker",
+            title: "조작된 제목",
+            url: "javascript:alert(1)",
+            fetched_at: "2026-01-01T00:00:00.000Z",
+            posted_at: null,
+            deadline_status: "unknown",
+          },
+        ],
+      },
+      citationMap: validListingResponse.citations,
+      expectedTier: "normal_answer",
+    });
+
+    expect(result.ok).toBe(true);
+    if (result.ok) {
+      expect(result.response.citations).toEqual(validListingResponse.citations);
+      expect(result.response.citations[0]?.url).toBe("https://ibus.hanyang.ac.kr/front/recruit/r-1/view?id=123");
+    }
+  });
+
+  it("rejects non-HTTPS canonical citation URLs", () => {
+    const result = validateChatResponseOutput({
+      response: validListingResponse,
+      citationMap: [{ ...validListingResponse.citations[0], url: "http://ibus.hanyang.ac.kr/front/recruit/r-1/view?id=123" }],
+      expectedTier: "normal_answer",
+    });
+
+    expect(result.ok).toBe(false);
+    if (!result.ok) {
+      expect(result.failures[0]).toContain("canonical citation validation failed");
     }
   });
 });

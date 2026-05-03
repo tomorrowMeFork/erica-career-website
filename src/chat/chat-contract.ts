@@ -15,7 +15,7 @@ export const ChatCitationSchema = z.object({
   record_id: z.string().min(1),
   source_id: z.string().min(1),
   title: z.string().min(1),
-  url: z.url(),
+  url: z.url().refine((url) => url.startsWith("https://"), "url must use HTTPS"),
   fetched_at: z.iso.datetime(),
   posted_at: z.iso.datetime().nullable(),
   deadline_status: DeadlineStatusSchema,
