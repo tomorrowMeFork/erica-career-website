@@ -15,6 +15,7 @@
     "ingest:cdp-pdf:sample": "tsx scripts/ingest-cdp-pdf-sample.ts",
     "ingest:playwright:sources": "tsx scripts/ingest-playwright-sources.ts",
     "verify:knowledge-base": "tsx scripts/verify-knowledge-base.ts",
+    "status:freshness": "tsx scripts/operator-freshness-status.ts",
     "evaluate:rag:mvp": "tsx scripts/evaluate-rag-mvp.ts",
     "evaluate:personalization": "tsx scripts/evaluate-personalization.ts",
     "evaluate:release-readiness": "tsx scripts/evaluate-release-readiness.ts",
