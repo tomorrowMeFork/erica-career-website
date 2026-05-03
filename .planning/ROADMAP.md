@@ -35,6 +35,17 @@
 
 **Parallelization:** CDP discovery, PDF feasibility checks, and ibus board analysis can run independently.
 
+**Plans:** 3 plans
+
+Plans:
+
+**Wave 1**
+- [ ] 01-01-PLAN.md — Create the TypeScript/Zod source registry contract, validator CLI, tests, and automated source-governance invariant checks.
+
+**Wave 2** *(blocked on Wave 1 completion)*
+- [ ] 01-02-PLAN.md — Create validated seed registry records and machine-traceable source access review checklist.
+- [ ] 01-03-PLAN.md — Create bounded seed-scope CDP discovery helper and discovery notes for CDP, PDF/viewer, and ibus sources.
+
 ### Phase 2: Ingestion and Knowledge Base
 
 **Goal:** Convert approved HTML and PDF sources into normalized, citation-ready records for retrieval.
