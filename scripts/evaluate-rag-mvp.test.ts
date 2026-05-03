@@ -60,6 +60,27 @@ describe("runRagMvpEvaluation", () => {
     expect(JUDGE_DIMENSIONS).toEqual(["faithfulness", "citation_quality", "korean_quality"]);
   });
 
+  it("does not enable live judging from ambient process env by default", async () => {
+    const previousBaseUrl = process.env.OPENAI_COMPAT_BASE_URL;
+    const previousApiKey = process.env.OPENAI_COMPAT_API_KEY;
+    const previousModel = process.env.OPENAI_COMPAT_MODEL;
+    process.env.OPENAI_COMPAT_BASE_URL = "https://ambient-judge.example.test";
+    process.env.OPENAI_COMPAT_API_KEY = "ambient-secret-test-key";
+    process.env.OPENAI_COMPAT_MODEL = "ambient-judge-model";
+
+    try {
+      const result = await runRagMvpEvaluation({ writeOutput: false });
+
+      expect(result.ok).toBe(true);
+      expect(result.judge.enabled).toBe(false);
+      expect(JSON.stringify(result)).not.toContain("ambient-secret-test-key");
+    } finally {
+      restoreEnv("OPENAI_COMPAT_BASE_URL", previousBaseUrl);
+      restoreEnv("OPENAI_COMPAT_API_KEY", previousApiKey);
+      restoreEnv("OPENAI_COMPAT_MODEL", previousModel);
+    }
+  });
+
   it("reports threshold failures from the mocked env-present D-27 judge path", async () => {
     const result = await runRagMvpEvaluation({
       env: {
@@ -83,3 +104,11 @@ describe("runRagMvpEvaluation", () => {
     expect(result.failures).toContainEqual(expect.stringContaining("unsupported claim"));
   });
 });
+
+function restoreEnv(name: "OPENAI_COMPAT_BASE_URL" | "OPENAI_COMPAT_API_KEY" | "OPENAI_COMPAT_MODEL", value: string | undefined): void {
+  if (value === undefined) {
+    delete process.env[name];
+    return;
+  }
+  process.env[name] = value;
+}

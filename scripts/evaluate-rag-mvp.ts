@@ -128,7 +128,7 @@ const EVAL_CASES: readonly EvaluationCase[] = [
 
 export async function runRagMvpEvaluation(options: RunRagMvpEvaluationOptions = {}): Promise<RagMvpEvaluationResult> {
   const failures: string[] = [];
-  const env = options.env ?? process.env;
+  const env = options.env ?? {};
   const chunks = [...loadKnowledgeBaseChunks(), hostileSourceInjectionChunk()];
   const judgeEnabled = hasJudgeEnv(env);
   const judgeComplete = judgeEnabled ? buildJudgeComplete(env, options.judgeComplete) : undefined;
@@ -496,5 +496,6 @@ function slugify(value: string): string {
 }
 
 if (process.argv[1]?.endsWith("evaluate-rag-mvp.ts") === true) {
-  void runRagMvpEvaluation();
+  const env = process.argv.includes("--live-judge") ? process.env : {};
+  void runRagMvpEvaluation({ env });
 }
