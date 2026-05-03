@@ -17,7 +17,7 @@ progress:
 
 **Initialized:** 2026-05-03  
 **Initialization mode:** Manual GSD initialization because `gsd-sdk` was unavailable in the shell.  
-**Current phase:** Phase 2 complete. All sources.txt intents have collector implementations or evidence-backed blockers.
+**Current phase:** Phase 2 complete. All sources.txt intents have bounded collector implementations.
 
 ## Project Reference
 
@@ -47,10 +47,11 @@ See: `.planning/PROJECT.md` (updated 2026-05-03)
 
 ## Decisions
 
-- Held CDP/book-viewer sources documented as evidence-backed blockers rather than bypassed
+- CDP/book-viewer sources now use bounded Playwright collection after explicit user approval for robots.txt sources
 - Ibus bounded collection supports multi-page with COLLECT_MAX_PAGES and COLLECT_DELAY_MS
+- Ibus live collection enforces max 5 pages and minimum 1200ms inter-request delay
 - CDP PDF live download timeout set to 60s for 52-page PDF
-- Registry-backed gate coverage tests verify all 6 sources against expected dispositions
+- Registry-backed gate coverage tests verify all 6 sources are approved only through expected methods
 
 ## Active Assumptions
 
