@@ -5,7 +5,7 @@ export type VerifyPhase5Result = { ok: boolean; failures: string[] };
 
 const requiredChecks = [
   { file: "app/layout.tsx", pattern: /lang="ko"/u, label: "html lang=ko" },
-  { file: "app/globals.css", pattern: /oklch\(0\.99 0\.004 250\)[\s\S]*oklch\(0\.48 0\.13 252\)[\s\S]*1440px[\s\S]*280px[\s\S]*360px[\s\S]*400px[\s\S]*Pretendard[\s\S]*Noto Sans KR[\s\S]*Apple SD Gothic Neo/u, label: "design tokens" },
+  { file: "app/globals.css", pattern: /(?=[\s\S]*oklch\(0\.99 0\.004 250\))(?=[\s\S]*oklch\(0\.48 0\.13 252\))(?=[\s\S]*1440px)(?=[\s\S]*280px)(?=[\s\S]*360px)(?=[\s\S]*400px)(?=[\s\S]*Pretendard)(?=[\s\S]*Noto Sans KR)(?=[\s\S]*Apple SD Gothic Neo)/u, label: "design tokens" },
   { file: "components/dashboard/student-dashboard.tsx", pattern: /무엇을 도와드릴까요\?|현재 세션에만 저장|fetchRecommendations|clearPreferences/u, label: "dashboard copy and helper wiring" },
   { file: "components/chat/chat-composer.tsx", pattern: /질문 보내기/u, label: "chat CTA" },
   { file: "components/citations/source-card.tsx", pattern: /공식 페이지 열기|noopener noreferrer/u, label: "source safe links" },

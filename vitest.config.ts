@@ -5,4 +5,7 @@ export default defineConfig({
     jsx: "automatic",
     jsxImportSource: "react",
   },
+  test: {
+    exclude: ["node_modules/**", "dist/**", "build/**", ".next/**", "tests/**/*.spec.ts"],
+  },
 });
