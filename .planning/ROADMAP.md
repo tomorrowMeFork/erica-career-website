@@ -190,17 +190,17 @@ Plans:
 Plans:
 
 **Wave 1**
-- [ ] 05-01-PLAN.md — Establish Next.js/Tailwind/shadcn foundation, Korean app shell, and UI-SPEC global tokens.
+- [x] 05-01-PLAN.md — Establish Next.js/Tailwind/shadcn foundation, Korean app shell, and UI-SPEC global tokens.
 
 **Wave 2** *(blocked on Wave 1 completion)*
-- [ ] 05-02-PLAN.md — Add thin Next.js API routes, service factories, browser API helpers, session keys, and semantic label helpers.
+- [x] 05-02-PLAN.md — Add thin Next.js API routes, service factories, browser API helpers, session keys, and semantic label helpers.
 
 **Wave 3** *(blocked on Wave 2 completion)*
-- [ ] 05-03-PLAN.md — Build complete-response chat, refusal notices, citation markers, source rail/sheet, and source cards.
-- [ ] 05-04-PLAN.md — Build listing browse cards/filters/status badges and session-first preference/settings controls.
+- [x] 05-03-PLAN.md — Build complete-response chat, refusal notices, citation markers, source rail/sheet, and source cards.
+- [x] 05-04-PLAN.md — Build listing browse cards/filters/status badges and session-first preference/settings controls.
 
 **Wave 4** *(blocked on Wave 3 completion)*
-- [ ] 05-05-PLAN.md — Integrate responsive dashboard behavior and add Phase 5 web smoke/static UI QA gates.
+- [x] 05-05-PLAN.md — Integrate responsive dashboard behavior and add Phase 5 web smoke/static UI QA gates.
 
 ### Phase 6: Safety, Evaluation, and Release Readiness
 

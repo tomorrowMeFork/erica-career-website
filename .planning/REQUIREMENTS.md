@@ -33,11 +33,11 @@ Requirements for the initial release. Each maps to roadmap phases.
 
 ### User Experience
 
-- [ ] **UX-01**: User can view a responsive Korean-first chat page with input, answer history, citations, and recommended source links.
-- [ ] **UX-02**: User can inspect cited source cards from an answer without losing chat context.
-- [ ] **UX-03**: User can browse latest or recommended employment listings outside the chat flow.
-- [ ] **UX-04**: UI labels expired/uncertain job postings visibly.
-- [ ] **UX-05**: UI uses the design seed selectively: calm white surfaces, rounded cards, pill filters, clear typography, and trustworthy source presentation.
+- [x] **UX-01**: User can view a responsive Korean-first chat page with input, answer history, citations, and recommended source links.
+- [x] **UX-02**: User can inspect cited source cards from an answer without losing chat context.
+- [x] **UX-03**: User can browse latest or recommended employment listings outside the chat flow.
+- [x] **UX-04**: UI labels expired/uncertain job postings visibly.
+- [x] **UX-05**: UI uses the design seed selectively: calm white surfaces, rounded cards, pill filters, clear typography, and trustworthy source presentation.
 
 ### Safety, Privacy, and Governance
 
@@ -107,11 +107,11 @@ Which phases cover which requirements. Updated during roadmap creation.
 | PERS-02 | Phase 4 | Complete |
 | PERS-03 | Phase 4 | Complete |
 | PERS-04 | Phase 4 | Complete |
-| UX-01 | Phase 5 | Pending |
-| UX-02 | Phase 5 | Pending |
-| UX-03 | Phase 5 | Pending |
-| UX-04 | Phase 5 | Pending |
-| UX-05 | Phase 5 | Pending |
+| UX-01 | Phase 5 | Complete |
+| UX-02 | Phase 5 | Complete |
+| UX-03 | Phase 5 | Complete |
+| UX-04 | Phase 5 | Complete |
+| UX-05 | Phase 5 | Complete |
 | SAFE-01 | Phase 6 | Pending |
 | SAFE-02 | Phase 6 | Pending |
 | SAFE-03 | Phase 4 | Complete |
