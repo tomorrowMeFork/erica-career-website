@@ -1,5 +1,5 @@
 ---
-status: complete
+status: diagnosed
 phase: 03-source-grounded-chat-mvp
 source:
   - 03-01-SUMMARY.md
@@ -10,7 +10,7 @@ source:
   - 03-06-SUMMARY.md
   - 03-VERIFICATION.md
 started: 2026-05-03T12:36:20Z
-updated: 2026-05-03T13:03:58Z
+updated: 2026-05-03T13:07:06Z
 ---
 
 ## Current Test
@@ -57,5 +57,18 @@ blocked: 0
   reason: "User reported: `.env` already has the variables. Without sourcing `.env`, the smoke CLI fails with `OPENAI_COMPAT_BASE_URL is required`; after sourcing `.env`, the answerable 현장실습 query returns `hard_refuse` with zero citations instead of a cited Korean answer."
   severity: major
   test: 3
-  artifacts: []
-  missing: []
+  root_cause: "Two issues surfaced in the live smoke path. First, `scripts/chat-smoke.ts` constructs the provider from `process.env` without importing `dotenv/config`, so local `.env` values are not loaded unless the user manually sources the file. Second, after the user sourced `.env`, retrieval/evidence for the answerable 현장실습 query was normal (`evidence_policy: normal_answer`), but `data/audit/phase3-chat.jsonl` recorded `provider_error: The operation was aborted due to timeout`; ChatService then correctly failed closed to `hard_refuse` with zero citations."
+  artifacts:
+    - path: "scripts/chat-smoke.ts"
+      issue: "Smoke CLI does not load `.env` automatically before calling `createOpenAiCompatibleChatProviderFromEnv()`."
+    - path: "src/chat/openai-compatible-provider.ts"
+      issue: "Provider has a fixed 30s default timeout and no smoke-script override for slower live models."
+    - path: "src/chat/chat-service.ts"
+      issue: "Provider timeout or validation failure is intentionally converted to a safe hard refusal with confidence 0, masking live smoke readiness as an answer refusal."
+    - path: "data/audit/phase3-chat.jsonl"
+      issue: "Latest answerable 현장실습 smoke run recorded `evidence_policy: normal_answer` and `provider_error: The operation was aborted due to timeout`."
+  missing:
+    - "Load `.env` in the smoke CLI using the existing repo pattern `import \"dotenv/config\";` without printing values."
+    - "Allow the smoke CLI/provider factory to use a configurable or longer timeout for live provider smoke testing."
+    - "Add deterministic tests that prove `.env` loading is wired and provider timeouts are reported safely without secrets."
+  debug_session: "ses_2120ecfffffe9NaVstXNrQDXX0, ses_2120ece8effevzTT0l6JedojI6"
