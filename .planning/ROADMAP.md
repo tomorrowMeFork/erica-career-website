@@ -228,19 +228,19 @@ Plans:
 Plans:
 
 **Wave 1**
-- [ ] 06-01-PLAN.md — Add Korean-first safety disclaimer UI, static safety verifier, and mocked web smoke coverage.
+- [x] 06-01-PLAN.md — Add Korean-first safety disclaimer UI, static safety verifier, and mocked web smoke coverage.
 
 **Wave 2** *(blocked on Wave 1 completion)*
-- [ ] 06-02-PLAN.md — Create the typed Phase 6 reference QA dataset covering all locked safety/evaluation categories.
+- [x] 06-02-PLAN.md — Create the typed Phase 6 reference QA dataset covering all locked safety/evaluation categories.
 
 **Wave 3** *(blocked on Wave 2 completion)*
-- [ ] 06-03-PLAN.md — Implement deterministic local release-readiness evaluation for retrieval, answers, citations, refusals, hostile sources, and prior eval gate composition.
+- [x] 06-03-PLAN.md — Implement deterministic local release-readiness evaluation for retrieval, answers, citations, refusals, hostile sources, and prior eval gate composition.
 
 **Wave 4** *(blocked on Wave 3 completion)*
-- [ ] 06-04-PLAN.md — Add local-only operator freshness/status reader and CLI over knowledge-base manifests.
+- [x] 06-04-PLAN.md — Add local-only operator freshness/status reader and CLI over knowledge-base manifests.
 
 **Wave 5** *(blocked on Waves 1, 3, and 4 completion)*
-- [ ] 06-05-PLAN.md — Create the manual release checklist and integrated `release:ready` automated gate.
+- [x] 06-05-PLAN.md — Create the manual release checklist and integrated `release:ready` automated gate.
 
 ## Requirement Coverage
 

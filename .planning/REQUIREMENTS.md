@@ -41,8 +41,8 @@ Requirements for the initial release. Each maps to roadmap phases.
 
 ### Safety, Privacy, and Governance
 
-- [ ] **SAFE-01**: System displays that answers are informational and users should verify important details on official source pages.
-- [ ] **SAFE-02**: System does not claim official Hanyang endorsement or guaranteed job outcomes.
+- [x] **SAFE-01**: System displays that answers are informational and users should verify important details on official source pages.
+- [x] **SAFE-02**: System does not claim official Hanyang endorsement or guaranteed job outcomes.
 - [x] **SAFE-03**: System stores only the minimum personalization data needed for MVP behavior.
 - [x] **SAFE-04**: System provides a visible way to clear stored preferences and chat history if persistence exists.
 - [ ] **SAFE-05**: Scheduled crawling is blocked until source access rules and load expectations are reviewed.
@@ -50,12 +50,12 @@ Requirements for the initial release. Each maps to roadmap phases.
 
 ### Evaluation and Operations
 
-- [ ] **EVAL-01**: Project includes a reference QA set covering CDP usage, job listing discovery, deadlines, success stories, guidebook questions, and no-answer cases.
-- [ ] **EVAL-02**: Retrieval evaluation measures whether expected source chunks appear in top results for reference questions.
-- [ ] **EVAL-03**: Answer evaluation checks citation accuracy, faithfulness to retrieved evidence, Korean answer quality, and refusal behavior.
-- [ ] **EVAL-04**: System exposes ingestion freshness and last successful source update status to operators.
-- [ ] **EVAL-05**: Release checks include at least one manual end-to-end flow from source ingestion to cited chat answer.
-- [ ] **EVAL-06**: Evaluation includes hostile-source and prompt-injection cases where retrieved content attempts to override assistant instructions or citation requirements.
+- [x] **EVAL-01**: Project includes a reference QA set covering CDP usage, job listing discovery, deadlines, success stories, guidebook questions, and no-answer cases.
+- [x] **EVAL-02**: Retrieval evaluation measures whether expected source chunks appear in top results for reference questions.
+- [x] **EVAL-03**: Answer evaluation checks citation accuracy, faithfulness to retrieved evidence, Korean answer quality, and refusal behavior.
+- [x] **EVAL-04**: System exposes ingestion freshness and last successful source update status to operators.
+- [x] **EVAL-05**: Release checks include at least one manual end-to-end flow from source ingestion to cited chat answer.
+- [x] **EVAL-06**: Evaluation includes hostile-source and prompt-injection cases where retrieved content attempts to override assistant instructions or citation requirements.
 
 ## v2 Requirements
 
@@ -112,18 +112,18 @@ Which phases cover which requirements. Updated during roadmap creation.
 | UX-03 | Phase 5 | Complete |
 | UX-04 | Phase 5 | Complete |
 | UX-05 | Phase 5 | Complete |
-| SAFE-01 | Phase 6 | Pending |
-| SAFE-02 | Phase 6 | Pending |
+| SAFE-01 | Phase 6 | Complete |
+| SAFE-02 | Phase 6 | Complete |
 | SAFE-03 | Phase 4 | Complete |
 | SAFE-04 | Phase 4 | Complete |
 | SAFE-05 | Phase 1 | Pending |
 | SAFE-06 | Phase 4 | Complete |
-| EVAL-01 | Phase 6 | Pending |
-| EVAL-02 | Phase 6 | Pending |
-| EVAL-03 | Phase 6 | Pending |
-| EVAL-04 | Phase 6 | Pending |
-| EVAL-05 | Phase 6 | Pending |
-| EVAL-06 | Phase 6 | Pending |
+| EVAL-01 | Phase 6 | Complete |
+| EVAL-02 | Phase 6 | Complete |
+| EVAL-03 | Phase 6 | Complete |
+| EVAL-04 | Phase 6 | Complete |
+| EVAL-05 | Phase 6 | Complete |
+| EVAL-06 | Phase 6 | Complete |
 
 **Coverage:**
 - v1 requirements: 32 total
@@ -132,4 +132,4 @@ Which phases cover which requirements. Updated during roadmap creation.
 
 ---
 *Requirements defined: 2026-05-03*  
-*Last updated: 2026-05-04 after Phase 4 security review fixes*
+*Last updated: 2026-05-04 after Phase 6 release-readiness execution*
