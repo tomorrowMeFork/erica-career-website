@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 
 import { clearPreferences, fetchRecommendations, readPreferences, savePreferences, sendChatMessage, updatePreferences } from "../../lib/api-client.js";
 import { getOrCreateSessionKey } from "../../lib/session-key.js";
@@ -24,7 +24,8 @@ export function StudentDashboard() {
   const [query, setQuery] = useState("");
   const [messages, setMessages] = useState<DashboardMessage[]>([]);
   const [isLoading, setIsLoading] = useState(false);
-  const [selectedCitationId, setSelectedCitationId] = useState<number | undefined>();
+  const [selectedCitation, setSelectedCitation] = useState<ChatCitation | undefined>();
+  const [sourceCitations, setSourceCitations] = useState<ChatCitation[]>([]);
   const [sourcePanelOpen, setSourcePanelOpen] = useState(false);
   const [sourceOpener, setSourceOpener] = useState<HTMLElement | null>(null);
   const [recommendations, setRecommendations] = useState<RecommendationItem[]>([]);
@@ -39,8 +40,6 @@ export function StudentDashboard() {
     void readPreferences(key).then((result) => { if (result.ok) setPreferenceState(result.data); });
     void refreshRecommendations(key);
   }, []);
-
-  const allCitations = useMemo(() => dedupeCitations(messages.flatMap((message) => message.role === "assistant" ? message.response.citations : [])), [messages]);
 
   const refreshRecommendations = useCallback(async (key: string, profile?: PreferenceProfile, requestQuery?: string) => {
     const result = await fetchRecommendations({ session_key: key, ...(profile !== undefined ? { profile } : {}), ...(requestQuery !== undefined ? { query: requestQuery } : {}), limit: 5 });
@@ -70,8 +69,9 @@ export function StudentDashboard() {
     setIsLoading(false);
   }, [isLoading, query, refreshRecommendations, sessionKey]);
 
-  const openCitation = useCallback((citationId: number, opener?: HTMLElement) => {
-    setSelectedCitationId(citationId);
+  const openCitation = useCallback((citation: ChatCitation, scopedCitations: ChatCitation[], opener?: HTMLElement) => {
+    setSelectedCitation(citation);
+    setSourceCitations(scopedCitations);
     setSourceOpener(opener ?? null);
     setSourcePanelOpen(true);
   }, []);
@@ -111,6 +111,7 @@ export function StudentDashboard() {
   }, []);
 
   const clearChatHistory = useCallback(() => setMessages([]), []);
+  const handleSelectCitation = useCallback((citation: ChatCitation) => setSelectedCitation(citation), []);
 
   return (
     <main className="phase5-shell" onKeyDown={(event) => { if (event.key === "Escape") closeSource(); }}>
@@ -122,15 +123,19 @@ export function StudentDashboard() {
         </header>
 
         <nav className="panel-tabs" aria-label="대시보드 패널">
-          <button type="button" className="pill-control" onClick={() => setActivePanel("chat")}>채팅</button>
-          <button type="button" className="pill-control" onClick={() => setActivePanel("listings")}>공고</button>
-          <button type="button" className="pill-control" onClick={() => setActivePanel("preferences")}>추천 조건</button>
+          <button type="button" className="pill-control" aria-pressed={activePanel === "chat"} onClick={() => setActivePanel("chat")}>채팅</button>
+          <button type="button" className="pill-control" aria-pressed={activePanel === "listings"} onClick={() => setActivePanel("listings")}>공고</button>
+          <button type="button" className="pill-control" aria-pressed={activePanel === "preferences"} onClick={() => setActivePanel("preferences")}>추천 조건</button>
         </nav>
 
         <div className="dashboard-grid">
           <aside className={`dashboard-left ${activePanel === "preferences" || activePanel === "listings" ? "is-mobile-open" : ""}`}>
-            <PreferencePanel state={preferenceState} sessionKey={sessionKey} onSet={handleSave} onUpdate={handleUpdate} onClear={handleClearPreferences} onRead={handleRead} />
-            <ListingPanel items={recommendations} activeFilter={activeFilter} onFilterChange={setActiveFilter} onRefresh={(key) => void refreshRecommendations(key)} sessionKey={sessionKey} preferenceMode={recommendationResponse?.preference_mode ?? "no_preference"} privacyMetadata={recommendationResponse?.privacy_metadata} />
+            <div className={`mobile-panel mobile-panel--preferences ${activePanel === "preferences" ? "is-active" : ""}`}>
+              <PreferencePanel state={preferenceState} sessionKey={sessionKey} onSet={handleSave} onUpdate={handleUpdate} onClear={handleClearPreferences} onRead={handleRead} />
+            </div>
+            <div className={`mobile-panel mobile-panel--listings ${activePanel === "listings" ? "is-active" : ""}`}>
+              <ListingPanel items={recommendations} activeFilter={activeFilter} onFilterChange={setActiveFilter} onRefresh={(key) => void refreshRecommendations(key)} sessionKey={sessionKey} preferenceMode={recommendationResponse?.preference_mode ?? "no_preference"} privacyMetadata={recommendationResponse?.privacy_metadata} />
+            </div>
           </aside>
 
           <section className="chat-column card-surface" aria-label="채팅">
@@ -140,18 +145,12 @@ export function StudentDashboard() {
           </section>
 
           <div className="source-column">
-            {sourcePanelOpen ? <SourceInspectionRail citations={allCitations} selectedCitationId={selectedCitationId} onSelect={setSelectedCitationId} onClose={closeSource} /> : <div className="soft-surface source-placeholder">출처 확인하기</div>}
+            {sourcePanelOpen ? <SourceInspectionRail citations={sourceCitations} selectedCitation={selectedCitation} onSelect={handleSelectCitation} onClose={closeSource} /> : <div className="soft-surface source-placeholder">출처 확인하기</div>}
           </div>
         </div>
 
-        <MobileSourceSheet open={sourcePanelOpen} citations={allCitations} selectedCitationId={selectedCitationId} opener={sourceOpener} onClose={closeSource} />
+        <MobileSourceSheet open={sourcePanelOpen} citations={sourceCitations} selectedCitation={selectedCitation} opener={sourceOpener} onClose={closeSource} />
       </div>
     </main>
   );
-}
-
-function dedupeCitations(citations: ChatCitation[]): ChatCitation[] {
-  const byId = new Map<number, ChatCitation>();
-  for (const citation of citations) byId.set(citation.citation_id, citation);
-  return [...byId.values()].sort((a, b) => a.citation_id - b.citation_id);
 }
