@@ -108,6 +108,26 @@ Plans:
 
 **Parallelization:** Retrieval evaluation, prompt formatting, citation rendering, and audit logging can progress independently once the chat contract is defined.
 
+**Plans:** 6 plans
+
+Plans:
+
+**Wave 1**
+- [ ] 03-01-PLAN.md — Create chat response contracts and fail-closed Phase 2 JSONL chunk loader.
+
+**Wave 2** *(blocked on Wave 1 completion)*
+- [ ] 03-02-PLAN.md — Implement BM25-style Korean retrieval with synonym expansion, boilerplate exclusion, and freshness/deadline ranking.
+
+**Wave 3** *(blocked on Wave 2 completion)*
+- [ ] 03-03-PLAN.md — Implement evidence-tier policy and fail-closed citation/output validation.
+- [ ] 03-04-PLAN.md — Implement OpenAI-compatible provider boundary and untrusted retrieved-context prompt builder.
+
+**Wave 4** *(blocked on Wave 3 completion)*
+- [ ] 03-05-PLAN.md — Wire ChatService orchestration and append-only audit logging for every query cycle.
+
+**Wave 5** *(blocked on Wave 4 completion)*
+- [ ] 03-06-PLAN.md — Add deterministic Phase 3 RAG evaluation gate and local Korean chat smoke command.
+
 ### Phase 4: Personalization and Recommendations
 
 **Goal:** Make recommendations personally relevant using explicit student preferences while preserving privacy and explainability.
