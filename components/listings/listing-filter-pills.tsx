@@ -1,5 +1,3 @@
-"use client";
-
 export const listingFilters = ["전체", "추천", "최신", "마감 임박", "출처", "상태"] as const;
 export type ListingFilter = (typeof listingFilters)[number];
 

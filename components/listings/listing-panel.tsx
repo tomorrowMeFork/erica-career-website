@@ -1,5 +1,3 @@
-"use client";
-
 import type { RecommendationItem, RecommendationPrivacyMetadata } from "../../src/recommendations/recommendation-contract.js";
 import { ListingCard } from "./listing-card.js";
 import { ListingFilter, ListingFilterPills } from "./listing-filter-pills.js";
@@ -19,8 +17,27 @@ export function ListingPanel({ items, activeFilter, onFilterChange, onRefresh, s
 }
 
 function filterItems(items: RecommendationItem[], filter: ListingFilter): RecommendationItem[] {
-  if (filter === "추천") return items.filter((item) => item.match_strength !== "general_recommendation");
-  if (filter === "마감 임박" || filter === "상태") return items.filter((item) => item.deadline_status === "active" || item.deadline_status === "unknown");
-  if (filter === "출처") return [...items].sort((a, b) => a.source_id.localeCompare(b.source_id));
+  if (filter === "추천") return [...items].filter((item) => item.match_strength !== "general_recommendation").sort((a, b) => b.score - a.score);
+  if (filter === "최신") return [...items].sort(compareNewest);
+  if (filter === "마감 임박") return [...items].filter((item) => item.deadline_status === "active").sort(compareNewest);
+  if (filter === "출처") return [...items].sort((a, b) => a.source_id.localeCompare(b.source_id, "ko") || a.title.localeCompare(b.title, "ko"));
+  if (filter === "상태") return [...items].sort((a, b) => statusRank(a) - statusRank(b));
   return items;
+}
+
+function compareNewest(a: RecommendationItem, b: RecommendationItem): number {
+  return compareNullableDateDescending(a.posted_at, b.posted_at) || compareNullableDateDescending(a.fetched_at, b.fetched_at);
+}
+
+function compareNullableDateDescending(left: string | null, right: string | null): number {
+  if (left === null && right === null) return 0;
+  if (left === null) return 1;
+  if (right === null) return -1;
+  return Date.parse(right) - Date.parse(left);
+}
+
+function statusRank(item: RecommendationItem): number {
+  if (item.deadline_status === "active") return 0;
+  if (item.deadline_status === "unknown") return 1;
+  return 2;
 }
