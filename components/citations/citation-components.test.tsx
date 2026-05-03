@@ -12,13 +12,13 @@ describe("citation inspection components", () => {
   afterEach(() => cleanup());
   it("opens inline marker as keyboard button without navigation", async () => {
     const onOpen = vi.fn();
-    render(<InlineCitationMarker citationId={1} onOpen={onOpen} />);
+    render(<InlineCitationMarker citation={citation} scopedCitations={[citation]} onOpen={onOpen} />);
     fireEvent.click(screen.getByRole("button", { name: "1번 출처 보기" }));
-    expect(onOpen).toHaveBeenCalledWith(1, expect.any(HTMLButtonElement));
+    expect(onOpen).toHaveBeenCalledWith(citation, [citation], expect.any(HTMLButtonElement));
   });
 
   it("renders desktop source rail metadata and safe official link", () => {
-    render(<SourceInspectionRail citations={[citation]} selectedCitationId={1} onClose={vi.fn()} />);
+    render(<SourceInspectionRail citations={[citation]} selectedCitation={citation} onClose={vi.fn()} />);
     expect(screen.getByText("공식 출처")).toBeTruthy();
     expect(screen.getByText("ibus · example.edu")).toBeTruthy();
     expect(screen.getByText("페이지: 3")).toBeTruthy();
@@ -31,9 +31,20 @@ describe("citation inspection components", () => {
     const opener = document.createElement("button");
     document.body.append(opener);
     const onClose = vi.fn();
-    render(<MobileSourceSheet open citations={[citation]} selectedCitationId={1} opener={opener} onClose={onClose} />);
+    render(<MobileSourceSheet open citations={[citation]} selectedCitation={citation} opener={opener} onClose={onClose} />);
     expect(screen.getByRole("button", { name: "닫기" }).textContent).toBe("닫기");
+    expect(screen.getByRole("button", { name: "출처 확인 닫기" })).toBeTruthy();
+    expect(screen.getByRole("dialog", { name: "출처 확인하기" })).toBeTruthy();
     fireEvent.keyDown(document, { key: "Escape" });
     expect(onClose).toHaveBeenCalled();
+  });
+
+  it("traps mobile source sheet focus between close and official link", () => {
+    render(<MobileSourceSheet open citations={[citation]} selectedCitation={citation} onClose={vi.fn()} />);
+    const close = screen.getByRole("button", { name: "닫기" });
+    const link = screen.getByRole("link", { name: "채용 공고 공식 페이지 새 창으로 열기" });
+    close.focus();
+    fireEvent.keyDown(document, { key: "Tab", shiftKey: true });
+    expect(document.activeElement).toBe(link);
   });
 });

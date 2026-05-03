@@ -14,7 +14,7 @@ test("desktop 1280 dashboard chat, listings, preferences, and 출처", async ({ 
   await page.goto("/");
   await expect(page.getByText("무엇을 도와드릴까요?").first()).toBeVisible();
   await expect(page.getByRole("button", { name: "전체" })).toBeVisible();
-  await expect(page.getByLabel("추천 조건")).toBeVisible();
+  await expect(page.locator('section[aria-label="추천 조건"]')).toBeVisible();
   await page.getByLabel("질문 입력").fill("채용 공고 알려줘");
   await page.getByRole("button", { name: "질문 보내기" }).click();
   await expect(page.getByText("채용 공고입니다")).toBeVisible();
@@ -25,9 +25,18 @@ test("desktop 1280 dashboard chat, listings, preferences, and 출처", async ({ 
 test("mobile 390 dashboard opens source inspection shell", async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 });
   await page.goto("/");
+  await expect(page.getByLabel("채팅")).toBeVisible();
+  await expect(page.locator('section[aria-label="추천 조건"]')).toBeHidden();
+  await page.getByRole("button", { name: "추천 조건" }).click();
+  await expect(page.locator('section[aria-label="추천 조건"]')).toBeVisible();
+  await expect(page.getByLabel("채팅")).toBeVisible();
+  await page.getByRole("button", { name: "채팅" }).click();
   await page.getByLabel("질문 입력").fill("채용 공고 알려줘");
   await page.getByRole("button", { name: "질문 보내기" }).click();
   await page.getByRole("button", { name: "1번 출처 보기" }).click();
   await expect(page.getByRole("dialog", { name: "출처 확인하기" })).toBeVisible();
+  await expect(page.locator(".source-column")).toBeHidden();
+  await expect(page.getByRole("button", { name: "출처 확인 닫기" })).toBeVisible();
   await page.keyboard.press("Escape");
+  await expect(page.getByRole("dialog", { name: "출처 확인하기" })).toBeHidden();
 });
