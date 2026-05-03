@@ -40,11 +40,11 @@
 Plans:
 
 **Wave 1**
-- [ ] 01-01-PLAN.md — Create the TypeScript/Zod source registry contract, validator CLI, tests, and automated source-governance invariant checks.
+- [x] 01-01-PLAN.md — Create the TypeScript/Zod source registry contract, validator CLI, tests, and automated source-governance invariant checks.
 
 **Wave 2** *(blocked on Wave 1 completion)*
-- [ ] 01-02-PLAN.md — Create validated seed registry records and machine-traceable source access review checklist.
-- [ ] 01-03-PLAN.md — Create bounded seed-scope CDP discovery helper and discovery notes for CDP, PDF/viewer, and ibus sources.
+- [x] 01-02-PLAN.md — Create validated seed registry records and machine-traceable source access review checklist.
+- [x] 01-03-PLAN.md — Create bounded seed-scope CDP discovery helper and discovery notes for CDP, PDF/viewer, and ibus sources.
 
 ### Phase 2: Ingestion and Knowledge Base
 
@@ -64,6 +64,23 @@ Plans:
 3. Deadline/expired status is captured where source text supports it.
 
 **Parallelization:** HTML parser, PDF parser, schema design, and freshness/status extraction can be developed in separate plans after schema agreement.
+
+**Plans:** 5 plans
+
+Plans:
+
+**Wave 1**
+- [x] 02-01-PLAN.md — Create the mandatory pre-ingestion access/structure gate, evidence artifact, and explicit approval checkpoint before parser/live collection.
+
+**Wave 2** *(blocked on Wave 1 completion)*
+- [x] 02-02-PLAN.md — Define normalized citation-ready record, chunk, and manifest schemas with deterministic chunk IDs.
+
+**Wave 3** *(blocked on Wave 2 completion)*
+- [x] 02-03-PLAN.md — Implement fixture-first ibus HTML board parsing and deterministic Korean deadline status extraction, with live/sample ingestion gated by approval record.
+- [x] 02-04-PLAN.md — Implement fixture-first CDP student guide PDF page parsing with page-level citation anchors, with live/manual ingestion gated by approval record.
+
+**Wave 4** *(blocked on Wave 3 completion)*
+- [x] 02-05-PLAN.md — Wire approval-gated sample ingestion commands and deterministic JSONL knowledge-base verification.
 
 ### Phase 3: Source-Grounded Chat MVP
 
