@@ -150,8 +150,11 @@ describe("ChatService", () => {
     expect(response.refusal_tier).toBe("hard_refuse");
     expect(response.answer).toContain("충분한 근거");
     expect(response.citations).toEqual([]);
-    expect(readAudit(auditPath)).toHaveLength(1);
-    expect(readAudit(auditPath)[0]?.prompt_snapshot_reason).toBe("refusal");
+    const audit = readAudit(auditPath);
+    expect(audit).toHaveLength(1);
+    expect(audit[0]?.prompt_snapshot_reason).toBe("refusal");
+    expect(audit[0]?.prompt_snapshot).toBeUndefined();
+    expect(JSON.stringify(audit[0])).not.toContain("ERICA 기숙사 식단 알려줘");
   });
 
   it("hard-refuses default retrieval when only generic ERICA evidence overlaps", async () => {
@@ -225,6 +228,32 @@ describe("ChatService", () => {
     expect(audit).toHaveLength(1);
     expect(audit[0]?.guardrail_results.output_validation).toBe("failed");
     expect(audit[0]?.prompt_snapshot_reason).toBe("guardrail");
+    expect(audit[0]?.prompt_snapshot).toBeUndefined();
+    expect(JSON.stringify(audit[0])).not.toContain("ERICA 현장실습 모집 공고 알려줘");
+  });
+
+  it("does not write raw user query snapshots on provider failures", async () => {
+    const auditPath = join(createTempDir(), "audit.jsonl");
+    const provider: ChatModelProvider & { complete: ReturnType<typeof vi.fn> } = {
+      complete: vi.fn(async () => {
+        throw new Error("provider unavailable");
+      }),
+      getSafeConfig: () => ({ provider: "openai-compatible", base_url: "mock://openai-compatible", model: "mock-model" }),
+    };
+    const service = new ChatService({
+      retriever: createRetriever([retrieved()]),
+      provider,
+      auditLogPath: auditPath,
+      traceIdGenerator: () => "trace-provider-failure",
+    });
+
+    const response = await service.ask({ query: "내 개인정보 010-1234-5678 포함 질문" });
+
+    expect(response.refusal_tier).toBe("hard_refuse");
+    const audit = readAudit(auditPath);
+    expect(audit[0]?.prompt_snapshot_reason).toBe("failure");
+    expect(audit[0]?.prompt_snapshot).toBeUndefined();
+    expect(JSON.stringify(audit[0])).not.toContain("010-1234-5678");
   });
 
   it("appends one audit line per chat cycle", async () => {

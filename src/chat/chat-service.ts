@@ -13,7 +13,7 @@ import {
   evaluateEvidence,
   type EvidencePolicyConfig,
 } from "./evidence-policy.js";
-import { buildChatPrompt, PROMPT_VERSION, sanitizePromptText } from "./prompt.js";
+import { buildChatPrompt, PROMPT_VERSION } from "./prompt.js";
 import type { ChatModelProvider } from "./provider.js";
 import { validateChatResponseOutput } from "./output-validation.js";
 
@@ -81,15 +81,12 @@ export class ChatService {
         citationIds: [],
         guardrailResults: { ...baseGuardrails, output_validation: "skipped_hard_refusal" },
         responseTimestamp: this.nowIso(),
-        promptSnapshot: limitedPromptSnapshot(request.query),
         promptSnapshotReason: "refusal",
       });
       return response;
     }
 
     const builtPrompt = buildChatPrompt({ query: request.query, results, refusal_tier: evidence.refusal_tier });
-    const allowedCitationIds = builtPrompt.citationMap.map((citation) => citation.citation_id);
-
     try {
       const providerResponse = await this.provider.complete({ messages: builtPrompt.messages });
       const candidate = candidateFromProviderContent(providerResponse.content, {
@@ -100,7 +97,7 @@ export class ChatService {
       });
       const validation = validateChatResponseOutput({
         response: candidate,
-        allowedCitationIds,
+        citationMap: builtPrompt.citationMap,
         expectedTier: evidence.refusal_tier,
       });
 
@@ -133,7 +130,6 @@ export class ChatService {
           output_validation_failures: validation.failures,
         },
         responseTimestamp: this.nowIso(),
-        promptSnapshot: limitedPromptSnapshot(request.query),
         promptSnapshotReason: "guardrail",
       });
       return response;
@@ -153,7 +149,6 @@ export class ChatService {
           provider_error: summarizeUnknownError(error),
         },
         responseTimestamp: this.nowIso(),
-        promptSnapshot: limitedPromptSnapshot(request.query),
         promptSnapshotReason: "failure",
       });
       return response;
@@ -237,10 +232,6 @@ function parseJsonObject(content: string): Record<string, unknown> | undefined {
   } catch (error) {
     return undefined;
   }
-}
-
-function limitedPromptSnapshot(query: string): string {
-  return sanitizePromptText(`사용자 질문: ${query}`).slice(0, 500);
 }
 
 function summarizeUnknownError(error: unknown): string {
