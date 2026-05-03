@@ -31,4 +31,27 @@ describe("/api/recommendations", () => {
     expect(response.status).toBe(200);
     await expect(response.json()).resolves.toMatchObject({ recommendations: [item], privacy_metadata: { preference_ranking_enabled: true } });
   });
+
+  it("returns 400 for invalid request schema input", async () => {
+    const recommend = vi.fn();
+    overrideServicesForTest({ recommendation: { recommend } });
+
+    const response = await POST(new Request("https://app.test/api/recommendations", { method: "POST", body: JSON.stringify({ query: "채용", limit: 100 }) }));
+    const text = await response.text();
+
+    expect(response.status).toBe(400);
+    expect(text).toContain("요청 형식이 올바르지 않아요");
+    expect(recommend).not.toHaveBeenCalled();
+  });
+
+  it("keeps service failures as safe Korean 503 JSON", async () => {
+    overrideServicesForTest({ recommendation: { recommend: vi.fn().mockRejectedValue(new Error("DATABASE_URL secret stack")) } });
+
+    const response = await POST(new Request("https://app.test/api/recommendations", { method: "POST", body: JSON.stringify({ query: "채용", limit: 5 }) }));
+    const text = await response.text();
+
+    expect(response.status).toBe(503);
+    expect(text).toContain("요청을 처리하지 못했어요");
+    expect(text).not.toContain("DATABASE_URL");
+  });
 });
