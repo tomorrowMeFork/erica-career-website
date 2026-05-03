@@ -7,6 +7,8 @@
 **Phase:** 3-Source-Grounded Chat MVP
 **Areas discussed:** 검색 기준, 답변/인용 형식, 거절 기준, 안전/감사 로그
 
+**Follow-up clarification:** The user clarified after context creation that the service must cover not only 채용정보 but also broader campus employment-support services, including counseling, consulting, career programs, CDP guide usage, job-prep tests, and success stories when supported by sources. CONTEXT.md was updated accordingly.
+
 ---
 
 ## 검색 기준
@@ -23,6 +25,8 @@
 | Evaluation gate | LLM 평가 포함 | 작은 QA set only, 수동 smoke only |
 
 **Notes:** The user clarified that login screens and viewer UI chrome are not answer knowledge and should not be retrieval-index targets.
+
+**Follow-up note:** Retrieval must not be narrowed to job postings only. The index/query expansion should also support campus-service 안내 terms such as 상담, 컨설팅, 취업프로그램, 직무부트캠프, 자기소개서/자소서, 가이드북/매뉴얼, 취업성공후기.
 
 ---
 
