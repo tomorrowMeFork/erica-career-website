@@ -113,7 +113,7 @@ Plans:
 Plans:
 
 **Wave 1**
-- [ ] 03-01-PLAN.md — Create chat response contracts and fail-closed Phase 2 JSONL chunk loader.
+- [x] 03-01-PLAN.md — Create chat response contracts and fail-closed Phase 2 JSONL chunk loader.
 
 **Wave 2** *(blocked on Wave 1 completion)*
 - [ ] 03-02-PLAN.md — Implement BM25-style Korean retrieval with synonym expansion, boilerplate exclusion, and freshness/deadline ranking.

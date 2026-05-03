@@ -17,9 +17,9 @@ Requirements for the initial release. Each maps to roadmap phases.
 
 ### Retrieval and Chat
 
-- [ ] **RAG-01**: User can ask a Korean natural-language career or recruitment question in a chat interface.
-- [ ] **RAG-02**: System retrieves relevant indexed source chunks using keyword and semantic matching.
-- [ ] **RAG-03**: System answers with citations that include source title, URL, and date/page context when available.
+- [x] **RAG-01**: User can ask a Korean natural-language career or recruitment question in a chat interface.
+- [x] **RAG-02**: System retrieves relevant indexed source chunks using keyword and semantic matching.
+- [x] **RAG-03**: System answers with citations that include source title, URL, and date/page context when available.
 - [ ] **RAG-04**: System refuses or labels uncertainty when retrieved evidence is insufficient.
 - [ ] **RAG-05**: System logs retrieved source IDs, prompt version, model configuration, and response timestamp for audit and regression debugging.
 - [ ] **RAG-06**: System treats retrieved source text as untrusted content and prevents source text from overriding system, safety, citation, or privacy instructions.
@@ -97,9 +97,9 @@ Which phases cover which requirements. Updated during roadmap creation.
 | SRC-03 | Phase 2 | Pending |
 | SRC-04 | Phase 2 | Pending |
 | SRC-05 | Phase 2 | Pending |
-| RAG-01 | Phase 3 | Pending |
-| RAG-02 | Phase 3 | Pending |
-| RAG-03 | Phase 3 | Pending |
+| RAG-01 | Phase 3 | Complete |
+| RAG-02 | Phase 3 | Complete |
+| RAG-03 | Phase 3 | Complete |
 | RAG-04 | Phase 3 | Pending |
 | RAG-05 | Phase 3 | Pending |
 | RAG-06 | Phase 3 | Pending |
