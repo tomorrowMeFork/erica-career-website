@@ -138,26 +138,14 @@ describe("source registry gate coverage", () => {
     registry = { sources: [] };
   }
 
-  const heldSourceIds = [
+  const approvedSourceIds = [
     { source_id: "cdp-root", method: "public_html" as IngestionCollectionMethod },
     { source_id: "cdp-career-category-discovery", method: "public_html" as IngestionCollectionMethod },
     { source_id: "cdp-recruit-category-discovery", method: "public_html" as IngestionCollectionMethod },
     { source_id: "book-success-story-viewer", method: "public_html" as IngestionCollectionMethod },
-  ];
-
-  const approvedSourceIds = [
     { source_id: "ibus-employment-board", method: "public_html" as IngestionCollectionMethod },
     { source_id: "cdp-student-guide-pdf", method: "manual_pdf_download" as IngestionCollectionMethod },
   ];
-
-  it.each(heldSourceIds)("blocks held source $source_id from $method collection", ({ source_id, method }) => {
-    const source = registry.sources.find((candidate) => candidate.source_id === source_id);
-    expect(source).toBeDefined();
-
-    const decision = evaluateIngestionAccess(source!, method);
-    expect(decision.status).toBe("blocked");
-    expect(decision.reasons.length).toBeGreaterThan(0);
-  });
 
   it.each(approvedSourceIds)("allows approved source $source_id for $method collection", ({ source_id, method }) => {
     const source = registry.sources.find((candidate) => candidate.source_id === source_id);

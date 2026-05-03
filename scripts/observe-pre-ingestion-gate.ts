@@ -138,7 +138,7 @@ function buildEvidenceMarkdown(rows: EvidenceRow[], sources: SourceRecord[]): st
 
 - Evaluated all six current seed source records.
 - Parser-eligible records: ${eligibleCount}/${rows.length}.
-- All currently pending records are blocked from parser collection by the registry-backed access gate.
+- Registry-backed access gate decisions reflect the latest approval record.
 - \`scheduled_crawling_enabled\` remains false for every source; scheduled crawling is not implemented.
 - This evidence reflects current registry gate decisions. Approval authority remains the explicit approval record, not this generated evidence file.
 
@@ -147,8 +147,8 @@ ${markdownTable(rows)}
 ## CDP category/login gap
 
 - Phase 1 UAT recorded a major CDP structure/login feasibility gap: CDP collection planning must be based on observed website structure and access status, not schema tests alone.
-- \`cdp-career-category-discovery\` and \`cdp-recruit-category-discovery\` remain conditional. The last local discovery notes recorded \`no_candidates_observed\`; no category URLs are fabricated here.
-- CDP category parser work remains blocked until safe public structure or explicit human-approved access evidence exists.
+- \`cdp-career-category-discovery\` and \`cdp-recruit-category-discovery\` use currently observed same-host public URLs only.
+- CDP category parser work remains limited to the latest explicit human-approved bounded Playwright scope.
 - Login automation is not implemented in this phase. If a login boundary is observed later, separate explicit authorization and a non-persistent, redacted observation plan are required before any collection work.
 
 ## Parser eligibility by source
@@ -156,7 +156,7 @@ ${markdownTable(rows)}
 ### cdp-root
 
 - Observed URL: \`${rows.find((row) => row.source_id === "cdp-root")?.observed_url}\`
-- Parser eligibility: blocked pending review.
+- Parser eligibility: ${rows.find((row) => row.source_id === "cdp-root")?.parser_eligible ? "allowed for bounded Playwright HTML collection from the observed same-host public URL" : "blocked pending review"}.
 - Auth boundary: ${rows.find((row) => row.source_id === "cdp-root")?.auth_boundary}; response type: ${rows.find((row) => row.source_id === "cdp-root")?.response_type}.
 - Robots/ToS: ${rows.find((row) => row.source_id === "cdp-root")?.robots_status} / ${rows.find((row) => row.source_id === "cdp-root")?.tos_status}.
 - Registry note: ${notesById.get("cdp-root")}
@@ -164,7 +164,7 @@ ${markdownTable(rows)}
 ### cdp-career-category-discovery
 
 - Observed URL: \`${rows.find((row) => row.source_id === "cdp-career-category-discovery")?.observed_url}\`
-- Parser eligibility: blocked; structure-observation-only unless explicitly reviewed and approved.
+- Parser eligibility: ${rows.find((row) => row.source_id === "cdp-career-category-discovery")?.parser_eligible ? "allowed for bounded Playwright HTML collection from the observed same-host public URL" : "blocked pending review"}.
 - Auth boundary: ${rows.find((row) => row.source_id === "cdp-career-category-discovery")?.auth_boundary}; response type: ${rows.find((row) => row.source_id === "cdp-career-category-discovery")?.response_type}.
 - Robots/ToS: ${rows.find((row) => row.source_id === "cdp-career-category-discovery")?.robots_status} / ${rows.find((row) => row.source_id === "cdp-career-category-discovery")?.tos_status}.
 - Registry note: ${notesById.get("cdp-career-category-discovery")}
@@ -172,7 +172,7 @@ ${markdownTable(rows)}
 ### cdp-recruit-category-discovery
 
 - Observed URL: \`${rows.find((row) => row.source_id === "cdp-recruit-category-discovery")?.observed_url}\`
-- Parser eligibility: blocked; structure-observation-only unless explicitly reviewed and approved.
+- Parser eligibility: ${rows.find((row) => row.source_id === "cdp-recruit-category-discovery")?.parser_eligible ? "allowed for bounded Playwright HTML collection from the observed same-host public URL" : "blocked pending review"}.
 - Auth boundary: ${rows.find((row) => row.source_id === "cdp-recruit-category-discovery")?.auth_boundary}; response type: ${rows.find((row) => row.source_id === "cdp-recruit-category-discovery")?.response_type}.
 - Robots/ToS: ${rows.find((row) => row.source_id === "cdp-recruit-category-discovery")?.robots_status} / ${rows.find((row) => row.source_id === "cdp-recruit-category-discovery")?.tos_status}.
 - Registry note: ${notesById.get("cdp-recruit-category-discovery")}
@@ -180,7 +180,7 @@ ${markdownTable(rows)}
 ### book-success-story-viewer
 
 - Observed URL: \`${rows.find((row) => row.source_id === "book-success-story-viewer")?.observed_url}\`
-- Parser eligibility: blocked; viewer remains structure-observation-only unless explicitly reviewed and approved.
+- Parser eligibility: ${rows.find((row) => row.source_id === "book-success-story-viewer")?.parser_eligible ? "allowed for bounded Playwright HTML collection from the original public viewer URL" : "blocked pending review"}.
 - Auth boundary: ${rows.find((row) => row.source_id === "book-success-story-viewer")?.auth_boundary}; response type: ${rows.find((row) => row.source_id === "book-success-story-viewer")?.response_type}.
 - Robots/ToS: ${rows.find((row) => row.source_id === "book-success-story-viewer")?.robots_status} / ${rows.find((row) => row.source_id === "book-success-story-viewer")?.tos_status}.
 - Registry note: ${notesById.get("book-success-story-viewer")}
@@ -203,7 +203,7 @@ ${markdownTable(rows)}
 
 ## Task 3 checkpoint
 
-Task 3 approval is recorded in \`.planning/phases/02-ingestion-and-knowledge-base/pre-ingestion-approval-record.md\`. Downstream parser commands must remain limited to currently allowed registry decisions and must continue to fail closed for held sources.
+Task 3 approval is recorded in \`.planning/phases/02-ingestion-and-knowledge-base/pre-ingestion-approval-record.md\`. Downstream parser commands must remain limited to currently allowed registry decisions and exact approved public URLs.
 `;
 }
 
