@@ -16,6 +16,7 @@ import type { ListingFilter } from "../listings/listing-filter-pills.js";
 import { PreferencePanel } from "../preferences/preference-panel.js";
 import { SettingsMenu } from "../preferences/settings-menu.js";
 import { StorageScopeChip } from "../preferences/storage-scope-chip.js";
+import { DisclaimerNotice } from "../safety/disclaimer-notice.js";
 
 const emptyPreferenceState: PreferenceState = { preference_ranking_enabled: false, profile: null, storage_scope: "none" };
 
@@ -121,6 +122,8 @@ export function StudentDashboard() {
           <StorageScopeChip storageScope={preferenceState.storage_scope} rankingEnabled={preferenceState.preference_ranking_enabled} />
           <SettingsMenu onClearPreferences={() => void handleClearPreferences()} onClearChatHistory={clearChatHistory} />
         </header>
+
+        <DisclaimerNotice />
 
         <nav className="panel-tabs" aria-label="대시보드 패널">
           <button type="button" className="pill-control" aria-pressed={activePanel === "chat"} onClick={() => setActivePanel("chat")}>채팅</button>
