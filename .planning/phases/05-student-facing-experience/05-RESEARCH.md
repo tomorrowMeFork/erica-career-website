@@ -400,18 +400,17 @@ The exact script names are discretionary, but planning must keep existing `test`
 
 ## Open Questions
 
-1. **Should persistent preference opt-in be exposed in Phase 5 UI or hidden?**
-   - What we know: Persistent storage is allowed only with explicit consent, retention, and deletion support; session-first is default. [VERIFIED: `05-CONTEXT.md`; `preference-store.ts`]
-   - What's unclear: Whether product wants to expose this in the first dashboard.
-   - Recommendation: Hide persistent opt-in in Phase 5 unless planner allocates explicit consent/retention/deletion UI work; still show storage scope and clear controls.
-2. **Should `shadcn init` be mandatory or can components be hand-rolled initially?**
-   - What we know: UI-SPEC says shadcn is recommended but not initialized; no existing frontend scaffold exists. [VERIFIED: `05-UI-SPEC.md`]
-   - What's unclear: Whether executor should accept generated component files in this phase.
-   - Recommendation: Initialize shadcn after Next/Tailwind scaffold and add only approved primitives to reduce accessibility risk.
-3. **How should live provider absence be represented during manual QA?**
-   - What we know: Existing service requires `OPENAI_COMPAT_*` for live chat; tests can mock. [VERIFIED: `openai-compatible-provider.ts`; tests]
-   - What's unclear: Whether the local environment has provider credentials.
-   - Recommendation: Plan mocked route/component tests plus a conditional live smoke checklist when env exists.
+1. **RESOLVED — Persistent preference opt-in is deferred for Phase 5.**
+   - Decision: Phase 5 uses session-first preference storage only by default.
+   - Planning constraint: Do not implement persistent preference writes in Phase 5.
+   - Future work: Persistent preference UI may appear only with explicit consent timestamp, retention days, and deletion support. [VERIFIED: user resolution 2026-05-04; `05-CONTEXT.md`; `preference-store.ts`]
+2. **RESOLVED — shadcn dependencies must be verified during Plan 05-01 execution.**
+   - Decision: Confirm exact generated dependencies after initializing official shadcn primitives.
+   - Planning constraint: Plans must verify `components.json` and package changes after init.
+   - Registry constraint: No third-party registries. [VERIFIED: user resolution 2026-05-04; `05-UI-SPEC.md`]
+3. **RESOLVED — live `OPENAI_COMPAT_*` credentials are not required for Phase 5 execution or automated QA.**
+   - Decision: Manual QA should use the existing complete-response route with configured env if present, or controlled non-fabricating error/refusal UI if env is absent.
+   - Planning constraint: Never read or print `.env` values. [VERIFIED: user resolution 2026-05-04; `openai-compatible-provider.ts`; `05-UI-SPEC.md`]
 
 ## Sources
 
@@ -467,10 +466,10 @@ The exact script names are discretionary, but planning must keep existing `test`
 | Architecture | HIGH | Directly maps approved UI-SPEC and existing TypeScript contracts/services. |
 | Pitfalls | HIGH | Derived from concrete repo config and service runtime requirements. |
 
-### Open Questions
-- Decide whether persistent preference opt-in is visible in Phase 5 or deferred behind session-only UI.
-- Confirm shadcn generated dependencies after initialization.
-- Confirm live `OPENAI_COMPAT_*` availability for manual chat QA; otherwise use mocked route/component tests.
+### Open Questions (RESOLVED)
+- Resolved: Persistent preference opt-in UI and persistent writes are deferred; Phase 5 uses session-first preferences only.
+- Resolved: Plan 05-01 must verify official shadcn init output, `components.json`, and package changes; no third-party registries.
+- Resolved: Live provider credentials are not required for Phase 5 execution or automated QA; manual QA must use configured env if present or controlled non-fabricating error/refusal UI, without reading or printing `.env` values.
 
 ### Ready for Planning
 Research complete. Planner can now create PLAN.md files for Phase 05.
