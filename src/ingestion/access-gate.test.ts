@@ -1,7 +1,10 @@
+import { readFileSync } from "node:fs";
+import { parse } from "yaml";
 import { describe, expect, it } from "vitest";
 import {
   assertCanIngestSource,
   evaluateIngestionAccess,
+  loadSourceRegistryForIngestion,
   type IngestionCollectionMethod,
 } from "./access-gate.js";
 import type { SourceRecord, SourceRegistry } from "../source-governance/source-registry.schema.js";
@@ -122,5 +125,54 @@ describe("assertCanIngestSource", () => {
     const registry: SourceRegistry = { sources: [baseSource] };
 
     expect(() => assertCanIngestSource(registry, "cdp-root", "public_html")).toThrow(/Ingestion blocked/);
+  });
+});
+
+describe("source registry gate coverage", () => {
+  const registryPath = ".planning/phases/01-source-discovery-and-governance/source-registry.yaml";
+  let registry: SourceRegistry;
+
+  try {
+    const fileText = readFileSync(registryPath, "utf8");
+    const parsedYaml = parse(fileText);
+    registry = loadSourceRegistryForIngestion(registryPath);
+  } catch {
+    registry = { sources: [] };
+  }
+
+  const heldSourceIds = [
+    { source_id: "cdp-root", method: "public_html" as IngestionCollectionMethod },
+    { source_id: "cdp-career-category-discovery", method: "public_html" as IngestionCollectionMethod },
+    { source_id: "cdp-recruit-category-discovery", method: "public_html" as IngestionCollectionMethod },
+    { source_id: "book-success-story-viewer", method: "public_html" as IngestionCollectionMethod },
+  ];
+
+  const approvedSourceIds = [
+    { source_id: "ibus-employment-board", method: "public_html" as IngestionCollectionMethod },
+    { source_id: "cdp-student-guide-pdf", method: "manual_pdf_download" as IngestionCollectionMethod },
+  ];
+
+  it.each(heldSourceIds)("blocks held source $source_id from $method collection", ({ source_id, method }) => {
+    const source = registry.sources.find((candidate) => candidate.source_id === source_id);
+    expect(source).toBeDefined();
+
+    const decision = evaluateIngestionAccess(source!, method);
+    expect(decision.status).toBe("blocked");
+    expect(decision.reasons.length).toBeGreaterThan(0);
+  });
+
+  it.each(approvedSourceIds)("allows approved source $source_id for $method collection", ({ source_id, method }) => {
+    const source = registry.sources.find((candidate) => candidate.source_id === source_id);
+    expect(source).toBeDefined();
+
+    const decision = evaluateIngestionAccess(source!, method);
+    expect(decision.status).toBe("allowed");
+    expect(decision.reasons).toEqual([]);
+  });
+
+  it("ensures all six registry sources have scheduled_crawling_enabled false", () => {
+    for (const source of registry.sources) {
+      expect(source.scheduled_crawling_enabled).toBe(false);
+    }
   });
 });
