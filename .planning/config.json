@@ -1,0 +1,20 @@
+{
+  "mode": "yolo",
+  "granularity": "coarse",
+  "parallelization": true,
+  "commit_docs": true,
+  "model_profile": "inherit",
+  "workflow": {
+    "research": true,
+    "plan_check": true,
+    "verifier": true,
+    "nyquist_validation": false,
+    "auto_advance": true
+  },
+  "planning": {
+    "initialized_manually": true,
+    "reason": "gsd-sdk was not available in this shell during /gsd-new-project initialization.",
+    "runtime": "opencode",
+    "instruction_file": "AGENTS.md"
+  }
+}
