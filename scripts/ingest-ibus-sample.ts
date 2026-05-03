@@ -13,10 +13,31 @@ const sourceId = "ibus-employment-board";
 const boardUrl = "https://ibus.hanyang.ac.kr/front/recruit/r-1";
 const fixtureFetchedAt = "2026-05-03T00:00:00.000Z";
 
+const DEFAULT_COLLECT_MAX_PAGES = 1;
+const DEFAULT_COLLECT_DELAY_MS = 1_200;
+
 type CliArgs = {
   fixture: boolean;
   output: string;
+  max_pages: number;
+  delay_ms: number;
 };
+
+function readEnvInt(key: string, defaultValue: number): number {
+  const raw = process.env[key];
+  if (!raw) {
+    return defaultValue;
+  }
+  const parsed = Number.parseInt(raw, 10);
+  if (!Number.isInteger(parsed) || parsed <= 0) {
+    throw new Error(`${key} must be a positive integer, got: ${raw}`);
+  }
+  return parsed;
+}
+
+async function delay(ms: number): Promise<void> {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
 
 async function runCli(): Promise<void> {
   const args = parseArgs(process.argv.slice(2));
@@ -24,6 +45,23 @@ async function runCli(): Promise<void> {
   const decision = args.fixture ? fixtureOnlyDecision() : assertCanIngestSource(registry, sourceId, "public_html");
   const approvalEvidenceText = args.fixture ? fixtureOnlyApprovalEvidence() : await readFile(approvalRecordPath, "utf8");
 
+  if (args.max_pages <= 1) {
+    await runSingleSampleCollection(args, decision, approvalEvidenceText);
+    return;
+  }
+
+  if (args.fixture) {
+    throw new Error("Bounded multi-page collection (--pages > 1) is not supported in --fixture mode");
+  }
+
+  await runBoundedMultiPageCollection(args, decision, approvalEvidenceText);
+}
+
+async function runSingleSampleCollection(
+  args: CliArgs,
+  decision: IngestionAccessDecision,
+  approvalEvidenceText: string,
+): Promise<void> {
   const listingHtml = args.fixture
     ? await readFile(listingFixturePath, "utf8")
     : await fetchApprovedText(decision, boardUrl, { approval_evidence_text: approvalEvidenceText, timeout_ms: 10_000 });
@@ -63,9 +101,89 @@ async function runCli(): Promise<void> {
   console.log(`ibus sample ingestion wrote ${manifest.record_count} records and ${manifest.chunk_count} chunks to ${args.output}`);
 }
 
+async function runBoundedMultiPageCollection(
+  args: CliArgs,
+  decision: IngestionAccessDecision,
+  approvalEvidenceText: string,
+): Promise<void> {
+  const allEntries: IbusListingEntry[] = [];
+  const detailHtmlByUrl = new Map<string, string>();
+  let collectedPages = 0;
+
+  for (let page = 1; page <= args.max_pages; page += 1) {
+    const pageUrl = page === 1 ? boardUrl : `${boardUrl}?page=${page}`;
+    console.log(`ibus bounded collection: fetching listing page ${page}/${args.max_pages} from ${pageUrl}`);
+
+    const listingHtml = await fetchApprovedText(decision, pageUrl, {
+      approval_evidence_text: approvalEvidenceText,
+      timeout_ms: 15_000,
+    });
+    const pageEntries = parseIbusListingPage(listingHtml, pageUrl);
+
+    if (pageEntries.length === 0) {
+      console.log(`ibus bounded collection: no entries on page ${page}, stopping`);
+      break;
+    }
+
+    allEntries.push(...pageEntries);
+    collectedPages += 1;
+
+    for (const entry of pageEntries) {
+      if (detailHtmlByUrl.has(entry.canonical_url)) {
+        continue;
+      }
+
+      console.log(`ibus bounded collection: fetching detail ${entry.canonical_url}`);
+      const detailHtml = await fetchApprovedText(decision, entry.canonical_url, {
+        approval_evidence_text: approvalEvidenceText,
+        timeout_ms: 10_000,
+      });
+      detailHtmlByUrl.set(entry.canonical_url, detailHtml);
+    }
+
+    if (page < args.max_pages) {
+      await delay(args.delay_ms);
+    }
+  }
+
+  if (allEntries.length === 0) {
+    throw new Error("ibus bounded collection: no listing entries found across all pages");
+  }
+
+  const fetchedAt = new Date().toISOString();
+  const listingHtmlCombined = allEntries.map((entry) => renderSingleEntryListingRow(entry)).join("");
+
+  const records = buildIbusNormalizedRecords({
+    listing_html: `<html><body><table>${listingHtmlCombined}</table></body></html>`,
+    detail_html_by_url: Object.fromEntries(detailHtmlByUrl),
+    page_url: boardUrl,
+    fetched_at: new Date(fetchedAt),
+    access_decision: decision,
+    approval_evidence_text: approvalEvidenceText,
+  });
+  const chunks = records.flatMap((record) => chunkNormalizedRecord(record));
+
+  const manifest = await writeKnowledgeBaseJsonl({
+    records,
+    chunks,
+    outputDir: args.output,
+    manifest: {
+      run_id: `live-ibus-bounded-${fetchedAt}`,
+      generated_at: fetchedAt,
+      source_ids: [sourceId],
+    },
+  });
+
+  console.log(
+    `ibus bounded collection: ${collectedPages} pages, ${manifest.record_count} records, ${manifest.chunk_count} chunks written to ${args.output}`,
+  );
+}
+
 function parseArgs(argv: readonly string[]): CliArgs {
   let fixture = false;
   let output = "data/knowledge-base/fixture-ibus";
+  let maxPages: number | undefined;
+  let delayMs: number | undefined;
 
   for (let index = 0; index < argv.length; index += 1) {
     const arg = argv[index];
@@ -82,10 +200,41 @@ function parseArgs(argv: readonly string[]): CliArgs {
       index += 1;
       continue;
     }
+    if (arg === "--pages") {
+      const value = argv[index + 1];
+      if (!value) {
+        throw new Error("--pages requires a number");
+      }
+      const parsed = Number.parseInt(value, 10);
+      if (!Number.isInteger(parsed) || parsed < 1) {
+        throw new Error("--pages must be a positive integer");
+      }
+      maxPages = parsed;
+      index += 1;
+      continue;
+    }
+    if (arg === "--delay") {
+      const value = argv[index + 1];
+      if (!value) {
+        throw new Error("--delay requires a number");
+      }
+      const parsed = Number.parseInt(value, 10);
+      if (!Number.isInteger(parsed) || parsed < 0) {
+        throw new Error("--delay must be a non-negative integer");
+      }
+      delayMs = parsed;
+      index += 1;
+      continue;
+    }
     throw new Error(`Unknown argument: ${arg}`);
   }
 
-  return { fixture, output };
+  return {
+    fixture,
+    output,
+    max_pages: maxPages ?? readEnvInt("COLLECT_MAX_PAGES", DEFAULT_COLLECT_MAX_PAGES),
+    delay_ms: delayMs ?? readEnvInt("COLLECT_DELAY_MS", DEFAULT_COLLECT_DELAY_MS),
+  };
 }
 
 function fixtureOnlyDecision(): IngestionAccessDecision {
@@ -105,7 +254,11 @@ function fixtureOnlyApprovalEvidence(): string {
 }
 
 function renderSingleEntryListing(entry: IbusListingEntry): string {
-  return `<html><body><table><tr><td><a href="${escapeHtml(entry.canonical_url)}">${escapeHtml(entry.title)}</a></td><td>${escapeHtml(entry.posted_raw_text)}</td><td class="hit">${entry.hit_count ?? ""}</td></tr></table></body></html>`;
+  return `<html><body><table>${renderSingleEntryListingRow(entry)}</table></body></html>`;
+}
+
+function renderSingleEntryListingRow(entry: IbusListingEntry): string {
+  return `<tr><td><a href="${escapeHtml(entry.canonical_url)}">${escapeHtml(entry.title)}</a></td><td>${escapeHtml(entry.posted_raw_text)}</td><td class="hit">${entry.hit_count ?? ""}</td></tr>`;
 }
 
 function escapeHtml(value: string): string {
