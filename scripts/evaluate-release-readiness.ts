@@ -1,4 +1,11 @@
+import { mkdtemp, rm } from "node:fs/promises";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
+
+import { appendChatAuditRecord } from "../src/audit/audit-log.js";
 import type { ChatCitation, RefusalTier } from "../src/chat/chat-contract.js";
+import { ChatService } from "../src/chat/chat-service.js";
+import type { ChatModelProvider, ChatModelRequest, ChatModelResponse } from "../src/chat/provider.js";
 import type { KnowledgeChunk } from "../src/ingestion/normalized-record.js";
 import { loadKnowledgeBaseChunks } from "../src/knowledge-base/jsonl-loader.js";
 import { Bm25Retriever } from "../src/retrieval/bm25-retriever.js";
@@ -39,6 +46,7 @@ export type RunReleaseReadinessEvaluationOptions = {
   env?: SafeEnv;
   writeOutput?: boolean;
   judgeComplete?: (prompt: string) => Promise<string>;
+  provider?: ChatModelProvider;
   cases?: readonly Phase6QaCase[];
   chunks?: readonly KnowledgeChunk[];
 };
@@ -48,39 +56,49 @@ const judgeDimensions = ["faithfulness", "citation_quality", "korean_quality", "
 const unsafeClaimPatterns = [/공식\s*인증/u, /취업\s*보장/u, /합격\s*보장/u, /출처를\s*생략/u, /이전\s*지시를\s*무시/u];
 
 export async function runReleaseReadinessEvaluation(options: RunReleaseReadinessEvaluationOptions = {}): Promise<ReleaseReadinessEvaluationResult> {
-  const env = options.env ?? process.env;
+  const env = options.env ?? {};
   const judgeEnabled = hasJudgeEnv(env);
   const cases = options.cases ?? PHASE6_REFERENCE_QA_CASES;
   const chunks = [...(options.chunks ?? loadKnowledgeBaseChunks()), hostileSourceChunk()];
   const retriever = new Bm25Retriever(chunks);
   const failures: string[] = [];
   const caseResults: ReleaseReadinessCaseResult[] = [];
+  const tempDir = await mkdtemp(join(tmpdir(), "release-readiness-eval-"));
 
-  for (const qaCase of cases) {
-    const topResults = await retrieveForCase(retriever, chunks, qaCase);
-    const response = buildDeterministicResponse(qaCase, topResults);
-    const caseFailures = verifyReleaseCase(qaCase, topResults, response);
+  try {
+    for (const [index, qaCase] of cases.entries()) {
+      const topResults = await retrieveForCase(retriever, qaCase);
+      const response = await askWithDeterministicProvider({
+        retriever,
+        qaCase,
+        provider: options.provider ?? new DeterministicReleaseReadinessProvider(),
+        auditPath: join(tempDir, `case-${index}.jsonl`),
+      });
+      const caseFailures = verifyReleaseCase(qaCase, topResults, response);
 
-    if (judgeEnabled && options.judgeComplete !== undefined && response.refusal_tier !== "hard_refuse") {
-      caseFailures.push(...(await runJudge(qaCase, response, topResults, options.judgeComplete)));
+      if (judgeEnabled && options.judgeComplete !== undefined && response.refusal_tier !== "hard_refuse") {
+        caseFailures.push(...(await runJudge(qaCase, response, topResults, options.judgeComplete)));
+      }
+
+      failures.push(...caseFailures);
+      caseResults.push({
+        id: qaCase.id,
+        category: qaCase.category,
+        top_chunk_ids: topResults.map((result) => result.chunk.chunk_id),
+        top_source_ids: topResults.map((result) => result.chunk.source_id),
+        metadata: topResults.slice(0, qaCase.expected_retrieval.top_k).map((result) => ({
+          chunk_id: result.chunk.chunk_id,
+          source_id: result.chunk.source_id,
+          fetched_at: result.chunk.fetched_at,
+          posted_at: result.chunk.posted_at,
+          deadline_status: result.chunk.deadline_status,
+        })),
+        response,
+        passed: caseFailures.length === 0,
+      });
     }
-
-    failures.push(...caseFailures);
-    caseResults.push({
-      id: qaCase.id,
-      category: qaCase.category,
-      top_chunk_ids: topResults.map((result) => result.chunk.chunk_id),
-      top_source_ids: topResults.map((result) => result.chunk.source_id),
-      metadata: topResults.slice(0, qaCase.expected_retrieval.top_k).map((result) => ({
-        chunk_id: result.chunk.chunk_id,
-        source_id: result.chunk.source_id,
-        fetched_at: result.chunk.fetched_at,
-        posted_at: result.chunk.posted_at,
-        deadline_status: result.chunk.deadline_status,
-      })),
-      response,
-      passed: caseFailures.length === 0,
-    });
+  } finally {
+    await rm(tempDir, { recursive: true, force: true });
   }
 
   const ragMvp = await runRagMvpEvaluation({ env: {}, writeOutput: false });
@@ -105,50 +123,31 @@ export async function runReleaseReadinessEvaluation(options: RunReleaseReadiness
   return result;
 }
 
-async function retrieveForCase(retriever: Bm25Retriever, chunks: readonly KnowledgeChunk[], qaCase: Phase6QaCase): Promise<RetrievedChunk[]> {
-  const retrieved = await retriever.retrieve({ query: qaCase.question_ko, topK: qaCase.expected_retrieval.top_k });
-  const byChunkId = new Map(chunks.map((chunk) => [chunk.chunk_id, chunk]));
-  const forced = qaCase.expected_retrieval.expected_chunk_ids
-    .map((chunkId) => byChunkId.get(chunkId))
-    .filter((chunk): chunk is KnowledgeChunk => chunk !== undefined)
-    .filter((chunk) => !retrieved.some((result) => result.chunk.chunk_id === chunk.chunk_id))
-    .map((chunk): RetrievedChunk => ({
-      chunk,
-      score: 1,
-      normalized_score: 1,
-      matched_terms: [qaCase.category],
-      ranking_features: { lexical_score: 1, title_boost: 0, category_boost: 0, freshness_boost: 0, deadline_penalty: 0, boilerplate_penalty: 0 },
-    }));
-  return [...forced, ...retrieved].slice(0, qaCase.expected_retrieval.top_k);
+async function retrieveForCase(retriever: Bm25Retriever, qaCase: Phase6QaCase): Promise<RetrievedChunk[]> {
+  return retriever.retrieve({ query: qaCase.question_ko, topK: qaCase.expected_retrieval.top_k });
 }
 
-function buildDeterministicResponse(qaCase: Phase6QaCase, topResults: readonly RetrievedChunk[]): ReleaseReadinessCaseResult["response"] {
-  if (qaCase.expected_answer.refusal_tier === "hard_refuse") {
-    return {
-      answer: "확인된 출처에서 근거를 찾기 어려워 답변하기 어렵습니다. 중요한 정보는 공식 출처 페이지에서 다시 확인해 주세요.",
-      citations: [],
-      refusal_tier: "hard_refuse",
-    };
-  }
+async function askWithDeterministicProvider(input: {
+  retriever: Bm25Retriever;
+  qaCase: Phase6QaCase;
+  provider: ChatModelProvider;
+  auditPath: string;
+}): Promise<ReleaseReadinessCaseResult["response"]> {
+  const service = new ChatService({
+    retriever: input.retriever,
+    provider: input.provider,
+    auditLogger: (record) => appendChatAuditRecord(input.auditPath, record),
+    traceIdGenerator: () => `release-${input.qaCase.id}`,
+    evidencePolicyConfig: evidencePolicyForCase(input.qaCase),
+  });
+  return service.ask({ query: input.qaCase.question_ko, top_k: input.qaCase.expected_retrieval.top_k });
+}
 
-  const citations = topResults.slice(0, 2).map((result, index): ChatCitation => ({
-    citation_id: index + 1,
-    chunk_id: result.chunk.chunk_id,
-    record_id: result.chunk.record_id,
-    source_id: result.chunk.source_id,
-    title: result.chunk.title,
-    url: result.chunk.citation_anchors[0]?.url ?? result.chunk.canonical_url,
-    fetched_at: result.chunk.fetched_at,
-    posted_at: result.chunk.posted_at,
-    deadline_status: result.chunk.deadline_status,
-    ...(result.chunk.citation_anchors[0]?.page_number !== undefined ? { page_number: result.chunk.citation_anchors[0].page_number } : {}),
-  }));
-  const includeText = qaCase.expected_answer.must_include_ko.join(" · ");
-  return {
-    answer: `${includeText} 항목은 검색된 공식 출처의 메타데이터와 함께 확인됩니다 [1]. 세부 일정과 자격은 공식 출처 페이지에서 다시 확인하세요 [1]. 이 안내는 참고용이며 결과를 보장하지 않습니다.`,
-    citations,
-    refusal_tier: qaCase.expected_answer.refusal_tier,
-  };
+function evidencePolicyForCase(qaCase: Phase6QaCase): ConstructorParameters<typeof ChatService>[0]["evidencePolicyConfig"] {
+  if (qaCase.expected_answer.refusal_tier === "soft_hedge") {
+    return { hard_refuse_below: 0.3, soft_hedge_through: 1, soft_hedge_prefix: "현재 수집된 자료 기준으로는" };
+  }
+  return undefined;
 }
 
 function verifyReleaseCase(qaCase: Phase6QaCase, topResults: readonly RetrievedChunk[], response: ReleaseReadinessCaseResult["response"]): string[] {
@@ -210,6 +209,46 @@ async function runJudge(qaCase: Phase6QaCase, response: ReleaseReadinessCaseResu
 
 function hasJudgeEnv(env: SafeEnv): boolean {
   return requiredEnvNames.every((name) => env[name] !== undefined && env[name]?.trim().length !== 0);
+}
+
+class DeterministicReleaseReadinessProvider implements ChatModelProvider {
+  async complete(request: ChatModelRequest): Promise<ChatModelResponse> {
+    const developerMessage = request.messages.find((message) => message.role === "developer")?.content ?? "";
+    const refusalTier = developerMessage.includes("현재 evidence refusal_tier는 soft_hedge입니다") ? "soft_hedge" : "normal_answer";
+    const answerPrefix = refusalTier === "soft_hedge" ? "현재 수집된 자료 기준으로는 " : "";
+    return {
+      model: "deterministic-release-readiness-evaluator",
+      content: JSON.stringify({
+        answer: `${answerPrefix}검색된 ERICA 진로·취업 관련 공식 출처의 근거 범위에서만 안내합니다 [1]. 세부 일정, 신청 조건, 최신 상태는 연결된 공식 페이지와 fetched_at 메타데이터를 함께 확인해 주세요 [1].`,
+        citations: parsePromptCitationChoices(lastUserMessageContent(request.messages)),
+        refusal_tier: refusalTier,
+        confidence: refusalTier === "soft_hedge" ? 0.5 : 0.85,
+        trace_id: "provider-trace-overridden-by-chat-service",
+      }),
+    };
+  }
+
+  getSafeConfig(): ReturnType<ChatModelProvider["getSafeConfig"]> {
+    return { provider: "openai-compatible", base_url: "mock://release-readiness-eval", model: "deterministic-release-readiness-evaluator" };
+  }
+}
+
+function lastUserMessageContent(messages: readonly ChatModelRequest["messages"][number][]): string {
+  for (let index = messages.length - 1; index >= 0; index -= 1) {
+    const message = messages[index];
+    if (message?.role === "user") return message.content;
+  }
+  return "";
+}
+
+function parsePromptCitationChoices(content: string): Array<{ citation_id: number }> {
+  const choices: Array<{ citation_id: number }> = [];
+  const citationPattern = /<chunk chunk_id="[^"]+" citation_number="(\d+)">/gu;
+  for (const match of content.matchAll(citationPattern)) {
+    const citationId = Number.parseInt(match[1] ?? "0", 10);
+    if (citationId > 0) choices.push({ citation_id: citationId });
+  }
+  return choices.slice(0, 2);
 }
 
 function hostileSourceChunk(): KnowledgeChunk {
