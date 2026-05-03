@@ -1,8 +1,10 @@
+import "dotenv/config";
 import { chromium, type Page } from "playwright";
 
 export const SEED_SCOPE_HOSTS = ["cdp.hanyang.ac.kr"] as const;
 
 const SEED_SCOPE_URL = "https://cdp.hanyang.ac.kr/";
+const MAIN_DISCOVERY_URL = "https://cdp.hanyang.ac.kr/Main/default.aspx";
 const CATEGORY_HINTS = ["취업정보", "채용정보", "recruit", "job"] as const;
 
 type CandidateLink = {
@@ -14,11 +16,23 @@ type CandidateLink = {
 type DiscoveryOutput = {
   mode: "dry-run" | "one-shot";
   seed_scope_url: string;
+  observed_url?: string;
   seed_scope_hosts: readonly string[];
   scheduled_crawling_enabled: false;
   forbidden_scheduling_status: "not_configured";
-  status?: "ok" | "login_required_env_credentials" | "no_candidates_observed" | "navigation_rejected_off_host";
+  credentials_present?: boolean;
+  status?:
+    | "ok"
+    | "login_required_credentials_present"
+    | "missing_env_credentials"
+    | "no_candidates_observed"
+    | "navigation_rejected_off_host";
   candidates?: CandidateLink[];
+};
+
+type RuntimeConfig = {
+  credentialsPresent: boolean;
+  headless: boolean;
 };
 
 function isDryRun(): boolean {
@@ -51,12 +65,14 @@ function isSeedScopeUrl(url: string): boolean {
 }
 
 function printDryRun(): void {
+  const config = readRuntimeConfig();
   const output: DiscoveryOutput = {
     mode: "dry-run",
     seed_scope_url: SEED_SCOPE_URL,
     seed_scope_hosts: SEED_SCOPE_HOSTS,
     scheduled_crawling_enabled: false,
     forbidden_scheduling_status: "not_configured",
+    credentials_present: config.credentialsPresent,
     status: "ok",
     candidates: [],
   };
@@ -64,14 +80,15 @@ function printDryRun(): void {
   console.log(JSON.stringify(output, null, 2));
 }
 
+function readRuntimeConfig(): RuntimeConfig {
+  const credentialsPresent = Boolean(process.env.CDP_USERNAME && process.env.CDP_PASSWORD);
+  const headless = process.env.PLAYWRIGHT_HEADLESS?.toLowerCase() !== "false";
+  return { credentialsPresent, headless };
+}
+
 async function loginAppearsRequired(page: Page): Promise<boolean> {
   const hasPasswordInput = await page.locator('input[type="password"]').count();
-  if (hasPasswordInput > 0) {
-    return true;
-  }
-
-  const bodyText = await page.locator("body").innerText({ timeout: 3_000 }).catch(() => "");
-  return /로그인|login|sign\s*in/i.test(bodyText);
+  return hasPasswordInput > 0;
 }
 
 async function extractCandidateLinks(page: Page): Promise<CandidateLink[]> {
@@ -125,15 +142,26 @@ async function extractCandidateLinks(page: Page): Promise<CandidateLink[]> {
   );
 }
 
+async function navigateToObservableCdpSurface(page: Page): Promise<void> {
+  await page.goto(SEED_SCOPE_URL, { waitUntil: "domcontentloaded", timeout: 30_000 });
+  assertSeedScope(page.url());
+  await page.waitForLoadState("networkidle", { timeout: 10_000 }).catch(() => undefined);
+
+  const bodyTextLength = await page.locator("body").innerText({ timeout: 3_000 }).then((text) => text.trim().length).catch(() => 0);
+  if (bodyTextLength > 0) {
+    return;
+  }
+
+  await page.goto(MAIN_DISCOVERY_URL, { waitUntil: "domcontentloaded", timeout: 30_000 });
+  assertSeedScope(page.url());
+  await page.waitForLoadState("networkidle", { timeout: 10_000 }).catch(() => undefined);
+}
+
 async function runOneShotDiscovery(): Promise<void> {
   assertSeedScope(SEED_SCOPE_URL);
+  const config = readRuntimeConfig();
 
-  const username = process.env.CDP_USERNAME;
-  const password = process.env.CDP_PASSWORD;
-  const envCredentialsAvailable = Boolean(username && password);
-  void envCredentialsAvailable;
-
-  const browser = await chromium.launch({ headless: true });
+  const browser = await chromium.launch({ headless: config.headless });
   try {
     const page = await browser.newPage();
     await page.route("**/*", (route) => {
@@ -143,17 +171,18 @@ async function runOneShotDiscovery(): Promise<void> {
 
       return route.abort();
     });
-    await page.goto(SEED_SCOPE_URL, { waitUntil: "domcontentloaded", timeout: 30_000 });
-    assertSeedScope(page.url());
+    await navigateToObservableCdpSurface(page);
 
     if (await loginAppearsRequired(page)) {
       const output: DiscoveryOutput = {
         mode: "one-shot",
         seed_scope_url: SEED_SCOPE_URL,
+        observed_url: page.url(),
         seed_scope_hosts: SEED_SCOPE_HOSTS,
         scheduled_crawling_enabled: false,
         forbidden_scheduling_status: "not_configured",
-        status: "login_required_env_credentials",
+        credentials_present: config.credentialsPresent,
+        status: config.credentialsPresent ? "login_required_credentials_present" : "missing_env_credentials",
         candidates: [],
       };
       console.log(JSON.stringify(output, null, 2));
@@ -164,9 +193,11 @@ async function runOneShotDiscovery(): Promise<void> {
     const output: DiscoveryOutput = {
       mode: "one-shot",
       seed_scope_url: SEED_SCOPE_URL,
+      observed_url: page.url(),
       seed_scope_hosts: SEED_SCOPE_HOSTS,
       scheduled_crawling_enabled: false,
       forbidden_scheduling_status: "not_configured",
+      credentials_present: config.credentialsPresent,
       status: candidates.length > 0 ? "ok" : "no_candidates_observed",
       candidates,
     };
