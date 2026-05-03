@@ -1,5 +1,3 @@
-"use client";
-
 import { useState } from "react";
 
 export function SettingsMenu({ onClearPreferences, onClearChatHistory }: { onClearPreferences: () => void; onClearChatHistory: () => void }) {
