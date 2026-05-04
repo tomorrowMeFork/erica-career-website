@@ -123,7 +123,7 @@ The active design standard is `DESIGN.md` as an independent design standard for 
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 7. UI Information Architecture and Design Contract | 0/1 | Planned | - |
+| 7. UI Information Architecture and Design Contract | 1/1 | Verification pending | - |
 | 8. Four-Page Routing and Shared Interaction Shell | 0/TBD | Not started | - |
 | 9. Career Information Explore and Source Verification Pages | 0/TBD | Not started | - |
 | 10. Career Consultation Page and Evidence Linking | 0/TBD | Not started | - |
@@ -159,4 +159,4 @@ The active design standard is `DESIGN.md` as an independent design standard for 
 
 ## Next Step
 
-Execute Phase 7 plan `07-01` with `/gsd-execute-phase 7`, keeping work scoped to UI information architecture and design-contract artifacts.
+Verify Phase 7 with `/gsd-verify-work 7`, confirming IA-01, IA-03, UXR-01, and UXR-03 are covered before Phase 8.
