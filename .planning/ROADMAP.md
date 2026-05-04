@@ -63,7 +63,7 @@ The active design standard is `DESIGN.md` as an independent design standard for 
   3. User can see a restrained visual hierarchy aligned with `DESIGN.md` tokens and principles without repeated accent-color or competing badge/CTA emphasis.
   4. User can understand service limits and source-grounding expectations before relying on consultation or information pages.
 **Verification-first/TDD expectation**: Define route/page acceptance checks for purpose clarity, primary CTA hierarchy, exploration-vs-consultation labels, Korean-first copy, and design-standard conformance before UI implementation.  
-**Plans**: TBD  
+**Plans**: 07-01 — UI Information Architecture and Design Contract  
 **UI hint**: yes
 
 ### Phase 8: Four-Page Routing and Shared Interaction Shell
@@ -123,7 +123,7 @@ The active design standard is `DESIGN.md` as an independent design standard for 
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 7. UI Information Architecture and Design Contract | 0/TBD | Not started | - |
+| 7. UI Information Architecture and Design Contract | 0/1 | Planned | - |
 | 8. Four-Page Routing and Shared Interaction Shell | 0/TBD | Not started | - |
 | 9. Career Information Explore and Source Verification Pages | 0/TBD | Not started | - |
 | 10. Career Consultation Page and Evidence Linking | 0/TBD | Not started | - |
@@ -159,4 +159,4 @@ The active design standard is `DESIGN.md` as an independent design standard for 
 
 ## Next Step
 
-Plan Phase 7 with `/gsd-plan-phase 7`, keeping work scoped to v1.1 UI information architecture and design-contract decisions.
+Execute Phase 7 plan `07-01` with `/gsd-execute-phase 7`, keeping work scoped to UI information architecture and design-contract artifacts.
