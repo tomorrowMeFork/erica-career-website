@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 
+import { AppShell } from "../components/shell/app-shell.js";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -12,7 +13,9 @@ const fontClass = "font-pretendard";
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   return (
     <html lang="ko">
-      <body className={fontClass}>{children}</body>
+      <body className={fontClass}>
+        <AppShell>{children}</AppShell>
+      </body>
     </html>
   );
 }
