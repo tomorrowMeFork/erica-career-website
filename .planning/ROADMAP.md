@@ -46,8 +46,8 @@ The active design standard is `DESIGN.md` as an independent design standard for 
 ## Phases
 
 - [x] **Phase 7: UI Information Architecture and Design Contract** - Establish the v1.1 page model, design interpretation, CTA hierarchy, and consultation-vs-exploration distinction.
-- [x] **Phase 8: Four-Page Routing and Shared Interaction Shell** - Users can move through the confirmed home, information explore, information detail/source verification, and career consultation pages with a clear shared shell.
-- [ ] **Phase 9: Career Information Explore and Source Verification Pages** - Users can browse ERICA career information and inspect source evidence, freshness, deadline status, and AI interpretation limits.
+- [x] **Phase 8: Four-Page Routing and Shared Interaction Shell** - Users can move through the confirmed home, 참고한 정보, information detail/source verification, and career consultation pages with a clear shared shell.
+- [ ] **Phase 9: 참고한 정보 (References) and Source Verification Pages** - Users can review ERICA career information referenced during consultation and inspect source evidence, freshness, deadline status, and AI interpretation limits.
 - [ ] **Phase 10: Career Consultation Page and Evidence Linking** - Users can consult through chat as the primary surface while related information appears only as supporting cited evidence.
 - [ ] **Phase 11: UI QA, Responsive Verification, and Scope Guardrails** - The redesigned UI is verified on mobile/desktop and protected from v1.1 scope creep.
 
@@ -71,7 +71,7 @@ The active design standard is `DESIGN.md` as an independent design standard for 
 **Depends on**: Phase 7  
 **Requirements**: IA-02, UXR-02  
 **Success Criteria** (what must be TRUE):
-  1. User can move between home, career information explore, information detail/source verification, and career consultation pages through clear navigation.
+  1. User can move between home, 참고한 정보, information detail/source verification, and career consultation pages through clear navigation.
   2. User can tell where they are and what the page is for without relying on a crowded all-in-one dashboard.
   3. User no longer encounters overloaded left-side content, weak central consultation emphasis, or an ambiguous empty source panel as the default experience.
   4. User can use shared navigation and layout patterns consistently on desktop and mobile entry points.
@@ -79,17 +79,17 @@ The active design standard is `DESIGN.md` as an independent design standard for 
 **Plans**: 08-01 — Four-Page Routing and Shared Interaction Shell  
 **UI hint**: yes
 
-### Phase 9: Career Information Explore and Source Verification Pages
-**Goal**: Users can browse ERICA career information and verify original source evidence, dates, deadlines, and interpretation limits.  
+### Phase 9: 참고한 정보 (References) and Source Verification Pages
+**Goal**: Users can review ERICA career information referenced during consultation and verify original source evidence, dates, deadlines, and interpretation limits.  
 **Depends on**: Phase 8  
 **Requirements**: INFO-01, INFO-02, INFO-03, INFO-04, SRCV-01, SRCV-02, SRCV-03  
 **Success Criteria** (what must be TRUE):
-  1. User can browse official or collected ERICA career information on a dedicated exploration page.
-  2. User can compare deadline status, posted/fetched dates, source status, and source identity from information list items without interpreting the page as a ranking product.
-  3. User can narrow visible information with core filters and receive clear Korean guidance when no information is visible or conditions are insufficient.
-  4. User can open a detail/source-verification page and inspect original source link, source name, source_id/chunk_id, posted/fetched dates, and deadline status.
+  1. User can review ERICA career information referenced during a consultation session on a dedicated references page.
+  2. User can compare deadline status, posted/fetched dates, source status, and source identity from reference list items without interpreting the page as a ranking product.
+  3. User can scan visible references by deadline status and source and receive clear Korean guidance when no referenced information is available.
+  4. User can open a detail/source-verification page and inspect original source link, source name, posted/fetched dates, and deadline status.
   5. User can see which citation evidence supports an AI interpretation and when evidence is insufficient, uncertain, or only general guidance.
-**Verification-first/TDD expectation**: Define list/filter, empty-state, detail metadata, citation evidence, insufficient-evidence, and source-link visibility checks before page implementation.  
+**Verification-first/TDD expectation**: Define reference list, empty-state, detail metadata, citation evidence, insufficient-evidence, and source-link visibility checks before page implementation.  
 **Plans**: TBD  
 **UI hint**: yes
 
@@ -125,7 +125,7 @@ The active design standard is `DESIGN.md` as an independent design standard for 
 |-------|----------------|--------|-----------|
 | 7. UI Information Architecture and Design Contract | 1/1 | Complete | 2026-05-04 |
 | 8. Four-Page Routing and Shared Interaction Shell | 1/1 | Complete | 2026-05-04 |
-| 9. Career Information Explore and Source Verification Pages | 0/TBD | Not started | - |
+| 9. 참고한 정보 (References) and Source Verification Pages | 0/TBD | Not started | - |
 | 10. Career Consultation Page and Evidence Linking | 0/TBD | Not started | - |
 | 11. UI QA, Responsive Verification, and Scope Guardrails | 0/TBD | Not started | - |
 

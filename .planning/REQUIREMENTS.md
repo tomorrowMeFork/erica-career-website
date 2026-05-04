@@ -10,19 +10,19 @@ Requirements for the UI redesign milestone. Each maps to roadmap phases 7 and on
 ### Information Architecture
 
 - [x] **IA-01**: User can understand the service purpose, source-grounded answer model, and primary actions from the home page.
-- [x] **IA-02**: User can navigate a clear four-page structure: home, career information explore, information detail/source verification, and career consultation.
-- [x] **IA-03**: User can distinguish the information exploration flow from the consultation flow through page structure, labels, and primary actions.
+- [x] **IA-02**: User can navigate a clear four-page structure: home, 참고한 정보 (references), information detail/source verification, and career consultation.
+- [x] **IA-03**: User can distinguish the 참고한 정보 (references) flow from the consultation flow through page structure, labels, and primary actions.
 
-### Career Information Exploration
+### 참고한 정보 (References)
 
-- [x] **INFO-01**: User can browse official or collected ERICA career information on a dedicated exploration page.
+- [x] **INFO-01**: User can review ERICA career information referenced during a consultation session on a dedicated references page.
 - [x] **INFO-02**: User can quickly compare deadline status, posted/fetched dates, and source status in the information list.
-- [x] **INFO-03**: User can narrow visible information with core filters while the UI avoids presenting itself as a new matching or ranking product.
-- [x] **INFO-04**: User receives clear empty-state and insufficient-condition guidance when there is no visible information or not enough context.
+- [x] **INFO-03**: User can scan visible references by deadline status and source while the UI avoids presenting itself as a new matching or ranking product.
+- [x] **INFO-04**: User receives clear empty-state and guidance when no referenced information is available for the current consultation session.
 
 ### Source Verification
 
-- [x] **SRCV-01**: User can inspect original source link, source name, source_id/chunk_id, posted/fetched dates, and deadline status from an information detail page.
+- [x] **SRCV-01**: User can inspect original source link, source name, posted/fetched dates, and deadline status from an information detail page.
 - [x] **SRCV-02**: User can see which source or citation evidence supports an AI interpretation.
 - [x] **SRCV-03**: User can clearly see when evidence is insufficient, uncertain, or general guidance rather than verified source-backed information.
 
