@@ -19,12 +19,12 @@ export default function Home() {
         <article className="soft-surface home-proof-card">
           <p className="panel-kicker">답변 근거</p>
           <h2>답변에 참고한 정보와 출처를 함께 보여드려요.</h2>
-          <p>상담 답변은 확인된 출처와 연결되며, 출처 확인 페이지에서 원문과 수집 맥락을 다시 볼 수 있습니다.</p>
+          <p>답변에 활용한 공고와 원문을 함께 확인할 수 있어요.</p>
         </article>
         <article className="soft-surface home-proof-card">
           <p className="panel-kicker">마감 확인</p>
           <h2>게시일과 마감 상태를 함께 확인하고, 중요한 조건은 원문에서 다시 확인하도록 안내합니다.</h2>
-          <p>게시일·수집일·마감 상태가 있는 정보는 함께 표시하고, 중요한 조건은 원문에서 재확인하도록 안내합니다.</p>
+          <p>마감일과 모집 조건은 원문 기준으로 다시 확인하도록 안내합니다.</p>
         </article>
       </section>
 
