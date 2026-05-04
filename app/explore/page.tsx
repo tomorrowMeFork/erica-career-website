@@ -4,6 +4,7 @@ import { useCallback, useEffect, useState } from "react";
 
 import { clearPreferences, fetchRecommendations, readPreferences, savePreferences, updatePreferences } from "../../lib/api-client.js";
 import { getOrCreateSessionKey } from "../../lib/session-key.js";
+import { getSourceDisplayLabel } from "../../components/citations/source-card.js";
 import { InfoFilterPills, type InfoFilter } from "../../components/explore/info-filter-pills.js";
 import { InfoItemCard } from "../../components/explore/info-item-card.js";
 import type { PreferenceProfile, PreferenceState } from "../../src/personalization/preference-contract.js";
@@ -112,13 +113,9 @@ export default function ExplorePage() {
 function filterInformationItems(items: RecommendationItem[], filter: InfoFilter): RecommendationItem[] {
   if (filter === "진행 중") return [...items].filter((item) => item.deadline_status === "active").sort(compareNewest);
   if (filter === "최근 게시") return [...items].sort(compareNewest);
-  if (filter === "출처") return [...items].sort((a, b) => getSourceKey(a).localeCompare(getSourceKey(b), "ko") || a.title.localeCompare(b.title, "ko"));
+  if (filter === "출처") return [...items].sort((a, b) => getSourceDisplayLabel("", a.url).localeCompare(getSourceDisplayLabel("", b.url), "ko") || a.title.localeCompare(b.title, "ko"));
   if (filter === "마감 상태") return [...items].sort((a, b) => statusRank(a) - statusRank(b) || compareNewest(a, b));
   return items;
-}
-
-function getSourceKey(item: RecommendationItem): string {
-  return item["source_" + "id" as keyof RecommendationItem] as string;
 }
 
 function compareNewest(a: RecommendationItem, b: RecommendationItem): number {
