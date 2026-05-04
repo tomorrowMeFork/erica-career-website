@@ -1,58 +1,50 @@
 export default async function SourcePage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
-  const decodedId = decodeURIComponent(id);
+  void id;
 
   return (
     <div className="source-page">
       <section className="route-hero card-surface">
-        <p className="eyebrow">Source Verification</p>
-        <h1>출처 확인</h1>
-        <p>이 정보가 어떤 원문과 근거에서 왔는지 확인하세요.</p>
+        <p className="eyebrow">원문 안내</p>
+        <h1>출처 상세</h1>
+        <p>이 정보의 원문 출처를 확인하세요.</p>
       </section>
       <section className="source-detail-card soft-surface" aria-label="출처 확인 상세">
         <header>
           <div>
-            <p className="panel-kicker">선택된 정보</p>
-            <h2>{decodedId}</h2>
+            <p className="panel-kicker">상담을 돕는 참고 정보</p>
+            <h2>선택한 정보</h2>
           </div>
-          <span className="badge badge--warning">동적 원문 조회 준비 중</span>
+          <span className="badge badge--warning">원문 확인 필요</span>
         </header>
 
         <div className="source-metadata-grid" aria-label="필수 메타데이터">
           <div className="source-metadata-item card-surface">
-            <span>정보 식별자</span>
-            <strong>{decodedId}</strong>
-          </div>
-          <div className="source-metadata-item card-surface">
-            <span>source_id</span>
-            <strong>원문 조회 후 표시</strong>
-          </div>
-          <div className="source-metadata-item card-surface">
-            <span>chunk_id</span>
-            <strong>{decodedId}</strong>
+            <span>출처</span>
+            <strong>상담 답변의 출처 카드에서 연결된 원문</strong>
           </div>
           <div className="source-metadata-item card-surface">
             <span>게시일</span>
-            <strong>원문 조회 후 표시</strong>
+            <strong>원문에서 확인</strong>
           </div>
           <div className="source-metadata-item card-surface">
-            <span>수집일</span>
-            <strong>원문 조회 후 표시</strong>
+            <span>확인일</span>
+            <strong>상담 답변 기준으로 안내</strong>
           </div>
           <div className="source-metadata-item card-surface">
             <span>마감 상태</span>
-            <strong>원문 조회 후 표시</strong>
+            <strong>원문에서 최신 상태 확인</strong>
           </div>
         </div>
 
         <div className="source-evidence-note card-surface">
-          <p>source_id, chunk_id, 게시일, 수집일, 마감 상태를 함께 확인할 수 있어야 합니다.</p>
-          <p>근거가 불충분한 해석은 일반 안내로만 참고하세요.</p>
+          <p>ERICA 공고와 프로그램은 변경될 수 있으니 지원 전 원문에서 일정과 조건을 다시 확인하세요.</p>
+          <p>궁금한 점은 상담에서 이어서 질문하면 답변과 함께 관련 출처를 다시 확인할 수 있어요.</p>
         </div>
 
         <div className="source-detail-actions">
-          <button type="button" className="primary-button" aria-disabled="true">원문 출처 확인하기</button>
-          <a className="pill-control" href="/consultation">상담에서 이 정보로 질문하기</a>
+          <a className="primary-button" href="/consultation">이 정보에 대해 질문하기</a>
+          <a className="pill-control" href="/explore">정보 더 둘러보기</a>
         </div>
       </section>
     </div>

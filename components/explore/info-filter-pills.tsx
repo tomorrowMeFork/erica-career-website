@@ -1,4 +1,4 @@
-export const infoFilters = ["전체", "마감 임박", "최신순", "출처별", "상태별"] as const;
+export const infoFilters = ["전체", "진행 중", "최근 게시", "출처", "마감 상태"] as const;
 
 export type InfoFilter = (typeof infoFilters)[number];
 

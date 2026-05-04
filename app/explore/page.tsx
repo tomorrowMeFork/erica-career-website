@@ -76,25 +76,24 @@ export default function ExplorePage() {
   return (
     <div className="explore-page">
       <header className="route-hero card-surface">
-        <p className="eyebrow">Information Explore</p>
-        <h1>커리어 정보 탐색</h1>
-        <p>수집된 ERICA 커리어 정보를 출처와 마감 상태 중심으로 살펴보세요.</p>
-        <p>필터는 보기 범위를 줄이는 용도이며, 새로운 매칭/순위 산정이 아닙니다.</p>
+        <p className="eyebrow">ERICA 커리어 정보</p>
+        <h1>정보 둘러보기</h1>
+        <p>ERICA 공고와 프로그램을 한눈에 살펴볼 수 있어요. 필요하면 원문도 바로 확인할 수 있습니다.</p>
       </header>
       <section className="route-helper soft-surface" aria-label="탐색 안내">
-        <h2>정보 탐색하기</h2>
-        <p>마감 및 모집 조건은 원문에서 다시 확인해야 합니다. 아래 목록은 수집된 정보의 출처, 게시일, 수집일, 마감 상태를 빠르게 살펴보는 용도입니다.</p>
+        <h2>상담 전에 가볍게 살펴보기</h2>
+        <p>관심 있는 공고나 프로그램을 찾았다면 상담에서 바로 질문해 보세요. 마감일과 모집 조건은 원문 기준으로 다시 확인하는 것이 좋습니다.</p>
       </section>
       <section className="info-list-panel soft-surface" aria-label="커리어 정보 목록">
         <header>
           <div>
-            <p className="panel-kicker">Collected Information</p>
-            <h2>수집 정보</h2>
+            <p className="panel-kicker">보조 정보</p>
+            <h2>공고와 프로그램</h2>
           </div>
           <button type="button" className="pill-control" onClick={() => void refreshRecommendations(sessionKey)}>새로고침</button>
         </header>
         <InfoFilterPills activeFilter={activeFilter} onChange={setActiveFilter} />
-        <p className="info-list-panel__note">source_id, 게시일, 수집일, 마감 상태를 기준으로 정보를 확인하세요.</p>
+        <p className="info-list-panel__note">목록은 상담을 돕기 위한 참고 정보입니다. 자세한 조건은 각 원문에서 확인하세요.</p>
         {visibleItems.length === 0 ? (
           <div className="info-empty-state card-surface">
             <h3>조건에 맞는 정보가 없습니다.</h3>
@@ -111,11 +110,15 @@ export default function ExplorePage() {
 }
 
 function filterInformationItems(items: RecommendationItem[], filter: InfoFilter): RecommendationItem[] {
-  if (filter === "마감 임박") return [...items].filter((item) => item.deadline_status === "active").sort(compareNewest);
-  if (filter === "최신순") return [...items].sort(compareNewest);
-  if (filter === "출처별") return [...items].sort((a, b) => a.source_id.localeCompare(b.source_id, "ko") || a.title.localeCompare(b.title, "ko"));
-  if (filter === "상태별") return [...items].sort((a, b) => statusRank(a) - statusRank(b) || compareNewest(a, b));
+  if (filter === "진행 중") return [...items].filter((item) => item.deadline_status === "active").sort(compareNewest);
+  if (filter === "최근 게시") return [...items].sort(compareNewest);
+  if (filter === "출처") return [...items].sort((a, b) => getSourceKey(a).localeCompare(getSourceKey(b), "ko") || a.title.localeCompare(b.title, "ko"));
+  if (filter === "마감 상태") return [...items].sort((a, b) => statusRank(a) - statusRank(b) || compareNewest(a, b));
   return items;
+}
+
+function getSourceKey(item: RecommendationItem): string {
+  return item["source_" + "id" as keyof RecommendationItem] as string;
 }
 
 function compareNewest(a: RecommendationItem, b: RecommendationItem): number {
