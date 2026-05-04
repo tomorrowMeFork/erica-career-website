@@ -5,9 +5,9 @@ import { usePathname } from "next/navigation";
 import type { ReactNode } from "react";
 
 const navigationItems = [
-  { label: "커리어 상담", href: "/consultation", icon: "✦", isActive: (pathname: string) => pathname === "/consultation" },
-  { label: "정보 둘러보기", href: "/explore", icon: "◌", isActive: (pathname: string) => pathname === "/explore" },
-  { label: "홈", href: "/", icon: "⌂", isActive: (pathname: string) => pathname === "/" },
+  { label: "커리어 상담", href: "/consultation", icon: "✦" },
+  { label: "참고한 정보", href: "/references", icon: "◫" },
+  { label: "설정", href: "/settings", icon: "⚙" },
 ];
 
 export function AppShell({ children }: { children: ReactNode }) {
@@ -22,7 +22,7 @@ export function AppShell({ children }: { children: ReactNode }) {
         </Link>
         <nav className="shell-nav" aria-label="주요 페이지">
           {navigationItems.map((item) => {
-            const active = item.isActive(pathname);
+            const active = pathname === item.href;
             return (
               <Link key={item.href} href={item.href} className="shell-nav__link" aria-current={active ? "page" : undefined}>
                 {item.label}
@@ -34,7 +34,7 @@ export function AppShell({ children }: { children: ReactNode }) {
       <main className="page-content shell-container">{children}</main>
       <nav className="shell-mobile-nav" aria-label="모바일 주요 페이지">
         {navigationItems.map((item) => {
-          const active = item.isActive(pathname);
+          const active = pathname === item.href;
           return (
             <Link key={item.href} href={item.href} className="shell-mobile-nav__link" aria-current={active ? "page" : undefined}>
               <span aria-hidden="true">{item.icon}</span>

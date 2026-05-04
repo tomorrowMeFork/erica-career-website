@@ -80,10 +80,37 @@ test("no forbidden raw or internal labels visible across routes", async ({ page 
   }
 });
 
-test("no 출처 확인 in primary navigation", async ({ page }) => {
+test("primary navigation points to consultation, references, and settings only", async ({ page }) => {
   await page.goto("/");
-  await expect(page.getByRole("navigation", { name: "주요 페이지" }).getByText("출처 확인")).toHaveCount(0);
-  await expect(page.getByRole("navigation", { name: "모바일 주요 페이지" }).getByText("출처 확인")).toHaveCount(0);
+  const navs = [page.locator('nav[aria-label="주요 페이지"]'), page.locator('nav[aria-label="모바일 주요 페이지"]')];
+
+  for (const nav of navs) {
+    await expect(nav.locator('a[href="/consultation"]').filter({ hasText: "커리어 상담" })).toHaveCount(1);
+    await expect(nav.locator('a[href="/references"]').filter({ hasText: "참고한 정보" })).toHaveCount(1);
+    await expect(nav.locator('a[href="/settings"]').filter({ hasText: "설정" })).toHaveCount(1);
+    await expect(nav.locator("a")).toHaveCount(3);
+    await expect(nav.getByText("출처 확인")).toHaveCount(0);
+    await expect(nav.getByText("정보 둘러보기", { exact: true })).toHaveCount(0);
+    await expect(nav.getByText("홈", { exact: true })).toHaveCount(0);
+  }
+});
+
+test("primary navigation active state is exact-match only", async ({ page }) => {
+  const navs = [page.locator('nav[aria-label="주요 페이지"]'), page.locator('nav[aria-label="모바일 주요 페이지"]')];
+
+  for (const path of ["/", "/source/example", "/explore"]) {
+    await page.goto(path);
+    for (const nav of navs) {
+      await expect(nav.locator('[aria-current="page"]')).toHaveCount(0);
+    }
+  }
+
+  for (const path of ["/consultation", "/references", "/settings"]) {
+    await page.goto(path);
+    for (const nav of navs) {
+      await expect(nav.locator('[aria-current="page"]')).toHaveAttribute("href", path);
+    }
+  }
 });
 
 test.describe.skip("references-first redesign contract", () => {
