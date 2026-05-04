@@ -9,10 +9,10 @@ export function AnswerAttachedRecommendations({ items }: { items: Recommendation
       {items.map((item) => (
         <article key={item.recommendation_id} className="recommendation-card card-surface">
           <header><h4>{item.title}</h4><DeadlineStatusBadge status={item.deadline_status} /></header>
-          <span>{getMatchStrengthLabel(item.match_strength)} · 점수 {item.score.toFixed(2)}</span>
-          <p>{item.source_id} · 게시일 {formatDate(item.posted_at)} · 수집일 {formatDate(item.fetched_at)}</p>
+          <span className="listing-score">{getMatchStrengthLabel(item.match_strength)} · 점수 {item.score.toFixed(2)}</span>
+          <p>source_id {item.source_id} · 게시일 {formatDate(item.posted_at)} · 수집일 {formatDate(item.fetched_at)}</p>
           <ul>{(item.match_reasons ?? []).slice(0, 3).map((reason) => <li key={reason}>{reason}</li>)}</ul>
-          <p>인용 맥락 {item.citations.map((citation) => `[${citation.citation_id}] ${citation.title}`).join(" · ")}</p>
+          <p className="source-context">인용 맥락 {item.citations.map((citation) => `[${citation.citation_id}] ${citation.title}`).join(" · ")}</p>
           <a href={item.url} target="_blank" rel="noopener noreferrer" aria-label={`${item.title} 공식 페이지 새 창으로 열기`}>공식 페이지 열기</a>
         </article>
       ))}

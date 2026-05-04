@@ -9,13 +9,13 @@ export function AssistantAnswer({ response, recommendations = [], onOpenCitation
   return (
     <article className="assistant-answer card-surface">
       <RefusalNoticeCard refusalTier={response.refusal_tier} />
-      <div>{renderAnswer(response.answer, response.citations, onOpenCitation)}</div>
+      <div className="assistant-answer__body">{renderAnswer(response.answer, response.citations, onOpenCitation)}</div>
       <CitationTrigger count={response.citations.length} onOpen={(opener) => {
         const firstCitation = response.citations[0];
         if (firstCitation !== undefined) onOpenCitation(firstCitation, response.citations, opener);
       }} />
-      <p>신뢰도 {Math.round(response.confidence * 100)}%</p>
-      <details><summary>응답 추적 ID 보기</summary><code>응답 추적 ID {response.trace_id}</code></details>
+      <div className="answer-meta"><span>신뢰도 {Math.round(response.confidence * 100)}%</span><span>참고용 안내</span></div>
+      <details className="answer-trace"><summary>응답 추적 ID 보기</summary><code>응답 추적 ID {response.trace_id}</code></details>
       <AnswerAttachedRecommendations items={recommendations} />
     </article>
   );
