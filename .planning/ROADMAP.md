@@ -45,7 +45,7 @@ The active design standard is `DESIGN.md` as an independent design standard for 
 
 ## Phases
 
-- [ ] **Phase 7: UI Information Architecture and Design Contract** - Establish the v1.1 page model, design interpretation, CTA hierarchy, and consultation-vs-exploration distinction.
+- [x] **Phase 7: UI Information Architecture and Design Contract** - Establish the v1.1 page model, design interpretation, CTA hierarchy, and consultation-vs-exploration distinction.
 - [ ] **Phase 8: Four-Page Routing and Shared Interaction Shell** - Users can move through the confirmed home, information explore, information detail/source verification, and career consultation pages with a clear shared shell.
 - [ ] **Phase 9: Career Information Explore and Source Verification Pages** - Users can browse ERICA career information and inspect source evidence, freshness, deadline status, and AI interpretation limits.
 - [ ] **Phase 10: Career Consultation Page and Evidence Linking** - Users can consult through chat as the primary surface while related information appears only as supporting cited evidence.
@@ -123,7 +123,7 @@ The active design standard is `DESIGN.md` as an independent design standard for 
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 7. UI Information Architecture and Design Contract | 1/1 | Verification pending | - |
+| 7. UI Information Architecture and Design Contract | 1/1 | Complete | 2026-05-04 |
 | 8. Four-Page Routing and Shared Interaction Shell | 0/TBD | Not started | - |
 | 9. Career Information Explore and Source Verification Pages | 0/TBD | Not started | - |
 | 10. Career Consultation Page and Evidence Linking | 0/TBD | Not started | - |
@@ -159,4 +159,4 @@ The active design standard is `DESIGN.md` as an independent design standard for 
 
 ## Next Step
 
-Verify Phase 7 with `/gsd-verify-work 7`, confirming IA-01, IA-03, UXR-01, and UXR-03 are covered before Phase 8.
+Plan Phase 8 with `/gsd-plan-phase 8`, using the verified Phase 7 IA and design contract as the implementation boundary.
