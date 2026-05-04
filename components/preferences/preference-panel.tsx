@@ -28,12 +28,14 @@ export function PreferencePanel({ state, sessionKey, onSet, onUpdate, onClear, o
   return (
     <section className="preference-panel soft-surface" aria-label="추천 조건">
       <header><h2>입력한 조건</h2><StorageScopeChip storageScope={state.storage_scope} rankingEnabled={state.preference_ranking_enabled} /></header>
-      <p>전공과 희망 직무를 입력하면 추천 순서를 조정할 수 있어요.</p>
+      <p>전공과 희망 직무를 입력하면 현재 세션 기준으로 추천 순서를 조정할 수 있어요.</p>
       <PreferenceRequiredFields major={major} targetRole={targetRole} onChange={(value) => { setMajor(value.major); setTargetRole(value.target_role); }} />
       <PreferenceOptionalAccordion industry={industry} region={region} employmentType={employmentType} deadlineSensitivity={deadlineSensitivity} sessionOnlyOptionalText={sessionText} onChange={(value) => { setIndustry(value.industry); setRegion(value.region); setEmploymentType(value.employment_type); setDeadlineSensitivity(value.deadline_sensitivity); setSessionText(value.session_only_optional_text); }} />
-      <button type="button" className="pill-control primary-button" disabled={!canSave} onClick={() => onSet(sessionKey, profile)}>추천 조건 저장</button>
-      <button type="button" className="pill-control" disabled={!canSave} onClick={() => onUpdate(sessionKey, profile)}>추천 조건 업데이트</button>
-      <button type="button" className="pill-control" onClick={() => onClear(sessionKey)}>추천 조건 지우기</button>
+      <div className="preference-actions">
+        <button type="button" className="pill-control primary-button" disabled={!canSave} onClick={() => onSet(sessionKey, profile)}>추천 조건 저장</button>
+        <button type="button" className="pill-control" disabled={!canSave} onClick={() => onUpdate(sessionKey, profile)}>추천 조건 업데이트</button>
+        <button type="button" className="pill-control" onClick={() => onClear(sessionKey)}>추천 조건 지우기</button>
+      </div>
     </section>
   );
 }
