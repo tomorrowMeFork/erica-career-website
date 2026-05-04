@@ -2,9 +2,9 @@
 
 ## What This Is
 
-ERICA Career Chat v1.0 is a Korean-first career-information assistant for Hanyang University ERICA students. It combines bounded public-source ingestion, cited source-grounded chat, explicit-preference recommendations, listing browse, source inspection, and safety/evaluation gates in a responsive web dashboard.
+ERICA Career Chat is a Korean-first, source-grounded career-information consultation assistant for Hanyang University ERICA students. It helps students ask career and recruitment questions, inspect cited ERICA employment information, and verify freshness/deadline/source metadata without treating the product as a general job-board or ranking product.
 
-The shipped v1.0 uses approved fixture-first Hanyang/ERICA source records and a local JSONL knowledge base to answer Korean questions with citations, freshness/deadline metadata, refusal behavior for weak evidence, and transparent safety guidance. It does not claim official Hanyang endorsement, SSO access, private/authenticated crawling, or production crawling permission.
+The shipped v1.0 uses approved fixture-first Hanyang/ERICA source records and a local JSONL knowledge base to answer Korean questions with citations, freshness/deadline metadata, refusal behavior for weak evidence, and transparent safety guidance. v1.1 focuses on redesigning the UI information architecture so students can move clearly through information discovery, source/deadline verification, and career consultation while preserving those source-grounding constraints.
 
 ## Core Value
 
@@ -17,7 +17,8 @@ Students can ask career and recruitment questions in Korean and receive current,
 - **Release gates:** `npm run release:ready` passed after blocker closure; automated coverage included 41 Vitest files / 247 tests and Playwright 8/8.
 - **Provider-backed E2E:** Manual Playwright MCP browser E2E exercised the real `/api/chat` provider path; automated browser QA still mocks `/api/chat`.
 - **Audit status:** `tech_debt` — archived audit reports 32/32 requirements and 5/5 milestone flows covered, with known follow-up items documented in `.planning/MILESTONES.md`.
-- **Current focus:** Planning the next milestone. Run `/gsd-new-milestone` to define fresh requirements and roadmap.
+- **Current milestone:** v1.1 — UI Redesign.
+- **Current focus:** Redesign the crowded single-dashboard UI into a four-page source-grounded career-information flow: home, career information explore, information detail/source verification, and career consultation.
 
 ## Requirements
 
@@ -31,7 +32,11 @@ Students can ask career and recruitment questions in Korean and receive current,
 
 ### Active
 
-Next milestone requirements are not defined yet. Run `/gsd-new-milestone`.
+- [ ] Redesign the home page around the service purpose, minimal preference input, and clear primary CTAs for source-grounded career information. — v1.1
+- [ ] Create a career-information exploration page for official/collected ERICA information with clear filters, deadline labels, and source-status hierarchy. — v1.1
+- [ ] Create an information detail/source-verification page that foregrounds original source links, citation evidence, posted/fetched dates, deadline status, and AI interpretation limits. — v1.1
+- [ ] Create a career consultation page where chat is the primary surface and related information appears as supporting evidence, not as a job recommendation product. — v1.1
+- [ ] Apply the current `DESIGN.md` as the independent design standard while reducing visual clutter, repeated accent color, ambiguous panels, and weak information hierarchy. — v1.1
 
 ### Out of Scope
 
@@ -40,6 +45,9 @@ Next milestone requirements are not defined yet. Run `/gsd-new-milestone`.
 - Scraping behind authentication or bypassing access controls — only approved/public access patterns may be used.
 - Production crawling without access review and explicit permission — fixture-first/manual collection remains the safe default.
 - Fully automated resume rewriting, cover-letter generation, or interview coaching — valuable future expansions but outside v1.0's source-grounded employment-information scope.
+- New recommendation/ranking algorithm work in v1.1 — the milestone is a UI information-architecture redesign, not a recommendation-system upgrade.
+- Semantic retrieval or ingestion-source expansion in v1.1 — useful future work, but outside this UI redesign milestone.
+- Saved jobs, reminders, application tracking, or job-board workflow tooling in v1.1 — these would change the product category beyond source-grounded consultation.
 - Claiming official Hanyang endorsement — the project is ERICA-focused but authorization is not assumed.
 
 ## Context
@@ -49,7 +57,8 @@ Next milestone requirements are not defined yet. Run `/gsd-new-milestone`.
 - v1.0 established bounded source governance before ingestion, including source registry/access gates and evidence-backed blockers for sources that require authenticated or otherwise constrained access.
 - v1.0 uses fixture-first HTML/PDF parsing into normalized source records and citation-ready chunks with source URLs, source names, posted/fetched timestamps, deadline status, and page/anchor metadata.
 - RAG behavior is Korean-first, citation-aware, freshness-aware, and fail-closed when evidence is missing, stale, unsafe, or citation validation fails.
-- `DESIGN.md` and `.planning/research/design-seed.md` informed polish and component quality, but the shipped UI is rebranded as a calm academic career-support interface.
+- `DESIGN.md` is the active independent design standard for v1.1 UI redesign. It should guide spacing, typography, rounded cards, pill controls, restrained color roles, and CTA hierarchy without being framed as another brand style or copied branding.
+- v1.1 directly addresses the current UI issue: strong functionality is crowded into one screen, with overloaded left content, weak central consultation emphasis, unclear right-side source panel purpose, repeated accent color, and insufficient information hierarchy.
 
 ## Constraints
 
@@ -68,10 +77,11 @@ Next milestone requirements are not defined yet. Run `/gsd-new-milestone`.
 |----------|-----------|---------|
 | Build as a source-grounded RAG assistant before adding advanced career tools | The core pain is fragmented ERICA employment information; reliable retrieval must come before resume/interview features | Shipped in v1.0 with BM25-style retrieval, citations, refusals, and audit logs |
 | Use explicit preference-based personalization in v1 | Reduces privacy risk and avoids opaque profiling before product value is validated | Validated in v1.0 with session-first preferences, consent gates, ranking, and Korean match reasons |
-| Treat `DESIGN.md` as inspiration only | It is high-quality but Meta-specific and commerce-oriented | Shipped as a distinct academic career-service UI; revisit visual language as user testing identifies needs |
+| Treat `DESIGN.md` as the v1.1 UI design standard | The new milestone is explicitly about applying the current design contract to the product's own academic career-service identity | Pending in v1.1; avoid describing the target as another brand style or commerce-led |
 | Avoid official partnership claims | No authorization evidence exists in the workspace | Validated and preserved across safety copy, disclaimers, and release checks |
 | Keep semantic/hybrid retrieval as a future upgrade | v1.0 prioritized deterministic local retrieval and citation reliability over embeddings/vector infrastructure | Revisit in a future milestone after collecting real query/evaluation needs |
 | Keep automated browser QA deterministic by mocking `/api/chat` | CI should not depend on provider secrets, network availability, or live model variability | Shipped with mocked Playwright automation plus manual Playwright MCP E2E evidence for the real provider path |
+| Split the crowded dashboard into four source-grounded UI routes | The current single-screen dashboard makes information discovery, source verification, and consultation compete visually | Pending in v1.1 with home, information explore, detail/source verification, and consultation pages |
 
 ## Evolution
 
@@ -91,4 +101,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-05-04 after v1.0 milestone*
+*Last updated: 2026-05-04 after v1.1 milestone start*

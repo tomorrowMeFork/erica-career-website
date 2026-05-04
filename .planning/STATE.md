@@ -1,38 +1,38 @@
 ---
 gsd_state_version: 1.0
-milestone: v1.0
-milestone_name: ERICA Career Chat v1.0
-current_phase: null
-status: milestone_complete
-last_updated: "2026-05-04T00:00:00.000Z"
+milestone: v1.1
+milestone_name: UI Redesign
+status: planning
+last_updated: "2026-05-04T03:33:42.310Z"
+last_activity: 2026-05-04
 progress:
-  total_phases: 6
-  completed_phases: 6
-  total_plans: 30
-  completed_plans: 30
-  percent: 100
+  total_phases: 0
+  completed_phases: 0
+  total_plans: 0
+  completed_plans: 0
+  percent: 0
 ---
 
 # State: ERICA Career Chat
 
 **Initialized:** 2026-05-03  
 **Initialization mode:** Manual GSD initialization because `gsd-sdk` was unavailable in the shell.  
-**Current phase:** None — planning next milestone
+**Current phase:** None — defining v1.1 requirements
 
 ## Project Reference
 
-See: `.planning/PROJECT.md` (updated 2026-05-04)
+See: `.planning/PROJECT.md` (updated 2026-05-04 for v1.1 UI Redesign)
 
 **Core value:** Students can ask career and recruitment questions in Korean and receive current, source-cited, personally relevant answers from Hanyang ERICA employment information.  
-**Current focus:** Planning the next milestone after v1.0 archive
+**Current focus:** v1.1 UI Redesign requirements and roadmap
 
 ## Progress
 
-- **Milestone:** v1.0 shipped 2026-05-04
-- **Phases:** 6 total / 6 complete
-- **Plans:** 30 total / 30 complete
-- **Completion:** 100%
-- **Audit:** `tech_debt` — 32/32 requirements covered, 5/5 flows covered
+- **Previous milestone:** v1.0 shipped 2026-05-04 with archived roadmap, requirements, and audit.
+- **Current milestone:** v1.1 UI Redesign started 2026-05-04.
+- **Current status:** Defining requirements and roadmap.
+- **Phase numbering:** Continue from v1.0; the next active phase starts at Phase 7.
+- **Phase history:** `.planning/phases/` remains intentionally preserved for continuity and reference; do not clear old phase directories without explicit approval.
 
 ## Artifacts
 
@@ -125,10 +125,17 @@ See: `.planning/PROJECT.md` (updated 2026-05-04)
 - Hanyang/ERICA source URLs are planning inputs, not proof of production crawling permission.
 - Korean-first chat and citation reliability are more important than advanced resume/interview tooling in v1.
 - Personalization should start with explicit user preferences and data minimization.
-- `DESIGN.md` is a design inspiration seed, not the final project brand.
+- `DESIGN.md` is the active v1.1 design standard, not another brand style to copy.
 
 ## Next Action
 
-Run `/gsd-new-milestone` to define the next milestone's requirements and roadmap.
+Define and approve v1.1 UI Redesign requirements, then create the Phase 7+ roadmap.
 
 Resume file: None
+
+## Current Position
+
+Phase: Not started (defining requirements)
+Plan: —
+Status: Defining requirements
+Last activity: 2026-05-04 — Milestone v1.1 started
