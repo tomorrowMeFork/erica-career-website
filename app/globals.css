@@ -307,6 +307,8 @@ a { color: var(--color-hanyang); text-decoration-color: color-mix(in oklch, var(
 .home-proof-card h2,
 .route-helper h2,
 .source-detail-placeholder h2,
+.source-detail-card h2,
+.info-list-panel h2,
 .empty-chat h2,
 .disclaimer-notice h2,
 .listing-panel h2,
@@ -328,10 +330,12 @@ a { color: var(--color-hanyang); text-decoration-color: color-mix(in oklch, var(
 .home-proof-grid { display: grid; gap: var(--space-4); }
 .home-proof-card,
 .route-helper,
-.source-detail-placeholder { display: grid; gap: var(--space-3); padding: var(--space-5); }
+.source-detail-placeholder,
+.source-detail-card { display: grid; gap: var(--space-3); padding: var(--space-5); }
 .home-proof-card p:not(.panel-kicker),
 .route-helper p,
-.source-detail-placeholder p { margin: 0; color: var(--color-ink-soft); }
+.source-detail-placeholder p,
+.source-detail-card p { margin: 0; color: var(--color-ink-soft); }
 
 .settings-menu { position: relative; }
 .settings-menu__popover,
@@ -402,6 +406,7 @@ a { color: var(--color-hanyang); text-decoration-color: color-mix(in oklch, var(
 .user-message,
 .assistant-answer,
 .listing-card,
+.info-item-card,
 .source-card,
 .recommendation-card,
 .loading-card {
@@ -436,27 +441,48 @@ a { color: var(--color-hanyang); text-decoration-color: color-mix(in oklch, var(
 .deadline-badge { display: inline-flex; align-items: center; min-height: 30px; width: fit-content; border-radius: var(--radius-pill); background: var(--color-warning-bg); color: var(--color-warning-text); padding: 0 var(--space-3); font-size: 0.8rem; font-weight: 600; }
 
 .listing-panel,
+.info-list-panel,
 .preference-panel { padding: var(--space-4); align-content: start; }
 .listing-panel header,
+.info-list-panel header,
 .preference-panel header,
 .source-rail header,
 .listing-card header,
+.info-item-card header,
+.source-detail-card header,
 .recommendation-card header { display: flex; align-items: start; justify-content: space-between; gap: var(--space-3); }
 .listing-panel header span { white-space: nowrap; border-radius: var(--radius-pill); background: var(--color-hanyang-soft); color: var(--color-hanyang-strong); padding: var(--space-1) var(--space-3); font-size: 0.8rem; font-weight: 600; }
 .listing-panel p,
+.info-list-panel p,
 .preference-panel p,
 .listing-card p,
+.info-item-card p,
 .source-card p,
 .recommendation-card p { margin: 0; color: var(--color-ink-soft); font-size: 0.92rem; }
 .filter-pills { display: flex; flex-wrap: wrap; gap: var(--space-2); margin: 0; }
 .listing-card,
+.info-item-card,
 .recommendation-card { display: grid; gap: var(--space-3); box-shadow: none; }
 .listing-card[data-deadline_status="active"] { border-color: color-mix(in oklch, var(--color-hanyang), transparent 46%); }
+.info-item-card[data-deadline_status="active"] { border-color: color-mix(in oklch, var(--color-hanyang), transparent 46%); }
 .listing-card h3,
+.info-item-card h3,
 .recommendation-card h4,
 .source-card h3 { margin: 0; color: var(--color-ink); line-height: 1.28; letter-spacing: 0; }
 .listing-meta,
 .source-meta { display: grid; gap: var(--space-1); }
+.info-list-panel { display: grid; gap: var(--space-4); }
+.info-list-panel__note { border-radius: var(--radius-md); background: var(--color-surface-blue); padding: var(--space-3); }
+.info-list-grid { display: grid; gap: var(--space-3); }
+.info-item-card__actions,
+.source-detail-actions { display: flex; flex-wrap: wrap; gap: var(--space-2); align-items: center; }
+.info-empty-state { display: grid; gap: var(--space-2); padding: var(--space-5); box-shadow: none; }
+.info-empty-state h3 { margin: 0; color: var(--color-ink); }
+.source-metadata-grid { display: grid; gap: var(--space-3); }
+.source-metadata-item { display: grid; gap: var(--space-1); padding: var(--space-4); box-shadow: none; }
+.source-metadata-item span { color: var(--color-ink-muted); font-size: 0.82rem; font-weight: 600; }
+.source-metadata-item strong { color: var(--color-ink); font-size: 0.96rem; overflow-wrap: anywhere; }
+.source-evidence-note { display: grid; gap: var(--space-2); padding: var(--space-4); box-shadow: none; background: var(--color-surface-blue); }
 .listing-score { display: flex; flex-wrap: wrap; gap: var(--space-2); align-items: center; }
 .match-reasons { display: grid; gap: var(--space-2); margin: 0; padding: 0; list-style: none; }
 .match-reasons li { border-left: 3px solid var(--color-accent-gold); padding-left: var(--space-3); color: var(--color-ink-soft); font-size: 0.9rem; }
@@ -495,6 +521,8 @@ a { color: var(--color-hanyang); text-decoration-color: color-mix(in oklch, var(
   .route-hero { grid-template-columns: minmax(0, 1fr) auto; align-items: start; padding: var(--space-7); }
   .shell-actions { justify-content: flex-end; }
   .home-proof-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .info-list-grid,
+  .source-metadata-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .chat-composer { grid-template-columns: minmax(0, 1fr) auto; align-items: end; }
   .chat-composer p { grid-column: 1 / -1; }
   .preference-actions { grid-template-columns: 1fr; }
