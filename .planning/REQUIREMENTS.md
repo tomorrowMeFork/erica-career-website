@@ -9,16 +9,16 @@ Requirements for the initial release. Each maps to roadmap phases.
 
 ### Source Ingestion
 
-- [ ] **SRC-01**: Operator can register each approved source with URL, category, source owner label, access notes, and refresh cadence.
-- [ ] **SRC-02**: System can fetch and parse public HTML job/career board listings into normalized records with title, source URL, posted date, fetched timestamp, and raw text.
-- [ ] **SRC-03**: System can ingest PDF guide/success-story documents with page-level metadata for citation.
-- [ ] **SRC-04**: System can mark recruitment listings as active, expired, or unknown based on deadline text when available.
-- [ ] **SRC-05**: System preserves original source links so users can verify and continue on the official page.
+- [x] **SRC-01**: Operator can register each approved source with URL, category, source owner label, access notes, and refresh cadence.
+- [x] **SRC-02**: System can fetch and parse public HTML job/career board listings into normalized records with title, source URL, posted date, fetched timestamp, and raw text.
+- [x] **SRC-03**: System can ingest PDF guide/success-story documents with page-level metadata for citation.
+- [x] **SRC-04**: System can mark recruitment listings as active, expired, or unknown based on deadline text when available.
+- [x] **SRC-05**: System preserves original source links so users can verify and continue on the official page.
 
 ### Retrieval and Chat
 
 - [x] **RAG-01**: User can ask a Korean natural-language career or recruitment question in a chat interface.
-- [x] **RAG-02**: System retrieves relevant indexed source chunks using keyword and semantic matching.
+- [x] **RAG-02**: System retrieves relevant indexed source chunks using the implemented v1.0 keyword/BM25-style lexical retrieval baseline with a future-ready Retriever interface; semantic/hybrid retrieval is deferred to a future upgrade.
 - [x] **RAG-03**: System answers with citations that include source title, URL, and date/page context when available.
 - [x] **RAG-04**: System refuses or labels uncertainty when retrieved evidence is insufficient.
 - [x] **RAG-05**: System logs retrieved source IDs, prompt version, model configuration, and response timestamp for audit and regression debugging.
@@ -45,13 +45,13 @@ Requirements for the initial release. Each maps to roadmap phases.
 - [x] **SAFE-02**: System does not claim official Hanyang endorsement or guaranteed job outcomes.
 - [x] **SAFE-03**: System stores only the minimum personalization data needed for MVP behavior.
 - [x] **SAFE-04**: System provides a visible way to clear stored preferences and chat history if persistence exists.
-- [ ] **SAFE-05**: Scheduled crawling is blocked until source access rules and load expectations are reviewed.
+- [x] **SAFE-05**: Scheduled crawling is blocked until source access rules and load expectations are reviewed.
 - [x] **SAFE-06**: Personalization storage requires explicit consent, retention rules, and deletion behavior before user preferences or chat history are persisted.
 
 ### Evaluation and Operations
 
 - [x] **EVAL-01**: Project includes a reference QA set covering CDP usage, job listing discovery, deadlines, success stories, guidebook questions, and no-answer cases.
-- [x] **EVAL-02**: Retrieval evaluation measures whether expected source chunks appear in top results for reference questions.
+- [x] **EVAL-02**: Retrieval evaluation measures whether expected sources/chunks appear in top results for reference questions using the implemented v1.0 keyword/BM25-style retrieval baseline.
 - [x] **EVAL-03**: Answer evaluation checks citation accuracy, faithfulness to retrieved evidence, Korean answer quality, and refusal behavior.
 - [x] **EVAL-04**: System exposes ingestion freshness and last successful source update status to operators.
 - [x] **EVAL-05**: Release checks include at least one manual end-to-end flow from source ingestion to cited chat answer.
@@ -92,11 +92,11 @@ Which phases cover which requirements. Updated during roadmap creation.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| SRC-01 | Phase 1 | Pending |
-| SRC-02 | Phase 2 | Pending |
-| SRC-03 | Phase 2 | Pending |
-| SRC-04 | Phase 2 | Pending |
-| SRC-05 | Phase 2 | Pending |
+| SRC-01 | Phase 1 | Complete |
+| SRC-02 | Phase 2 | Complete |
+| SRC-03 | Phase 2 | Complete |
+| SRC-04 | Phase 2 | Complete |
+| SRC-05 | Phase 2 | Complete |
 | RAG-01 | Phase 3 | Complete |
 | RAG-02 | Phase 3 | Complete |
 | RAG-03 | Phase 3 | Complete |
@@ -116,7 +116,7 @@ Which phases cover which requirements. Updated during roadmap creation.
 | SAFE-02 | Phase 6 | Complete |
 | SAFE-03 | Phase 4 | Complete |
 | SAFE-04 | Phase 4 | Complete |
-| SAFE-05 | Phase 1 | Pending |
+| SAFE-05 | Phase 1 | Complete |
 | SAFE-06 | Phase 4 | Complete |
 | EVAL-01 | Phase 6 | Complete |
 | EVAL-02 | Phase 6 | Complete |
@@ -129,6 +129,13 @@ Which phases cover which requirements. Updated during roadmap creation.
 - v1 requirements: 32 total
 - Mapped to phases: 32
 - Unmapped: 0
+
+## v1.0 Closure Notes
+
+- **SRC-01, SAFE-05:** Phase 1 UAT (`.planning/phases/01-source-discovery-and-governance/01-UAT.md`) records approved source governance, access notes, refresh expectations, and the scheduled-crawling block; the remaining CDP structure/login concern was deferred to the Phase 2 pre-ingestion gate without claiming SSO, private access, or production crawling permission.
+- **SRC-02..SRC-05, SAFE-05:** Phase 2 evidence (`.planning/phases/02-ingestion-and-knowledge-base/pre-ingestion-access-evidence.md` and `.planning/phases/02-ingestion-and-knowledge-base/source-coverage-status.md`) confirms all six seed sources have bounded public collection paths, parser-eligible source records, preserved original URLs, deadline/freshness metadata, and scheduled crawling disabled. These notes do not claim official Hanyang endorsement or permission to crawl authenticated/private pages.
+- **RAG-02, EVAL-02:** Phase 3 BM25 scope docs (`.planning/phases/03-source-grounded-chat-mvp/03-VERIFICATION.md` and related Phase 3 context/research) confirm v1.0 intentionally implements a keyword/BM25-style lexical retrieval baseline behind a future-ready Retriever interface; semantic/hybrid retrieval remains deferred to a future upgrade and is not claimed for v1.0.
+- This metadata closure does **not** mark live provider/web E2E verification as passed and does **not** complete any EVAL-05 manual checklist items.
 
 ---
 *Requirements defined: 2026-05-03*  

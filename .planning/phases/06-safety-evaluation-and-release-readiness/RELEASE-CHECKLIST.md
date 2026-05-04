@@ -25,17 +25,35 @@ Optional provider judging remains disabled unless the environment variable names
 
 ### 1. ingestion-to-cited-answer E2E
 
-- [ ] Run a local sample ingestion or use the existing local knowledge-base fixtures.
-- [ ] Ask a Korean career question covered by a local source, such as a CDP usage or ERICA listing question.
-- [ ] Expected result: answer includes inline citation markers and source cards.
-- [ ] Evidence to capture: `title`, `url`, `fetched_at`, `posted_at`, `deadline_status`, `source_id`, `chunk_id`, and `trace_id`.
+- [x] Run a local sample ingestion or use the existing local knowledge-base fixtures.
+- [x] Ask a Korean career question covered by a local source, such as a CDP usage or ERICA listing question.
+- [x] Expected result: answer includes inline citation markers and source cards.
+- [x] Evidence to capture: `title`, `url`, `fetched_at`, `posted_at`, `deadline_status`, `source_id`, `chunk_id`, and `trace_id`.
+
+#### Evidence captured 2026-05-04
+
+- Provider environment presence was checked boolean-only: configured=true for variable names `OPENAI_COMPAT_BASE_URL`, `OPENAI_COMPAT_API_KEY`, and `OPENAI_COMPAT_MODEL`; values were not printed or recorded.
+- Next dev server responded at `http://127.0.0.1:3000` with status 200.
+- Playwright MCP was used with no route mocks. Korean query: `ERICA 현장실습 모집 공고 알려줘`.
+- `/api/chat` network response status: 200.
+- Response metadata: `refusal_tier: normal_answer`, `confidence: 1`, `trace_id: 9b5b03b2-9715-4892-a48c-46a7459b2eeb`.
+- Answer was Korean and included inline citations `[1]`, `[3]`, `[4]`.
+- Citation 1 metadata: title `[채용시까지] ERICA 경상대학 현장실습 참여기업 모집`; url `https://ibus.hanyang.ac.kr/front/recruit/r-1/view?id=6468`; source_id `ibus-employment-board`; chunk_id `3986f65fde23212320ca478290394113c27ffaa776f8de59f7e292989ee8f270`; fetched_at `2026-05-03T00:00:00.000Z`; posted_at `2026-05-01T00:00:00.000Z`; deadline_status `active`.
+- `npm run status:freshness` now reports `release_evaluation.status: passed`.
 
 ### 2. Web UI verification
 
-- [ ] Open the web app locally after automated gates pass.
-- [ ] Verify chat, citation cards, listing browse, and preference controls render correctly.
-- [ ] Expected result: Korean-first copy, calm card layout, source cards, listing filters, and preference panels are usable.
-- [ ] Evidence to capture: viewport, page path, visible sections, and any console errors.
+- [x] Open the web app locally after automated gates pass.
+- [x] Verify chat, citation cards, listing browse, and preference controls render correctly.
+- [x] Expected result: Korean-first copy, calm card layout, source cards, listing filters, and preference panels are usable.
+- [x] Evidence to capture: viewport, page path, visible sections, and any console errors.
+
+#### Evidence captured 2026-05-04
+
+- Browser verification used Playwright MCP against the local app at `http://127.0.0.1:3000` with no route mocks; the Next dev server returned status 200.
+- The real `/api/chat` request returned status 200 for Korean query `ERICA 현장실습 모집 공고 알려줘`.
+- Source inspection rail/card showed citation title `[채용시까지] ERICA 경상대학 현장실습 참여기업 모집`, official URL `https://ibus.hanyang.ac.kr/front/recruit/r-1/view?id=6468`, source_id `ibus-employment-board`, chunk_id `3986f65fde23212320ca478290394113c27ffaa776f8de59f7e292989ee8f270`, collected date `2026-05-03`, posted date `2026-05-01`, and status `모집중`.
+- Browser console had one non-blocking error: `/favicon.ico` 404.
 
 ### 3. Preference clear flow
 
