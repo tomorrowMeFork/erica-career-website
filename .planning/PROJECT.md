@@ -4,7 +4,7 @@
 
 ERICA Career Chat is a Korean-first, source-grounded career-information consultation assistant for Hanyang University ERICA students. It helps students ask career and recruitment questions, inspect cited ERICA employment information, and verify freshness/deadline/source metadata without treating the product as a general job-board or ranking product.
 
-The shipped v1.0 uses approved fixture-first Hanyang/ERICA source records and a local JSONL knowledge base to answer Korean questions with citations, freshness/deadline metadata, refusal behavior for weak evidence, and transparent safety guidance. v1.1 focuses on redesigning the UI information architecture so students can move clearly through information discovery, source/deadline verification, and career consultation while preserving those source-grounding constraints.
+The shipped v1.0 uses approved fixture-first Hanyang/ERICA source records and a local JSONL knowledge base to answer Korean questions with citations, freshness/deadline metadata, refusal behavior for weak evidence, and transparent safety guidance. v1.1 focuses on redesigning the UI information architecture so students can move clearly through reference review, source/deadline verification, and career consultation while preserving those source-grounding constraints.
 
 ## Core Value
 
@@ -81,7 +81,7 @@ Students can ask career and recruitment questions in Korean and receive current,
 | Avoid official partnership claims | No authorization evidence exists in the workspace | Validated and preserved across safety copy, disclaimers, and release checks |
 | Keep semantic/hybrid retrieval as a future upgrade | v1.0 prioritized deterministic local retrieval and citation reliability over embeddings/vector infrastructure | Revisit in a future milestone after collecting real query/evaluation needs |
 | Keep automated browser QA deterministic by mocking `/api/chat` | CI should not depend on provider secrets, network availability, or live model variability | Shipped with mocked Playwright automation plus manual Playwright MCP E2E evidence for the real provider path |
-| Split the crowded dashboard into four source-grounded UI routes | The current single-screen dashboard makes information discovery, source verification, and consultation compete visually | Pending in v1.1 with home, 참고한 정보, detail/source verification, and consultation pages |
+| Split the crowded dashboard into four source-grounded UI routes | The current single-screen dashboard makes reference review, source verification, and consultation compete visually | Pending in v1.1 with home, 참고한 정보, detail/source verification, and consultation pages |
 
 ## Evolution
 

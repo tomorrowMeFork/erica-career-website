@@ -45,7 +45,7 @@ The active design standard is `DESIGN.md` as an independent design standard for 
 
 ## Phases
 
-- [x] **Phase 7: UI Information Architecture and Design Contract** - Establish the v1.1 page model, design interpretation, CTA hierarchy, and consultation-vs-exploration distinction.
+- [x] **Phase 7: UI Information Architecture and Design Contract** - Establish the v1.1 page model, design interpretation, CTA hierarchy, and consultation-vs-references distinction.
 - [x] **Phase 8: Four-Page Routing and Shared Interaction Shell** - Users can move through the confirmed home, 참고한 정보, information detail/source verification, and career consultation pages with a clear shared shell.
 - [ ] **Phase 9: 참고한 정보 (References) and Source Verification Pages** - Users can review ERICA career information referenced during consultation and inspect source evidence, freshness, deadline status, and AI interpretation limits.
 - [ ] **Phase 10: Career Consultation Page and Evidence Linking** - Users can consult through chat as the primary surface while related information appears only as supporting cited evidence.
@@ -54,15 +54,15 @@ The active design standard is `DESIGN.md` as an independent design standard for 
 ## Phase Details
 
 ### Phase 7: UI Information Architecture and Design Contract
-**Goal**: Users understand what ERICA Career Chat does, how source-grounded consultation differs from information exploration, and which action to take first.  
+**Goal**: Users understand what ERICA Career Chat does, how source-grounded consultation differs from reference review, and which action to take first.  
 **Depends on**: v1.0 archive and active v1.1 requirements  
 **Requirements**: IA-01, IA-03, UXR-01, UXR-03  
 **Success Criteria** (what must be TRUE):
   1. User can understand from the home experience that the product provides Korean, source-grounded ERICA career-information consultation rather than generic job-board browsing.
-  2. User can identify one clear primary action per page concept and distinguish exploration actions from consultation actions.
+  2. User can identify one clear primary action per page concept and distinguish reference-review actions from consultation actions.
   3. User can see a restrained visual hierarchy aligned with `DESIGN.md` tokens and principles without repeated accent-color or competing badge/CTA emphasis.
   4. User can understand service limits and source-grounding expectations before relying on consultation or information pages.
-**Verification-first/TDD expectation**: Define route/page acceptance checks for purpose clarity, primary CTA hierarchy, exploration-vs-consultation labels, Korean-first copy, and design-standard conformance before UI implementation.  
+**Verification-first/TDD expectation**: Define route/page acceptance checks for purpose clarity, primary CTA hierarchy, reference-vs-consultation labels, Korean-first copy, and design-standard conformance before UI implementation.  
 **Plans**: 07-01 — UI Information Architecture and Design Contract  
 **UI hint**: yes
 
