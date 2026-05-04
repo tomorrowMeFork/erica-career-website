@@ -1,15 +1,15 @@
 ---
 gsd_state_version: 1.0
 milestone: v1.0
-milestone_name: milestone
-current_phase: 06
-status: phase_6_complete
-last_updated: "2026-05-04T12:00:00.000Z"
+milestone_name: ERICA Career Chat v1.0
+current_phase: null
+status: milestone_complete
+last_updated: "2026-05-04T00:00:00.000Z"
 progress:
   total_phases: 6
   completed_phases: 6
-  total_plans: 29
-  completed_plans: 29
+  total_plans: 30
+  completed_plans: 30
   percent: 100
 ---
 
@@ -17,14 +17,22 @@ progress:
 
 **Initialized:** 2026-05-03  
 **Initialization mode:** Manual GSD initialization because `gsd-sdk` was unavailable in the shell.  
-**Current phase:** 06
+**Current phase:** None — planning next milestone
 
 ## Project Reference
 
-See: `.planning/PROJECT.md` (updated 2026-05-03)
+See: `.planning/PROJECT.md` (updated 2026-05-04)
 
 **Core value:** Students can ask career and recruitment questions in Korean and receive current, source-cited, personally relevant answers from Hanyang ERICA employment information.  
-**Current focus:** Phase 06 — safety, evaluation, and release readiness
+**Current focus:** Planning the next milestone after v1.0 archive
+
+## Progress
+
+- **Milestone:** v1.0 shipped 2026-05-04
+- **Phases:** 6 total / 6 complete
+- **Plans:** 30 total / 30 complete
+- **Completion:** 100%
+- **Audit:** `tech_debt` — 32/32 requirements covered, 5/5 flows covered
 
 ## Artifacts
 
@@ -42,6 +50,11 @@ See: `.planning/PROJECT.md` (updated 2026-05-03)
 | `.planning/REQUIREMENTS.md` | Created |
 | `.planning/ROADMAP.md` | Created |
 | `.planning/STATE.md` | Created |
+| `.planning/MILESTONES.md` | Created |
+| `.planning/milestones/v1.0-ROADMAP.md` | Created |
+| `.planning/milestones/v1.0-REQUIREMENTS.md` | Created |
+| `.planning/milestones/v1.0-MILESTONE-AUDIT.md` | Created |
+| `.planning/RETROSPECTIVE.md` | Created |
 | `AGENTS.md` | Created |
 | `.planning/phases/02-ingestion-and-knowledge-base/source-coverage-status.md` | Created |
 | `.planning/phases/03-source-grounded-chat-mvp/03-CONTEXT.md` | Created |
@@ -51,6 +64,7 @@ See: `.planning/PROJECT.md` (updated 2026-05-03)
 | `.planning/phases/03-source-grounded-chat-mvp/03-04-SUMMARY.md` | Created |
 | `.planning/phases/03-source-grounded-chat-mvp/03-05-SUMMARY.md` | Created |
 | `.planning/phases/03-source-grounded-chat-mvp/03-06-SUMMARY.md` | Created |
+| `.planning/phases/03-source-grounded-chat-mvp/03-07-SUMMARY.md` | Created |
 | `.planning/phases/03-source-grounded-chat-mvp/03-USER-SETUP.md` | Created |
 | `.planning/phases/04-personalization-and-recommendations/04-01-SUMMARY.md` | Created |
 | `.planning/phases/04-personalization-and-recommendations/04-02-SUMMARY.md` | Created |
@@ -115,6 +129,6 @@ See: `.planning/PROJECT.md` (updated 2026-05-03)
 
 ## Next Action
 
-Phase 6 release readiness is complete. Next action: complete milestone review/archive before first user testing.
+Run `/gsd-new-milestone` to define the next milestone's requirements and roadmap.
 
 Resume file: None
