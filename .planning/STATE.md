@@ -7,30 +7,30 @@ last_updated: "2026-05-04T00:00:00.000Z"
 last_activity: 2026-05-04
 progress:
   total_phases: 5
-  completed_phases: 3
+  completed_phases: 4
   total_plans: 1
-  completed_plans: 3
-  percent: 60
+  completed_plans: 4
+  percent: 80
 ---
 
 # State: ERICA Career Chat
 
 **Initialized:** 2026-05-03  
 **Initialization mode:** Manual GSD initialization because `gsd-sdk` was unavailable in the shell.  
-**Current phase:** Phase 10 — Career Consultation Page and Evidence Linking
+**Current phase:** Phase 11 — UI QA, Responsive Verification, and Scope Guardrails
 
 ## Project Reference
 
 See: `.planning/PROJECT.md` (updated 2026-05-04 for v1.1 UI Redesign)
 
 **Core value:** Students can ask career and recruitment questions in Korean and receive current, source-cited, personally relevant answers from Hanyang ERICA employment information.  
-**Current focus:** Phase 9 verified; next action is Phase 10 planning
+**Current focus:** Phase 10 verified; next action is Phase 11 planning
 
 ## Progress
 
 - **Previous milestone:** v1.0 shipped 2026-05-04 with archived roadmap, requirements, and audit.
 - **Current milestone:** v1.1 UI Redesign started 2026-05-04.
-- **Current status:** Phase 9 complete and verified; Phase 10 is ready for planning.
+- **Current status:** Phase 10 complete and verified; Phase 11 is ready for planning.
 - **Phase numbering:** Continued from v1.0; active phases are Phase 7 through Phase 11.
 - **Requirement coverage:** 21/21 active v1.1 requirements mapped exactly once.
 - **Phase history:** `.planning/phases/` remains intentionally preserved for continuity and reference; do not clear old phase directories without explicit approval.
@@ -152,17 +152,18 @@ See: `.planning/PROJECT.md` (updated 2026-05-04 for v1.1 UI Redesign)
 - Phase 8 implements four-page App Router routing with shared Korean-first navigation shell, decomposes StudentDashboard into page-level components, and migrates CSS away from Phase 5 class names.
 - Phase 8 passed verification for IA-02 and UXR-02 with typecheck, build, and 247 tests all passing.
 - Phase 9 transforms explore and source pages into information exploration and source verification surfaces; passed verification for INFO-01~04, SRCV-01~03.
+- Phase 10 reframes consultation from recommendation to evidence-based consultation; passed verification for CHAT-01~04.
 
 ## Next Action
 
-Plan Phase 10 with `/gsd-plan-phase 10`, implementing career consultation page and evidence linking.
+Execute Phase 11: UI QA, responsive verification, and scope guardrails (UXR-04, GUARD-01~03).
 
 Resume file: None
 
 ## Current Position
 
-Phase: 9 — Career Information Explore and Source Verification Pages
 Phase: 10 — Career Consultation Page and Evidence Linking
+Phase: 11 — UI QA, Responsive Verification, and Scope Guardrails
 Plan: —
-Status: Phase 9 complete; ready for Phase 10 planning
-Last activity: 2026-05-04 — Phase 9 verified and completed
+Status: Phase 10 complete; ready for Phase 11 planning
+Last activity: 2026-05-04 — Phase 10 verified and completed

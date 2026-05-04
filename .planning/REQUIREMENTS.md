@@ -28,10 +28,10 @@ Requirements for the UI redesign milestone. Each maps to roadmap phases 7 and on
 
 ### Career Consultation
 
-- [ ] **CHAT-01**: User can use chat as the primary action on a dedicated career consultation page.
-- [ ] **CHAT-02**: Consultation answers preserve Korean-first behavior, citations, freshness metadata, and refusal/no-answer behavior.
-- [ ] **CHAT-03**: Related information connected to a consultation answer is shown as supporting evidence, not as a job-board product surface.
-- [ ] **CHAT-04**: User can understand example questions and service limits from the consultation empty state.
+- [x] **CHAT-01**: User can use chat as the primary action on a dedicated career consultation page.
+- [x] **CHAT-02**: Consultation answers preserve Korean-first behavior, citations, freshness metadata, and refusal/no-answer behavior.
+- [x] **CHAT-03**: Related information connected to a consultation answer is shown as supporting evidence, not as a job-board product surface.
+- [x] **CHAT-04**: User can understand example questions and service limits from the consultation empty state.
 
 ### Visual Design and UX Quality
 
