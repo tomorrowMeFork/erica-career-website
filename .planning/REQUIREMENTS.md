@@ -15,16 +15,16 @@ Requirements for the UI redesign milestone. Each maps to roadmap phases 7 and on
 
 ### Career Information Exploration
 
-- [ ] **INFO-01**: User can browse official or collected ERICA career information on a dedicated exploration page.
-- [ ] **INFO-02**: User can quickly compare deadline status, posted/fetched dates, and source status in the information list.
-- [ ] **INFO-03**: User can narrow visible information with core filters while the UI avoids presenting itself as a new matching or ranking product.
-- [ ] **INFO-04**: User receives clear empty-state and insufficient-condition guidance when there is no visible information or not enough context.
+- [x] **INFO-01**: User can browse official or collected ERICA career information on a dedicated exploration page.
+- [x] **INFO-02**: User can quickly compare deadline status, posted/fetched dates, and source status in the information list.
+- [x] **INFO-03**: User can narrow visible information with core filters while the UI avoids presenting itself as a new matching or ranking product.
+- [x] **INFO-04**: User receives clear empty-state and insufficient-condition guidance when there is no visible information or not enough context.
 
 ### Source Verification
 
-- [ ] **SRCV-01**: User can inspect original source link, source name, source_id/chunk_id, posted/fetched dates, and deadline status from an information detail page.
-- [ ] **SRCV-02**: User can see which source or citation evidence supports an AI interpretation.
-- [ ] **SRCV-03**: User can clearly see when evidence is insufficient, uncertain, or general guidance rather than verified source-backed information.
+- [x] **SRCV-01**: User can inspect original source link, source name, source_id/chunk_id, posted/fetched dates, and deadline status from an information detail page.
+- [x] **SRCV-02**: User can see which source or citation evidence supports an AI interpretation.
+- [x] **SRCV-03**: User can clearly see when evidence is insufficient, uncertain, or general guidance rather than verified source-backed information.
 
 ### Career Consultation
 
