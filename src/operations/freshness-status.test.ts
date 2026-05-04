@@ -60,6 +60,34 @@ describe("getFreshnessStatus", () => {
     expect(status.sources).toHaveLength(1);
     expect(status.sources[0]).toMatchObject({ source_id: "same-source", record_count: 2, chunk_count: 2, last_successful_ingestion: "2026-05-03T00:00:00.000Z" });
   });
+
+  it("reports explicit deterministic release evaluation readiness", () => {
+    const root = fixtureDir();
+    writeKb(root, { sourceId: "release-ready-source", fetchedAt: "2026-05-03T00:00:00.000Z" });
+
+    const status = getFreshnessStatus({
+      directories: [root],
+      now: new Date("2026-05-04T00:00:00.000Z"),
+      releaseEvaluation: { status: "passed", checked_at: "2026-05-04T00:00:00.000Z" },
+    });
+
+    expect(FreshnessStatusSchema.safeParse(status).success).toBe(true);
+    expect(status.release_evaluation).toEqual({ status: "passed", checked_at: "2026-05-04T00:00:00.000Z" });
+  });
+
+  it("includes safe operator warnings in schema-valid output", () => {
+    const root = fixtureDir();
+    writeKb(root, { sourceId: "operator-warning-source", fetchedAt: "2026-05-03T00:00:00.000Z" });
+
+    const status = getFreshnessStatus({
+      directories: [root],
+      now: new Date("2026-05-04T00:00:00.000Z"),
+      warnings: ["release readiness evaluation could not be completed deterministically"],
+    });
+
+    expect(FreshnessStatusSchema.safeParse(status).success).toBe(true);
+    expect(status.warnings).toContain("release readiness evaluation could not be completed deterministically");
+  });
 });
 
 function fixtureDir(): string {

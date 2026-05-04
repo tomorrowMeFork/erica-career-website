@@ -15,6 +15,11 @@ export const FreshnessSourceStatusSchema = z.object({
   warnings: z.array(z.string()),
 });
 
+export const ReleaseEvaluationStatusSchema = z.object({
+  status: z.enum(["passed", "failed", "unknown"]),
+  checked_at: z.iso.datetime().nullable(),
+});
+
 export const FreshnessStatusSchema = z.object({
   generated_at: z.iso.datetime(),
   stale_after_days: z.number().int().positive(),
@@ -22,16 +27,19 @@ export const FreshnessStatusSchema = z.object({
   total_chunk_count: z.number().int().nonnegative(),
   sources: z.array(FreshnessSourceStatusSchema),
   warnings: z.array(z.string()),
-  release_evaluation: z.object({ status: z.enum(["passed", "failed", "unknown"]), checked_at: z.iso.datetime().nullable() }),
+  release_evaluation: ReleaseEvaluationStatusSchema,
 });
 
 export type FreshnessSourceStatus = z.infer<typeof FreshnessSourceStatusSchema>;
+export type ReleaseEvaluationStatus = z.infer<typeof ReleaseEvaluationStatusSchema>;
 export type FreshnessStatus = z.infer<typeof FreshnessStatusSchema>;
 
 export type GetFreshnessStatusInput = {
   directories?: readonly string[];
   now?: Date;
   staleAfterDays?: number;
+  releaseEvaluation?: ReleaseEvaluationStatus;
+  warnings?: readonly string[];
 };
 
 type SourceAggregate = {
@@ -46,7 +54,7 @@ export function getFreshnessStatus(input: GetFreshnessStatusInput = {}): Freshne
   const directories = input.directories ?? DEFAULT_KNOWLEDGE_BASE_DIRS;
   const now = input.now ?? new Date();
   const staleAfterDays = input.staleAfterDays ?? 14;
-  const warnings: string[] = [];
+  const warnings: string[] = [...(input.warnings ?? [])];
   const aggregates = new Map<string, SourceAggregate>();
 
   for (const directory of directories) {
@@ -67,7 +75,7 @@ export function getFreshnessStatus(input: GetFreshnessStatusInput = {}): Freshne
     total_chunk_count: sources.reduce((sum, source) => sum + source.chunk_count, 0),
     sources,
     warnings,
-    release_evaluation: { status: "unknown", checked_at: null },
+    release_evaluation: input.releaseEvaluation ?? { status: "unknown", checked_at: null },
   });
 }
 
