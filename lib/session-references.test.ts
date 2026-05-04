@@ -1,4 +1,4 @@
-import { describe, expect, it, vi, beforeEach } from "vitest";
+import { describe, expect, it, vi, beforeEach, afterEach } from "vitest";
 
 import {
   SESSION_REFERENCES_KEY,
@@ -24,14 +24,26 @@ function mockStorage(items: Record<string, string> = {}): Storage {
 
 let currentTime = "2026-05-04T12:00:00.000Z";
 const RealDate = globalThis.Date;
-vi.stubGlobal("Date", function (this: Date, ...args: unknown[]): Date {
-  if (!(this instanceof Date)) {
-    return new Date(currentTime) as unknown as Date;
-  }
-  if (args.length === 0) {
-    return new RealDate(currentTime) as unknown as Date;
-  }
-  return new RealDate(args[0] as string | number) as unknown as Date;
+
+function stubDate() {
+  vi.stubGlobal("Date", function (this: Date, ...args: unknown[]): Date {
+    if (!(this instanceof Date)) {
+      return new RealDate(currentTime) as unknown as Date;
+    }
+    if (args.length === 0) {
+      return new RealDate(currentTime) as unknown as Date;
+    }
+    return new RealDate(args[0] as string | number) as unknown as Date;
+  });
+}
+
+beforeEach(() => {
+  currentTime = "2026-05-04T12:00:00.000Z";
+  stubDate();
+});
+
+afterEach(() => {
+  vi.stubGlobal("Date", RealDate);
 });
 
 const citation = {
@@ -74,6 +86,32 @@ const recommendation = {
   citations: [citation],
 };
 
+const FORBIDDEN_SUBSTRINGS = [
+  "chunk-",
+  "record-",
+  "trace-",
+  "recommendation_id",
+  "source_id",
+  "score_breakdown",
+  "match_strength",
+  "match_reasons",
+  "citation_id",
+  "trace_id",
+  "page_number",
+];
+
+function assertNoRawInternalsInJson(storage: Storage) {
+  const rawJson = storage.getItem(SESSION_REFERENCES_KEY)!;
+  for (const forbidden of FORBIDDEN_SUBSTRINGS) {
+    expect(rawJson, `stored JSON must not contain "${forbidden}"`).not.toContain(forbidden);
+  }
+  expect(rawJson).not.toContain("ibus-hanyang");
+  expect(rawJson).not.toContain("cdp-hanyang");
+  expect(rawJson).not.toContain("0.92");
+  expect(rawJson).not.toContain("0.8");
+  expect(rawJson).not.toContain("0.95");
+}
+
 describe("readSessionReferences", () => {
   it("returns empty array when storage is empty", () => {
     const storage = mockStorage();
@@ -109,6 +147,18 @@ describe("readSessionReferences", () => {
     });
     expect(readSessionReferences(storage)).toHaveLength(1);
   });
+
+  it("returns [] when called without storage argument and no window", () => {
+    const originalWindow = globalThis.window;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    (globalThis as any).window = undefined;
+    try {
+      expect(() => readSessionReferences()).not.toThrow();
+      expect(readSessionReferences()).toEqual([]);
+    } finally {
+      globalThis.window = originalWindow;
+    }
+  });
 });
 
 describe("appendCitations", () => {
@@ -132,7 +182,14 @@ describe("appendCitations", () => {
     expect(item.lastQuery).toBe("채용 공고");
   });
 
-  it("does not store raw internals", () => {
+  it("derives user-facing sourceLabel from source_id and URL", () => {
+    appendCitations([citation], storage);
+
+    const items = readSessionReferences(storage);
+    expect(items[0].sourceLabel).toBe("ERICA 취업게시판");
+  });
+
+  it("does not store raw internals as properties", () => {
     appendCitations([citation], storage);
 
     const raw = JSON.parse(storage.getItem(SESSION_REFERENCES_KEY)!);
@@ -144,6 +201,11 @@ describe("appendCitations", () => {
     expect(stored).not.toHaveProperty("trace_id");
     expect(stored).not.toHaveProperty("page_number");
     expect(stored).not.toHaveProperty("score");
+  });
+
+  it("does not contain raw internals in serialized JSON string", () => {
+    appendCitations([citation], storage);
+    assertNoRawInternalsInJson(storage);
   });
 
   it("skips items without URL", () => {
@@ -203,6 +265,17 @@ describe("appendCitations", () => {
     appendCitations([{ ...citation, deadline_status: "closing-soon" }], storage);
     expect(readSessionReferences(storage)[0].deadlineStatus).toBe("closing_soon");
   });
+
+  it("no-op when storage is unavailable", () => {
+    const originalWindow = globalThis.window;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    (globalThis as any).window = undefined;
+    try {
+      expect(() => appendCitations([citation])).not.toThrow();
+    } finally {
+      globalThis.window = originalWindow;
+    }
+  });
 });
 
 describe("appendRecommendations", () => {
@@ -224,7 +297,14 @@ describe("appendRecommendations", () => {
     expect(item.lastQuery).toBe("프로그램");
   });
 
-  it("does not store raw ranking internals", () => {
+  it("derives user-facing sourceLabel from source_id and URL", () => {
+    appendRecommendations([recommendation], storage);
+
+    const items = readSessionReferences(storage);
+    expect(items[0].sourceLabel).toBe("한양대학교 ERICA 커리어개발센터");
+  });
+
+  it("does not store raw ranking internals as properties", () => {
     appendRecommendations([recommendation], storage);
 
     const raw = JSON.parse(storage.getItem(SESSION_REFERENCES_KEY)!);
@@ -239,6 +319,11 @@ describe("appendRecommendations", () => {
     expect(stored).not.toHaveProperty("score_breakdown");
     expect(stored).not.toHaveProperty("category");
     expect(stored).not.toHaveProperty("citations");
+  });
+
+  it("does not contain raw ranking internals in serialized JSON string", () => {
+    appendRecommendations([recommendation], storage);
+    assertNoRawInternalsInJson(storage);
   });
 
   it("deduplicates by URL across citation and recommendation with same URL", () => {
@@ -274,6 +359,17 @@ describe("clearSessionReferences", () => {
     };
 
     expect(() => clearSessionReferences(throwingStorage)).not.toThrow();
+  });
+
+  it("no-op when called without storage and no window", () => {
+    const originalWindow = globalThis.window;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    (globalThis as any).window = undefined;
+    try {
+      expect(() => clearSessionReferences()).not.toThrow();
+    } finally {
+      globalThis.window = originalWindow;
+    }
   });
 });
 
