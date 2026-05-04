@@ -22,6 +22,9 @@ describe("listing components", () => {
     expect(screen.getByText("모집중")).toBeTruthy();
     expect(screen.getByText("마감됨")).toBeTruthy();
     expect(screen.getAllByText("마감일 확인 필요")[0]).toBeTruthy();
+    expect(screen.getAllByText(/출처: ERICA 취업게시판/u)[0]).toBeTruthy();
+    expect(screen.getAllByText(/게시일: 2026-05-01 · 확인일: 2026-05-03/u)[0]).toBeTruthy();
+    expect(screen.queryByText(/source_id|chunk_id|record_id|수집일|점수|general_recommendation|일반 안내입니다|\[1\]/u)).toBeNull();
     expect(screen.getAllByRole("link", { name: /공식 페이지 새 창으로 열기/u })[0]?.getAttribute("rel")).toBe("noopener noreferrer");
     fireEvent.click(screen.getByRole("button", { name: "새로고침" }));
     expect(onRefresh).toHaveBeenCalledWith("session-a");

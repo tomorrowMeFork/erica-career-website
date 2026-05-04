@@ -30,6 +30,7 @@ describe("chat dashboard components", () => {
     expect(screen.getByRole("heading", { name: "답변에 참고한 정보" })).toBeTruthy();
     expect(within(answerArticle as HTMLElement).queryByText(/trace-chat|trace-rec|trace_id|source_id|chunk_id/u)).toBeNull();
     expect(screen.getAllByText("백엔드 인턴").length).toBeGreaterThan(0);
+    expect(screen.queryByText(/trace-chat|trace-rec|trace_id|source_id|chunk_id|record_id|수집일|점수|personalized_match|전공 조건과 연결됩니다/u)).toBeNull();
     await waitFor(() => expect(fetch).toHaveBeenCalledWith("/api/chat", expect.objectContaining({ body: expect.stringContaining('"top_k":5') })));
   });
 
