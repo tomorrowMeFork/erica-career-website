@@ -34,8 +34,8 @@
   --color-warning: #d4a017;
   --color-error: #c64545;
 
-  --font-body: "StyreneB", Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Noto Sans KR", sans-serif;
-  --font-display: Copernicus, "Tiempos Headline", "Cormorant Garamond", "EB Garamond", Georgia, "Times New Roman", serif;
+  --font-body: Pretendard, SUIT, "Wanted Sans", Inter, "Noto Sans KR", system-ui, sans-serif;
+  --font-display: var(--font-body);
   --font-code: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
 
   --space-1: 4px;
@@ -99,7 +99,7 @@ a { color: var(--color-primary); text-decoration-color: color-mix(in srgb, var(-
   box-shadow: var(--shadow-focus);
 }
 
-.font-pretendard { font-family: var(--font-body); }
+.font-readable-sans { font-family: var(--font-body); }
 .touch-target { min-height: 44px; min-width: 44px; }
 
 .card-surface,
@@ -220,7 +220,7 @@ a { color: var(--color-primary); text-decoration-color: color-mix(in srgb, var(-
   color: var(--color-canvas);
   font-size: 0.88rem;
   font-family: var(--font-display);
-  font-weight: 400;
+  font-weight: 700;
 }
 
 .shell-nav { display: none; align-items: center; gap: var(--space-1); }
@@ -284,8 +284,7 @@ a { color: var(--color-primary); text-decoration-color: color-mix(in srgb, var(-
   color: var(--color-primary);
   font-size: 0.75rem;
   font-weight: 500;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
+  letter-spacing: 0.02em;
 }
 
 .home-hero h1,
@@ -303,13 +302,13 @@ a { color: var(--color-primary); text-decoration-color: color-mix(in srgb, var(-
   margin: 0;
   color: var(--color-ink);
   font-family: var(--font-display);
-  font-weight: 400;
+  font-weight: 700;
   letter-spacing: -0.02em;
   line-height: 1.12;
 }
 
-.home-hero h1 { max-width: 13ch; font-size: clamp(2.45rem, 7vw, 4rem); line-height: 1.05; letter-spacing: -0.03em; }
-.route-hero h1 { font-size: clamp(2.2rem, 4vw, 3rem); }
+.home-hero h1 { max-width: 13ch; font-size: clamp(2.45rem, 7vw, 4rem); font-weight: 800; line-height: 1.05; letter-spacing: -0.03em; }
+.route-hero h1 { font-size: clamp(2.2rem, 4vw, 3rem); font-weight: 800; }
 .home-proof-card h2,
 .route-helper h2,
 .source-detail-card h2,
@@ -318,7 +317,7 @@ a { color: var(--color-primary); text-decoration-color: color-mix(in srgb, var(-
 .disclaimer-notice h2,
 .listing-panel h2,
 .preference-panel h2,
-.source-rail h2 { font-size: clamp(1.75rem, 3vw, 2.25rem); }
+.source-rail h2 { font-size: clamp(1.75rem, 3vw, 2.25rem); font-weight: 700; }
 .home-hero p:not(.eyebrow),
 .route-hero p:not(.eyebrow) { max-width: 68ch; margin: 0; color: var(--color-body); font-size: 1.05rem; }
 .home-actions,

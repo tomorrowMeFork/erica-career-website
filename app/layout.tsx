@@ -8,7 +8,7 @@ export const metadata: Metadata = {
   description: "한양대 ERICA 취업 정보를 출처와 함께 확인하는 한국어 커리어 챗",
 };
 
-const fontClass = "font-pretendard";
+const fontClass = "font-readable-sans";
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   return (
