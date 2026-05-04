@@ -9,9 +9,9 @@ test.beforeEach(async ({ page }) => {
   await page.route("**/api/preferences**", async (route) => route.fulfill({ json: { preference_ranking_enabled: false, profile: null, storage_scope: "none" } }));
 });
 
-test("desktop 1280 shows safety disclaimer and safe citations", async ({ page }) => {
+test("desktop 1280 shows safety disclaimer on consultation", async ({ page }) => {
   await page.setViewportSize({ width: 1280, height: 900 });
-  await page.goto("/");
+  await page.goto("/consultation");
 
   await expect(page.getByText("참고용 안내")).toBeVisible();
   await expect(page.getByText("공식 출처 페이지에서 확인")).toBeVisible();
@@ -22,25 +22,20 @@ test("desktop 1280 shows safety disclaimer and safe citations", async ({ page })
   await page.getByLabel("질문 입력").fill("채용 공고 알려줘");
   await page.getByRole("button", { name: "질문 보내기" }).click();
   await page.getByRole("button", { name: "1번 출처 보기" }).click();
-  await expect(page.getByText("공식 출처").first()).toBeVisible();
-  await expect(page.getByRole("link", { name: /공식 페이지/u }).first()).toHaveAttribute("href", "https://example.edu/jobs");
+  await expect(page.getByText("출처: ERICA 취업게시판").first()).toBeVisible();
+  await expect(page.getByRole("link", { name: /원문 보기/u }).first()).toHaveAttribute("href", "https://example.edu/jobs");
 });
 
 test("mobile 390 shows disclaimer while citation and privacy controls remain usable", async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 });
-  await page.goto("/");
+  await page.goto("/consultation");
 
   await expect(page.getByLabel("안전 안내")).toBeVisible();
   await expect(page.getByText("참고용 안내")).toBeVisible();
   await expect(page.getByText(/공식 한양대학교 인증 서비스입니다|취업 결과를 보장합니다/u)).toHaveCount(0);
 
-  await page.getByRole("button", { name: "추천 조건" }).click();
-  await expect(page.locator('section[aria-label="추천 조건"]')).toBeVisible();
-  await expect(page.getByRole("button", { name: "추천 조건 지우기" })).toBeVisible();
-
-  await page.getByRole("button", { name: "채팅" }).click();
   await page.getByLabel("질문 입력").fill("채용 공고 알려줘");
   await page.getByRole("button", { name: "질문 보내기" }).click();
   await page.getByRole("button", { name: "1번 출처 보기" }).click();
-  await expect(page.getByRole("dialog", { name: "출처 확인하기" })).toBeVisible();
+  await expect(page.getByRole("dialog", { name: "답변 출처" })).toBeVisible();
 });

@@ -23,15 +23,19 @@ describe("verifyPhase5Ui", () => {
 
 function fixtureRoot(): string {
   const root = mkdtempSync(join(tmpdir(), "phase5-ui-"));
-  for (const dir of ["app", "components/dashboard", "components/chat", "components/citations", "lib"]) mkdirSync(join(root, dir), { recursive: true });
+  for (const dir of ["app", "app/consultation", "components/dashboard", "components/chat", "components/citations", "lib"]) mkdirSync(join(root, dir), { recursive: true });
   return root;
 }
 
 function writeFixture(root: string, valid: boolean) {
   writeFileSync(join(root, "app/layout.tsx"), '<html lang="ko"></html>');
-  writeFileSync(join(root, "app/globals.css"), 'oklch(0.99 0.004 250) oklch(0.48 0.13 252) Pretendard Noto Sans KR Apple SD Gothic Neo 280px 360px 400px 1440px');
-  writeFileSync(join(root, "components/dashboard/student-dashboard.tsx"), valid ? "무엇을 도와드릴까요? 현재 세션에만 저장 fetchRecommendations clearPreferences" : "무엇을 도와드릴까요? SSO");
+  writeFileSync(join(root, "app/globals.css"), '--color-primary --color-canvas Pretendard Noto Sans KR sans-serif --font-body');
+  writeFileSync(join(root, "app/page.tsx"), "커리어 상담");
+  writeFileSync(join(root, "app/consultation/page.tsx"), valid ? "어떤 점이 궁금하신가요 답변에 참고한 정보 fetchRecommendations clearPreferences" : "어떤 점이 궁금하신가요 SSO");
+  writeFileSync(join(root, "components/chat/chat-message-list.tsx"), "어떤 점이 궁금하신가요?");
   writeFileSync(join(root, "components/chat/chat-composer.tsx"), "질문 보내기");
-  writeFileSync(join(root, "components/citations/source-card.tsx"), "공식 페이지 열기 noopener noreferrer");
+  writeFileSync(join(root, "components/chat/answer-attached-evidence.tsx"), "답변에 참고한 정보");
+  writeFileSync(join(root, "components/citations/source-card.tsx"), "답변 근거 noopener noreferrer");
+  writeFileSync(join(root, "components/citations/mobile-source-sheet.tsx"), "답변 출처");
   writeFileSync(join(root, "lib/deadline-labels.ts"), "모집중 마감됨 마감일 확인 필요 답변 근거 부족 확인 필요");
 }

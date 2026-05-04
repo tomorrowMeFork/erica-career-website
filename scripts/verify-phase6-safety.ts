@@ -10,9 +10,9 @@ const requiredChecks = [
     label: "Korean informational disclaimer",
   },
   {
-    file: "components/dashboard/student-dashboard.tsx",
-    pattern: /import \{ DisclaimerNotice \} from "\.\.\/safety\/disclaimer-notice\.js";[\s\S]*<DisclaimerNotice \/>/u,
-    label: "dashboard disclaimer mount",
+    file: "app/consultation/page.tsx",
+    pattern: /import \{ DisclaimerNotice \} from "\.\.\/\.\.\/components\/safety\/disclaimer-notice\.js";[\s\S]*<DisclaimerNotice \/>/u,
+    label: "consultation disclaimer mount",
   },
   {
     file: "package.json",

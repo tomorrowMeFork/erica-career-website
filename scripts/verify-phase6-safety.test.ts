@@ -53,7 +53,7 @@ describe("verifyPhase6Safety", () => {
 
 function fixtureRoot(): string {
   const root = mkdtempSync(join(tmpdir(), "phase6-safety-"));
-  for (const dir of ["components/safety", "components/dashboard", "components/citations", "scripts", "app", "lib"]) {
+  for (const dir of ["components/safety", "components/dashboard", "components/citations", "scripts", "app/consultation", "app", "lib"]) {
     mkdirSync(join(root, dir), { recursive: true });
   }
   return root;
@@ -62,7 +62,7 @@ function fixtureRoot(): string {
 function writeFixture(root: string, options: { valid: boolean; disclaimer?: string; extraDashboard?: string }) {
   const disclaimer = options.disclaimer ?? "참고용 안내 공식 출처 페이지에서 확인 공식 한양대학교 인증 서비스가 아님 취업 결과를 보장하지 않";
   writeFileSync(join(root, "components/safety/disclaimer-notice.tsx"), options.valid ? disclaimer : "참고 안내");
-  writeFileSync(join(root, "components/dashboard/student-dashboard.tsx"), `import { DisclaimerNotice } from "../safety/disclaimer-notice.js"; <DisclaimerNotice /> ${options.extraDashboard ?? ""}`);
+  writeFileSync(join(root, "app/consultation/page.tsx"), `import { DisclaimerNotice } from "../../components/safety/disclaimer-notice.js"; <DisclaimerNotice /> ${options.extraDashboard ?? ""}`);
   writeFileSync(join(root, "components/citations/source-card.tsx"), "공식 페이지 열기 noopener noreferrer");
   writeFileSync(join(root, "package.json"), JSON.stringify({ scripts: { "verify:phase6-safety": "tsx scripts/verify-phase6-safety.ts" } }));
 }
