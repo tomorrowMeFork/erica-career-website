@@ -19,7 +19,7 @@ const sessionReferencesFixture = {
     },
   ],
 };
-const forbiddenRenderedStrings = ["정보 둘러보기", "홈", "source_id", "chunk_id", "trace_id", "record_id", "수집일", "score", "점수", "상담 기록"];
+const forbiddenRenderedStrings = ["정보 둘러보기", "정보 더 둘러보기", "홈", "source_id", "chunk_id", "trace_id", "record_id", "수집일", "score", "점수", "상담 기록"];
 
 test.beforeEach(async ({ page }) => {
   await page.route("**/api/chat", async (route) => route.fulfill({ json: { answer: "채용 공고입니다 [1]", citations: [citation], refusal_tier: "normal_answer", confidence: 0.8, trace_id: "trace-chat" } }));
@@ -105,8 +105,8 @@ test.describe.skip("references-first redesign contract", () => {
     });
     await page.goto("/references");
     await expect(page.getByRole("heading", { name: "참고한 정보" })).toBeVisible();
-    await expect(page.getByText("아직 참고한 정보가 없습니다.")).toBeVisible();
-    await expect(page.getByRole("link", { name: "커리어 상담에서 질문하기" })).toHaveAttribute("href", "/consultation");
+    await expect(page.getByRole("heading", { name: "아직 참고한 정보가 없습니다" })).toBeVisible();
+    await expect(page.getByRole("link", { name: "커리어 상담 시작하기" })).toHaveAttribute("href", "/consultation");
     expect(recommendationApiCalled, "/references must read sessionStorage without calling /api/recommendations").toBe(false);
   });
 
