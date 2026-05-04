@@ -2,7 +2,7 @@ export function CitationTrigger({ count, onOpen }: { count: number; onOpen: (ope
   if (count === 0) return null;
   return (
     <button type="button" className="pill-control source-trigger" onClick={(event) => onOpen(event.currentTarget)}>
-      {count}개 출처 사용
+      근거 보기 ({count}개)
     </button>
   );
 }

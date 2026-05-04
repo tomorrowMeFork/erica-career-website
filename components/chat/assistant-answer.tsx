@@ -15,7 +15,6 @@ export function AssistantAnswer({ response, recommendations = [], onOpenCitation
         if (firstCitation !== undefined) onOpenCitation(firstCitation, response.citations, opener);
       }} />
       <div className="answer-meta"><span>출처 기반 답변</span><span>공식 출처 확인 필요</span></div>
-      <details className="answer-trace"><summary>응답 추적 ID 보기</summary><code>응답 추적 ID {response.trace_id}</code></details>
       <AnswerAttachedEvidence items={recommendations} />
     </article>
   );

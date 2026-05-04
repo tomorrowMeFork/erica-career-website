@@ -35,10 +35,10 @@ export function MobileSourceSheet({ open, citations, selectedCitation, opener, o
   const selected = selectedCitation ?? citations[0];
   return (
     <>
-      <button type="button" className="mobile-sheet-backdrop" aria-label="출처 확인 닫기" onClick={() => { onClose(); opener?.focus(); }} />
+      <button type="button" className="mobile-sheet-backdrop" aria-label="답변 출처 닫기" onClick={() => { onClose(); opener?.focus(); }} />
       <div ref={sheetRef} className="mobile-sheet" role="dialog" aria-modal="true" aria-labelledby="mobile-source-sheet-title">
         <button ref={closeRef} type="button" className="pill-control" onClick={() => { onClose(); opener?.focus(); }}>닫기</button>
-        <h2 id="mobile-source-sheet-title">출처 확인하기</h2>
+        <h2 id="mobile-source-sheet-title">답변 출처</h2>
         {selected !== undefined ? <SourceCard citation={selected} selected /> : <p>출처가 없어요.</p>}
       </div>
     </>

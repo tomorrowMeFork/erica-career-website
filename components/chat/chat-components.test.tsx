@@ -1,5 +1,5 @@
 /* @vitest-environment jsdom */
-import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { cleanup, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
 import { StudentDashboard } from "../dashboard/student-dashboard.js";
@@ -15,17 +15,20 @@ describe("chat dashboard components", () => {
   it("shows empty Korean dashboard and disables whitespace submit", () => {
     vi.stubGlobal("sessionStorage", window.sessionStorage);
     render(<StudentDashboard />);
-    expect(screen.getAllByText("무엇을 도와드릴까요?")[0]).toBeTruthy();
+    expect(screen.getAllByText("어떤 점이 궁금하신가요?")[0]).toBeTruthy();
     expect(screen.getByRole<HTMLButtonElement>("button", { name: "질문 보내기" }).disabled).toBe(true);
   });
 
-  it("submits complete-response chat, fetches recommendations, and renders history metadata", async () => {
+  it("submits complete-response chat, fetches recommendations, and hides internal metadata", async () => {
     vi.stubGlobal("fetch", vi.fn((url) => Promise.resolve(new Response(JSON.stringify(String(url).includes("recommendations") ? { recommendations: [recommendation], generated_at: "2026-05-03T00:00:00.000Z", trace_id: "trace-rec", preference_mode: "preference", privacy_metadata: { preference_ranking_enabled: true, profile_source: "preference_service", storage_scope: "session" } } : String(url).includes("preferences") ? { preference_ranking_enabled: false, profile: null, storage_scope: "none" } : { answer: "채용 공고입니다 [1]", citations: [citation], refusal_tier: "normal_answer", confidence: 0.8, trace_id: "trace-chat" }), { status: 200 }))));
     render(<StudentDashboard />);
     fireEvent.change(screen.getByLabelText("질문 입력"), { target: { value: "채용 공고 알려줘" } });
     fireEvent.click(screen.getByRole("button", { name: "질문 보내기" }));
-    expect(await screen.findByText((content) => content.includes("채용 공고입니다"))).toBeTruthy();
-    expect(screen.getByText("응답 추적 ID 보기")).toBeTruthy();
+    const answerText = await screen.findByText((content) => content.includes("채용 공고입니다"));
+    const answerArticle = answerText.closest("article");
+    expect(answerArticle).toBeTruthy();
+    expect(screen.getByRole("heading", { name: "답변에 참고한 정보" })).toBeTruthy();
+    expect(within(answerArticle as HTMLElement).queryByText(/trace-chat|trace-rec|trace_id|source_id|chunk_id/u)).toBeNull();
     expect(screen.getAllByText("백엔드 인턴").length).toBeGreaterThan(0);
     await waitFor(() => expect(fetch).toHaveBeenCalledWith("/api/chat", expect.objectContaining({ body: expect.stringContaining('"top_k":5') })));
   });
@@ -33,8 +36,9 @@ describe("chat dashboard components", () => {
   it("renders refusal notices and attached evidence without destructive styling", () => {
     render(<AssistantAnswer response={{ answer: "근거 부족", citations: [], refusal_tier: "hard_refuse", confidence: 0, trace_id: "trace" }} recommendations={[recommendation]} onOpenCitation={vi.fn()} />);
     expect(screen.getByText("확인된 근거가 부족해 답변할 수 없어요. 공식 출처에서 최신 정보를 확인해 주세요.")).toBeTruthy();
-    expect(screen.getByText(/게시일 2026-05-01 · 수집일 2026-05-03/u)).toBeTruthy();
-    expect(screen.getByRole("link", { name: "백엔드 인턴 원문 출처 새 창으로 열기" })).toBeTruthy();
+    expect(screen.getByText(/출처: ERICA 취업게시판 · 게시일 2026-05-01 · 확인일 2026-05-03/u)).toBeTruthy();
+    expect(screen.getByText("마감 상태:")).toBeTruthy();
+    expect(screen.getByRole("link", { name: "백엔드 인턴 원문 보기 새 창으로 열기" })).toBeTruthy();
     expect(screen.queryByText("전공 조건과 연결됩니다 [1]")).toBeNull();
   });
 

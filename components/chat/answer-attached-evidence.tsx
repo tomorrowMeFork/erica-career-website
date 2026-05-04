@@ -1,15 +1,21 @@
+import { useId } from "react";
+
 import type { RecommendationItem } from "../../src/recommendations/recommendation-contract.js";
+import { getSourceDisplayLabel } from "../citations/source-card.js";
 import { DeadlineStatusBadge } from "../listings/deadline-status-badge.js";
 
 export function AnswerAttachedEvidence({ items }: { items: RecommendationItem[] }) {
+  const titleId = useId();
   if (items.length === 0) return null;
   return (
-    <section className="attached-evidence" aria-label="답변 근거 정보">
+    <section className="attached-evidence" aria-labelledby={titleId}>
+      <h3 id={titleId}>답변에 참고한 정보</h3>
       {items.map((item) => (
         <article key={item.recommendation_id} className="evidence-card card-surface">
           <header><h4>{item.title}</h4><DeadlineStatusBadge status={item.deadline_status} /></header>
-          <p>source_id {item.source_id} · 게시일 {formatDate(item.posted_at)} · 수집일 {formatDate(item.fetched_at)}</p>
-          <a href={item.url} target="_blank" rel="noopener noreferrer" aria-label={`${item.title} 원문 출처 새 창으로 열기`}>원문 출처</a>
+          <p>출처: {getSourceDisplayLabel(item.source_id, item.url)} · 게시일 {formatDate(item.posted_at)} · 확인일 {formatDate(item.fetched_at)}</p>
+          <p>마감 상태: <DeadlineStatusBadge status={item.deadline_status} /></p>
+          <a href={item.url} target="_blank" rel="noopener noreferrer" aria-label={`${item.title} 원문 보기 새 창으로 열기`}>원문 보기</a>
         </article>
       ))}
     </section>
