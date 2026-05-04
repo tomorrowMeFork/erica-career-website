@@ -142,9 +142,12 @@ test("source detail deep link shows user-facing copy and consultation CTA", asyn
 });
 
 test("no forbidden raw or internal labels visible across routes", async ({ page }) => {
-  for (const path of ["/", "/consultation", "/source/example"]) {
+  for (const path of ["/", "/consultation", "/references", "/explore", "/settings", "/source/example"]) {
     await page.goto(path);
-    for (const forbidden of ["source_id", "chunk_id", "trace_id", "Career Consultation", "Information Explore", "Collected Information", "Source Verification"]) {
+    for (const forbidden of forbiddenRenderedStrings) {
+      await expect(page.getByText(forbidden, { exact: false })).toHaveCount(0);
+    }
+    for (const forbidden of ["Career Consultation", "Information Explore", "Collected Information", "Source Verification"]) {
       await expect(page.getByText(forbidden, { exact: false })).toHaveCount(0);
     }
   }
@@ -235,71 +238,4 @@ test("explore redirects to references without rendering old browsing UI", async 
   await expect(page.getByText("공고와 프로그램", { exact: true })).toHaveCount(0);
 });
 
-test.describe.skip("references-first redesign contract", () => {
-  test("primary navigation uses consultation, references, and settings", async ({ page }) => {
-    await page.goto("/");
-    const desktopNav = page.getByRole("navigation", { name: "주요 페이지" });
-    await expect(desktopNav.getByRole("link", { name: "커리어 상담" })).toHaveAttribute("href", "/consultation");
-    await expect(desktopNav.getByRole("link", { name: "참고한 정보" })).toHaveAttribute("href", "/references");
-    await expect(desktopNav.getByRole("link", { name: "설정" })).toHaveAttribute("href", "/settings");
-    await expect(desktopNav.getByText("정보 둘러보기", { exact: true })).toHaveCount(0);
-    await expect(desktopNav.getByText("홈", { exact: true })).toHaveCount(0);
-  });
 
-  test("references empty state explains that citations appear after consultation", async ({ page }) => {
-    let recommendationApiCalled = false;
-    await page.route("**/api/recommendations**", async (route) => {
-      recommendationApiCalled = true;
-      await route.abort();
-    });
-    await page.goto("/references");
-    await expect(page.getByRole("heading", { name: "참고한 정보" })).toBeVisible();
-    await expect(page.getByRole("heading", { name: "아직 참고한 정보가 없습니다" })).toBeVisible();
-    await expect(page.getByRole("link", { name: "커리어 상담 시작하기" })).toHaveAttribute("href", "/consultation");
-    expect(recommendationApiCalled, "/references must read sessionStorage without calling /api/recommendations").toBe(false);
-  });
-
-  test("references populated state renders sessionStorage fixture without recommendations API", async ({ page }) => {
-    let recommendationApiCalled = false;
-    await page.route("**/api/recommendations**", async (route) => {
-      recommendationApiCalled = true;
-      await route.abort();
-    });
-    await page.context().addInitScript((referencesJson) => {
-      window.sessionStorage.setItem("erica-career-chat:session-references", referencesJson);
-    }, JSON.stringify(sessionReferencesFixture));
-
-    await page.goto("/references");
-    await page.waitForLoadState("networkidle");
-    await expect(page.getByRole("heading", { name: "참고한 정보" })).toBeVisible();
-    await expect(page.getByRole("link", { name: "ERICA 현장실습 모집" })).toHaveAttribute("href", "https://www.hanyang.ac.kr/career/example");
-    await expect(page.getByText("한양대학교 ERICA")).toBeVisible();
-    await expect(page.getByText("게시일 2026-05-01")).toBeVisible();
-    await expect(page.getByText("확인일 2026-05-04")).toBeVisible();
-    await expect(page.getByText("1회 참고")).toBeVisible();
-    await expect(page.getByText("컴퓨터공학과 현장실습 알려줘")).toBeVisible();
-    expect(recommendationApiCalled, "/references must not fetch /api/recommendations for stored references").toBe(false);
-  });
-
-  test("explore remains compatible by redirecting to references", async ({ page }) => {
-    await page.goto("/explore");
-    await expect(page).toHaveURL(/\/references$/u);
-    await expect(page.getByRole("heading", { name: "참고한 정보" })).toBeVisible();
-  });
-
-  test("consultation starts without empty source placeholder and keeps preferences collapsed", async ({ page }) => {
-    await page.goto("/consultation");
-    await expect(page.getByText("출처 확인하기", { exact: true })).toHaveCount(0);
-    await expect(page.getByRole("button", { name: "추천 조건 열기" })).toBeVisible();
-    await expect(page.getByLabel("상담 조건")).toBeHidden();
-  });
-
-  test("target routes hide broad-browse copy, fake history, raw IDs, collection dates, and score labels", async ({ page }) => {
-    for (const path of ["/", "/consultation", "/references", "/source/example"]) {
-      await page.goto(path);
-      for (const forbidden of forbiddenRenderedStrings) {
-        await expect(page.getByText(forbidden, { exact: false })).toHaveCount(0);
-      }
-    }
-  });
-});
