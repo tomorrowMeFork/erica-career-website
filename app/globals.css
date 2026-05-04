@@ -352,7 +352,14 @@ a { color: var(--color-primary); text-decoration-color: color-mix(in srgb, var(-
 .disclaimer-notice { margin-bottom: var(--space-4); padding: var(--space-7); border-style: dashed; }
 .disclaimer-notice p:not(.eyebrow) { margin: var(--space-3) 0 0; color: var(--color-body); }
 
-.consultation-layout { display: grid; gap: var(--space-4); }
+.consultation-briefing,
+.consultation-layout { display: grid; width: min(100%, 960px); justify-self: center; gap: var(--space-4); }
+.consultation-briefing .disclaimer-notice { margin: 0; padding: var(--space-4); }
+.consultation-briefing .disclaimer-notice h2 { font-size: clamp(1.1rem, 2vw, 1.35rem); }
+.consultation-briefing .disclaimer-notice p:not(.eyebrow) { margin-top: var(--space-2); font-size: 0.92rem; }
+.preference-summary { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: var(--space-3); padding: var(--space-4); background: var(--color-surface-primary); }
+.preference-summary p { margin: 0; }
+.preference-summary p:not(.eyebrow) { color: var(--color-body-strong); font-weight: 500; }
 .consultation-preferences,
 .consultation-source { min-width: 0; }
 .chat-column { display: grid; min-height: 72vh; padding: var(--space-4); align-content: space-between; gap: var(--space-4); overflow: hidden; border-color: var(--color-surface-cream-strong); background: var(--color-surface-primary); }
@@ -543,10 +550,8 @@ a { color: var(--color-primary); text-decoration-color: color-mix(in srgb, var(-
 
 @media (min-width: 1024px) {
   .app-shell { padding: var(--space-6) var(--space-7); }
-  .consultation-layout { grid-template-columns: var(--desktop-left-panel) minmax(0, 1fr) var(--desktop-source-rail); grid-template-areas: "preferences chat source"; align-items: start; gap: var(--space-5); }
-  .chat-column { grid-area: chat; }
-  .consultation-preferences { grid-area: preferences; }
-  .consultation-source { grid-area: source; }
+  .consultation-layout { align-items: start; }
+  .consultation-layout--source-open { width: min(100%, 1280px); grid-template-columns: minmax(0, 1fr) var(--desktop-source-rail); gap: var(--space-5); }
   .consultation-preferences { display: grid; gap: var(--space-4); }
   .consultation-source { display: grid; gap: var(--space-4); }
   .chat-column { min-height: calc(100vh - 230px); padding: var(--space-6); }
@@ -554,6 +559,6 @@ a { color: var(--color-primary); text-decoration-color: color-mix(in srgb, var(-
 }
 
 @media (min-width: 1360px) {
-  .consultation-layout { grid-template-columns: var(--desktop-left-panel) minmax(0, 1fr) var(--wide-source-rail); gap: var(--space-6); }
+  .consultation-layout--source-open { grid-template-columns: minmax(0, 1fr) var(--wide-source-rail); gap: var(--space-6); }
   .chat-column { padding: var(--space-6); }
 }

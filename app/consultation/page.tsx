@@ -14,6 +14,7 @@ import { StorageScopeChip } from "../../components/preferences/storage-scope-chi
 import { DisclaimerNotice } from "../../components/safety/disclaimer-notice.js";
 import type { ChatCitation, ChatResponse } from "../../src/chat/chat-contract.js";
 import type { PreferenceProfile, PreferenceState } from "../../src/personalization/preference-contract.js";
+import { appendCitations, appendRecommendations, clearSessionReferences } from "../../lib/session-references.js";
 
 const emptyPreferenceState: PreferenceState = { preference_ranking_enabled: false, profile: null, storage_scope: "none" };
 
@@ -27,6 +28,7 @@ export default function ConsultationPage() {
   const [sourcePanelOpen, setSourcePanelOpen] = useState(false);
   const [sourceOpener, setSourceOpener] = useState<HTMLElement | null>(null);
   const [preferenceState, setPreferenceState] = useState<PreferenceState>(emptyPreferenceState);
+  const [preferencesOpen, setPreferencesOpen] = useState(false);
 
   const refreshRecommendations = useCallback(async (key: string, profile?: PreferenceProfile, requestQuery?: string) => {
     const result = await fetchRecommendations({ session_key: key, ...(profile !== undefined ? { profile } : {}), ...(requestQuery !== undefined ? { query: requestQuery } : {}), limit: 5 });
@@ -50,6 +52,8 @@ export default function ConsultationPage() {
     if (chatResult.ok) {
       const answerId = `assistant-${Date.now()}`;
       const attached = await refreshRecommendations(sessionKey, undefined, trimmed);
+      if (chatResult.data.citations.length > 0) appendCitations(chatResult.data.citations, undefined, trimmed);
+      if (attached.length > 0) appendRecommendations(attached, undefined, trimmed);
       setMessages((current) => [...current, { id: answerId, role: "assistant", response: chatResult.data, status: "complete", recommendations: attached }]);
     } else {
       const fallback: ChatResponse = { answer: chatResult.message, citations: [], refusal_tier: "hard_refuse", confidence: 0, trace_id: "phase8-ui-error" };
@@ -99,8 +103,12 @@ export default function ConsultationPage() {
     if (result.ok) setPreferenceState(result.data);
   }, []);
 
-  const clearChatHistory = useCallback(() => setMessages([]), []);
+  const clearChatHistory = useCallback(() => {
+    setMessages([]);
+    clearSessionReferences();
+  }, []);
   const handleSelectCitation = useCallback((citation: ChatCitation) => setSelectedCitation(citation), []);
+  const preferenceSummary = summarizePreferences(preferenceState.profile);
 
   return (
     <div className="consultation-page" onKeyDown={(event) => { if (event.key === "Escape") closeSource(); }}>
@@ -115,25 +123,51 @@ export default function ConsultationPage() {
         </div>
       </header>
 
-      <div className="consultation-layout">
+      <section className="consultation-briefing" aria-label="상담 안내와 조건">
+        <DisclaimerNotice />
+        <div className="preference-summary card-surface">
+          <div>
+            <p className="eyebrow">상담 조건</p>
+            <p>{preferenceSummary}</p>
+          </div>
+          <button type="button" className="pill-control" aria-expanded={preferencesOpen} aria-controls="consultation-preference-panel" onClick={() => setPreferencesOpen((open) => !open)}>
+            {preferencesOpen ? "상담 조건 접기" : "상담 조건 열기"}
+          </button>
+        </div>
+        {preferencesOpen ? (
+          <div id="consultation-preference-panel" className="consultation-preferences" aria-label="상담 조건">
+            <PreferencePanel state={preferenceState} sessionKey={sessionKey} onSet={handleSave} onUpdate={handleUpdate} onClear={handleClearPreferences} onRead={handleRead} />
+          </div>
+        ) : null}
+      </section>
+
+      <div className={sourcePanelOpen ? "consultation-layout consultation-layout--source-open" : "consultation-layout"}>
         <section className="chat-column card-surface" aria-label="채팅">
           <ChatMessageList messages={messages} onOpenCitation={openCitation} onSelectExample={setQuery} />
           {isLoading ? <div className="card-surface loading-card">관련 출처를 확인하고 답변을 준비하고 있어요…</div> : null}
           <ChatComposer query={query} onQueryChange={setQuery} onSubmit={submitQuestion} isLoading={isLoading} />
         </section>
 
-        <aside className="consultation-preferences" aria-label="상담 조건">
-          <PreferencePanel state={preferenceState} sessionKey={sessionKey} onSet={handleSave} onUpdate={handleUpdate} onClear={handleClearPreferences} onRead={handleRead} />
-        </aside>
-
-        <aside className="consultation-source" aria-label="출처 패널">
-          {sourcePanelOpen ? <SourceInspectionRail citations={sourceCitations} selectedCitation={selectedCitation} onSelect={handleSelectCitation} onClose={closeSource} /> : <div className="soft-surface source-placeholder">답변의 인용 번호를 선택하면 참고한 원문 정보를 확인할 수 있어요.</div>}
-        </aside>
+        {sourcePanelOpen ? (
+          <aside className="consultation-source" aria-label="답변 출처 패널">
+            <SourceInspectionRail citations={sourceCitations} selectedCitation={selectedCitation} onSelect={handleSelectCitation} onClose={closeSource} />
+          </aside>
+        ) : null}
       </div>
-
-      <DisclaimerNotice />
 
       <MobileSourceSheet open={sourcePanelOpen} citations={sourceCitations} selectedCitation={selectedCitation} opener={sourceOpener} onClose={closeSource} />
     </div>
   );
+}
+
+function summarizePreferences(profile: PreferenceProfile | null): string {
+  if (profile === null) return "상담 조건 설정";
+  const parts = [
+    profile.major ? `전공 ${profile.major}` : null,
+    profile.target_role ? `직무 ${profile.target_role}` : null,
+    profile.industry.length > 0 ? `산업 ${profile.industry[0]}` : null,
+    profile.region.length > 0 ? `지역 ${profile.region[0]}` : null,
+    profile.employment_type.length > 0 ? `형태 ${profile.employment_type[0]}` : null,
+  ].filter((part): part is string => part !== null);
+  return parts.length === 0 ? "상담 조건 설정" : parts.slice(0, 2).join(" · ");
 }

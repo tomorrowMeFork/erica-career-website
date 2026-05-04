@@ -1,7 +1,7 @@
 import { expect, test } from "@playwright/test";
 
 const citation = { citation_id: 1, chunk_id: "chunk-1", record_id: "record-1", source_id: "ibus", title: "채용 공고", url: "https://example.edu/jobs", fetched_at: "2026-05-03T00:00:00.000Z", posted_at: "2026-05-01T00:00:00.000Z", deadline_status: "active" };
-const recommendation = { recommendation_id: "rec-1", chunk_id: "chunk-1", record_id: "record-1", source_id: "ibus", title: "백엔드 인턴", category: "jobs", url: "https://example.edu/jobs", fetched_at: "2026-05-03T00:00:00.000Z", posted_at: "2026-05-01T00:00:00.000Z", deadline_status: "active", score: 0.9, match_strength: "personalized_match", match_reasons: ["전공 조건과 연결됩니다 [1]"], score_breakdown: { base_retrieval_score: 0.5, major_match_score: 0.2, target_role_match_score: 0.1, optional_preference_score: 0, source_quality_score: 0.1, freshness_score: 0, final_score: 0.9 }, citations: [citation] };
+const recommendation = { recommendation_id: "rec-1", chunk_id: "chunk-1", record_id: "record-1", source_id: "ibus", title: "백엔드 인턴", category: "jobs", url: "https://example.edu/intern", fetched_at: "2026-05-03T00:00:00.000Z", posted_at: "2026-05-01T00:00:00.000Z", deadline_status: "active", score: 0.9, match_strength: "personalized_match", match_reasons: ["전공 조건과 연결됩니다 [1]"], score_breakdown: { base_retrieval_score: 0.5, major_match_score: 0.2, target_role_match_score: 0.1, optional_preference_score: 0, source_quality_score: 0.1, freshness_score: 0, final_score: 0.9 }, citations: [citation] };
 const sessionReferencesFixture = {
   _v: 1,
   items: [
@@ -60,32 +60,78 @@ test("home shows consultation entry point with Korean copy", async ({ page }) =>
   await expect(page.getByText("마감 확인")).toBeVisible();
 });
 
-test("consultation desktop 1280 shows chat flow, evidence, and preferences", async ({ page }) => {
+test("consultation desktop 1280 centers chat, expands preferences, captures references, and opens source rail", async ({ page }) => {
   await page.setViewportSize({ width: 1280, height: 900 });
   await page.goto("/consultation");
   await expect(page.getByRole("heading", { name: "커리어 상담" })).toBeVisible();
+  await expect(page.getByLabel("안전 안내")).toBeVisible();
   await expect(page.getByText("어떤 점이 궁금하신가요?")).toBeVisible();
+  await expect(page.getByText("출처 패널", { exact: false })).toHaveCount(0);
+  await expect(page.locator(".source-placeholder")).toHaveCount(0);
+  await expect(page.getByText("상담 조건 설정")).toBeVisible();
+  await expect(page.getByRole("button", { name: "상담 조건 열기" })).toBeVisible();
+  await expect(page.locator('[aria-label="상담 조건"]')).toHaveCount(0);
+  await page.getByRole("button", { name: "상담 조건 열기" }).click();
   await expect(page.locator('[aria-label="상담 조건"]')).toBeVisible();
+  await expect(page.getByLabel("전공")).toBeVisible();
   await page.getByLabel("질문 입력").fill("채용 공고 알려줘");
   await page.getByRole("button", { name: "질문 보내기" }).click();
   await expect(page.getByText("채용 공고입니다")).toBeVisible();
   await expect(page.getByRole("heading", { name: "답변에 참고한 정보" })).toBeVisible();
   await expect(page.getByRole("button", { name: "1번 출처 보기" })).toBeVisible();
+  await page.waitForFunction(() => {
+    const raw = window.sessionStorage.getItem("erica-career-chat:session-references");
+    if (!raw) return false;
+    const parsed = JSON.parse(raw) as { items?: Array<{ title?: string; lastQuery?: string }> };
+    return parsed.items?.some((item) => item.title === "채용 공고" && item.lastQuery === "채용 공고 알려줘") === true && parsed.items?.some((item) => item.title === "백엔드 인턴" && item.lastQuery === "채용 공고 알려줘") === true;
+  });
   await page.getByRole("button", { name: "1번 출처 보기" }).click();
+  await expect(page.locator('[aria-label="답변 출처 패널"]')).toBeVisible();
   await expect(page.getByText("출처: ERICA 취업게시판").first()).toBeVisible();
+  await page.goto("/references");
+  await expect(page.getByText("채용 공고")).toBeVisible();
+  await expect(page.getByText("백엔드 인턴")).toBeVisible();
 });
 
 test("consultation mobile 390 opens source sheet and restores focus on Escape", async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 });
   await page.goto("/consultation");
   await expect(page.getByLabel("채팅")).toBeVisible();
+  await expect(page.getByLabel("안전 안내")).toBeVisible();
   await expect(page.getByText("어떤 점이 궁금하신가요?")).toBeVisible();
+  await expect(page.locator(".source-placeholder")).toHaveCount(0);
+  await expect(page.getByRole("button", { name: "상담 조건 열기" })).toBeVisible();
   await page.getByLabel("질문 입력").fill("채용 공고 알려줘");
   await page.getByRole("button", { name: "질문 보내기" }).click();
   await page.getByRole("button", { name: "1번 출처 보기" }).click();
   await expect(page.getByRole("dialog", { name: "답변 출처" })).toBeVisible();
   await page.keyboard.press("Escape");
   await expect(page.getByRole("dialog", { name: "답변 출처" })).toBeHidden();
+});
+
+test("consultation refusal without evidence does not store placeholder references", async ({ page }) => {
+  await page.route("**/api/chat", async (route) => route.fulfill({ json: { answer: "확인된 근거가 부족합니다.", citations: [], refusal_tier: "hard_refuse", confidence: 0, trace_id: "trace-refusal" } }));
+  await page.route("**/api/recommendations", async (route) => route.fulfill({ json: { recommendations: [], generated_at: "2026-05-03T00:00:00.000Z", trace_id: "trace-empty-rec", preference_mode: "no_preference", privacy_metadata: { preference_ranking_enabled: false, profile_source: "none", storage_scope: "none" } } }));
+  await page.goto("/consultation");
+  await page.getByLabel("질문 입력").fill("근거 없는 질문");
+  await page.getByRole("button", { name: "질문 보내기" }).click();
+  await expect(page.getByText("확인된 근거가 부족합니다.")).toBeVisible();
+  await expect(page.getByRole("button", { name: /출처 보기/u })).toHaveCount(0);
+  await page.goto("/references");
+  await expect(page.getByRole("heading", { name: "아직 참고한 정보가 없습니다" })).toBeVisible();
+});
+
+test("clearing consultation chat also clears session references", async ({ page }) => {
+  await page.goto("/consultation");
+  await page.getByLabel("질문 입력").fill("채용 공고 알려줘");
+  await page.getByRole("button", { name: "질문 보내기" }).click();
+  await page.waitForFunction(() => window.sessionStorage.getItem("erica-career-chat:session-references") !== null);
+  await page.getByRole("button", { name: "설정" }).click();
+  await page.locator(".settings-menu__popover").getByRole("button", { name: "대화 기록 지우기" }).click();
+  await page.locator(".settings-menu__dialog").getByRole("button", { name: "대화 기록 지우기" }).click();
+  await expect(page.getByText("채용 공고입니다")).toHaveCount(0);
+  await page.goto("/references");
+  await expect(page.getByRole("heading", { name: "아직 참고한 정보가 없습니다" })).toBeVisible();
 });
 
 test("source detail deep link shows user-facing copy and consultation CTA", async ({ page }) => {
