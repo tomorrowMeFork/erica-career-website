@@ -92,7 +92,7 @@ test("source detail deep link shows user-facing copy and consultation CTA", asyn
   await page.goto("/source/example");
   await expect(page.getByRole("heading", { name: "출처 상세" })).toBeVisible();
   await expect(page.getByText("이 정보의 원문 출처를 확인하세요.")).toBeVisible();
-  await expect(page.getByRole("link", { name: "이 정보에 대해 질문하기" })).toBeVisible();
+  await expect(page.getByRole("link", { name: "커리어 상담으로 돌아가기" })).toBeVisible();
 });
 
 test("no forbidden raw or internal labels visible across routes", async ({ page }) => {

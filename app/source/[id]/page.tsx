@@ -43,8 +43,7 @@ export default async function SourcePage({ params }: { params: Promise<{ id: str
         </div>
 
         <div className="source-detail-actions">
-          <a className="primary-button" href="/consultation">이 정보에 대해 질문하기</a>
-          <a className="pill-control" href="/explore">정보 더 둘러보기</a>
+          <a className="primary-button" href="/consultation">커리어 상담으로 돌아가기</a>
         </div>
       </section>
     </div>

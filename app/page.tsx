@@ -11,7 +11,6 @@ export default function Home() {
         <p>답변에 참고한 공고와 마감 정보도 함께 확인할 수 있습니다.</p>
         <div className="home-actions" aria-label="주요 이동">
           <Link className="primary-button" href="/consultation">커리어 상담 시작하기</Link>
-          <Link className="pill-control" href="/explore">정보 둘러보기</Link>
         </div>
       </section>
 
