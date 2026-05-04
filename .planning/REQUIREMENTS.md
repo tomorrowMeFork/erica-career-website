@@ -38,13 +38,13 @@ Requirements for the UI redesign milestone. Each maps to roadmap phases 7 and on
 - [x] **UXR-01**: UI applies the current `DESIGN.md` as the independent design standard for spacing, typography, rounded surfaces, pill controls, restrained color roles, and CTA hierarchy.
 - [x] **UXR-02**: UI removes the current problems of overloaded left-side content, weak central consultation emphasis, ambiguous empty right panel, and unclear information hierarchy.
 - [x] **UXR-03**: UI reduces competing color, badge, card, and CTA emphasis so each page has a clear primary action.
-- [ ] **UXR-04**: UI can be verified on mobile and desktop for the four-page flow, readable Korean typography, 44px touch targets, and source/citation inspection.
+- [x] **UXR-04**: UI can be verified on mobile and desktop for the four-page flow, readable Korean typography, 44px touch targets, and source/citation inspection.
 
 ### Scope Guardrails
 
-- [ ] **GUARD-01**: v1.1 does not add or change matching algorithms, ranking weights, or matching logic.
-- [ ] **GUARD-02**: v1.1 does not add semantic retrieval, ingestion-source expansion, production crawling, or authenticated/private crawling.
-- [ ] **GUARD-03**: v1.1 does not add saved jobs, reminders, application tracking, SSO, official Hanyang endorsement claims, or job-board workflow tooling.
+- [x] **GUARD-01**: v1.1 does not add or change matching algorithms, ranking weights, or matching logic.
+- [x] **GUARD-02**: v1.1 does not add semantic retrieval, ingestion-source expansion, production crawling, or authenticated/private crawling.
+- [x] **GUARD-03**: v1.1 does not add saved jobs, reminders, application tracking, SSO, official Hanyang endorsement claims, or job-board workflow tooling.
 
 ## Future Requirements
 
