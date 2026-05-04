@@ -29,3 +29,26 @@
 - Favicon 404 remains cosmetic follow-up work.
 
 ---
+
+## v1.1 UI Redesign (Shipped: 2026-05-04)
+
+**Status:** Shipped  
+**Phases completed:** 5 phases (7-11)  
+**Requirements:** 21/21 verified PASS  
+**Tag:** `v1.1`
+
+**Key accomplishments:**
+
+- Design contract (Phase 7): four-page IA, Korean-first flow language, design-standard interpretation, human-intervention register, verification checks.
+- Four-page App Router routing with shared Korean-first navigation shell (Phase 8): home, explore, source verification, consultation.
+- Career information exploration surface (Phase 9): browse/filter by deadline/source/status, source/date metadata, empty-state guidance, no recommendation framing.
+- Evidence-based consultation (Phase 10): example questions, service limits, attached evidence (not recommendations), answer meta reframe.
+- UI QA and scope guardrails (Phase 11): Playwright desktop/mobile verification, 44px touch targets, Korean typography, guardrail audit confirming no matching/ranking/ingestion/retrieval/crawling changes.
+
+**Scope guardrails verified:**
+
+- No matching algorithms, ranking weights, or matching logic changes.
+- No semantic retrieval, ingestion expansion, production crawling, or authenticated crawling.
+- No saved jobs, reminders, application tracking, SSO, endorsement claims, or job-board tooling.
+
+---
