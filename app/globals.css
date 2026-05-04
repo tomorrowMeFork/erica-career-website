@@ -370,11 +370,16 @@ a { color: var(--color-hanyang); text-decoration-color: color-mix(in oklch, var(
 .listing-panel,
 .preference-panel,
 .source-rail,
-.attached-recommendations { display: grid; gap: var(--space-4); }
+.attached-evidence { display: grid; gap: var(--space-4); }
 
 .message-list { align-content: start; }
 .empty-chat { display: grid; place-items: start; gap: var(--space-3); min-height: 34vh; padding: var(--space-6); background: linear-gradient(150deg, var(--color-surface), var(--color-hanyang-soft)); }
 .empty-chat p { max-width: 54ch; margin: 0; color: var(--color-ink-soft); }
+.empty-chat__examples { display: grid; gap: var(--space-2); width: 100%; max-width: 62ch; margin-top: var(--space-2); }
+.empty-chat__examples h3 { margin: 0; color: var(--color-ink); font-size: 0.98rem; font-weight: 700; }
+.empty-chat__examples ul { display: grid; gap: var(--space-2); margin: 0; padding: 0; list-style: none; }
+.empty-chat__examples li { border: 1px solid var(--color-line); border-radius: var(--radius-md); background: color-mix(in oklch, var(--color-surface), transparent 10%); padding: var(--space-3) var(--space-4); color: var(--color-ink-soft); box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.72); }
+.empty-chat__limits { border-left: 3px solid var(--color-accent-gold); padding-left: var(--space-3); font-weight: 600; }
 
 .sticky-composer { position: sticky; bottom: max(var(--space-3), env(safe-area-inset-bottom)); z-index: 10; }
 .chat-composer {
@@ -408,7 +413,7 @@ a { color: var(--color-hanyang); text-decoration-color: color-mix(in oklch, var(
 .listing-card,
 .info-item-card,
 .source-card,
-.recommendation-card,
+.evidence-card,
 .loading-card {
   padding: var(--space-5);
 }
@@ -450,7 +455,7 @@ a { color: var(--color-hanyang); text-decoration-color: color-mix(in oklch, var(
 .listing-card header,
 .info-item-card header,
 .source-detail-card header,
-.recommendation-card header { display: flex; align-items: start; justify-content: space-between; gap: var(--space-3); }
+.evidence-card header { display: flex; align-items: start; justify-content: space-between; gap: var(--space-3); }
 .listing-panel header span { white-space: nowrap; border-radius: var(--radius-pill); background: var(--color-hanyang-soft); color: var(--color-hanyang-strong); padding: var(--space-1) var(--space-3); font-size: 0.8rem; font-weight: 600; }
 .listing-panel p,
 .info-list-panel p,
@@ -458,16 +463,16 @@ a { color: var(--color-hanyang); text-decoration-color: color-mix(in oklch, var(
 .listing-card p,
 .info-item-card p,
 .source-card p,
-.recommendation-card p { margin: 0; color: var(--color-ink-soft); font-size: 0.92rem; }
+.evidence-card p { margin: 0; color: var(--color-ink-soft); font-size: 0.92rem; }
 .filter-pills { display: flex; flex-wrap: wrap; gap: var(--space-2); margin: 0; }
 .listing-card,
 .info-item-card,
-.recommendation-card { display: grid; gap: var(--space-3); box-shadow: none; }
+.evidence-card { display: grid; gap: var(--space-3); box-shadow: none; }
 .listing-card[data-deadline_status="active"] { border-color: color-mix(in oklch, var(--color-hanyang), transparent 46%); }
 .info-item-card[data-deadline_status="active"] { border-color: color-mix(in oklch, var(--color-hanyang), transparent 46%); }
 .listing-card h3,
 .info-item-card h3,
-.recommendation-card h4,
+.evidence-card h4,
 .source-card h3 { margin: 0; color: var(--color-ink); line-height: 1.28; letter-spacing: 0; }
 .listing-meta,
 .source-meta { display: grid; gap: var(--space-1); }
@@ -483,11 +488,6 @@ a { color: var(--color-hanyang); text-decoration-color: color-mix(in oklch, var(
 .source-metadata-item span { color: var(--color-ink-muted); font-size: 0.82rem; font-weight: 600; }
 .source-metadata-item strong { color: var(--color-ink); font-size: 0.96rem; overflow-wrap: anywhere; }
 .source-evidence-note { display: grid; gap: var(--space-2); padding: var(--space-4); box-shadow: none; background: var(--color-surface-blue); }
-.listing-score { display: flex; flex-wrap: wrap; gap: var(--space-2); align-items: center; }
-.match-reasons { display: grid; gap: var(--space-2); margin: 0; padding: 0; list-style: none; }
-.match-reasons li { border-left: 3px solid var(--color-accent-gold); padding-left: var(--space-3); color: var(--color-ink-soft); font-size: 0.9rem; }
-.source-context { border-radius: var(--radius-md); background: var(--color-surface-blue); padding: var(--space-3); color: var(--color-ink-soft); font-size: 0.86rem; }
-
 .preference-required,
 .optional-preferences { display: grid; gap: var(--space-3); }
 .preference-required label,

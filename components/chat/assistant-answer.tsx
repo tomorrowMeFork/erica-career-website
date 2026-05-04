@@ -2,7 +2,7 @@ import type { ChatCitation, ChatResponse } from "../../src/chat/chat-contract.js
 import type { RecommendationItem } from "../../src/recommendations/recommendation-contract.js";
 import { CitationTrigger } from "../citations/citation-trigger.js";
 import { InlineCitationMarker } from "../citations/inline-citation-marker.js";
-import { AnswerAttachedRecommendations } from "./answer-attached-recommendations.js";
+import { AnswerAttachedEvidence } from "./answer-attached-evidence.js";
 import { RefusalNoticeCard } from "./refusal-notice-card.js";
 
 export function AssistantAnswer({ response, recommendations = [], onOpenCitation }: { response: ChatResponse; recommendations?: RecommendationItem[]; onOpenCitation: (citation: ChatCitation, scopedCitations: ChatCitation[], opener?: HTMLElement) => void }) {
@@ -14,9 +14,9 @@ export function AssistantAnswer({ response, recommendations = [], onOpenCitation
         const firstCitation = response.citations[0];
         if (firstCitation !== undefined) onOpenCitation(firstCitation, response.citations, opener);
       }} />
-      <div className="answer-meta"><span>신뢰도 {Math.round(response.confidence * 100)}%</span><span>참고용 안내</span></div>
+      <div className="answer-meta"><span>출처 기반 답변</span><span>공식 출처 확인 필요</span></div>
       <details className="answer-trace"><summary>응답 추적 ID 보기</summary><code>응답 추적 ID {response.trace_id}</code></details>
-      <AnswerAttachedRecommendations items={recommendations} />
+      <AnswerAttachedEvidence items={recommendations} />
     </article>
   );
 }

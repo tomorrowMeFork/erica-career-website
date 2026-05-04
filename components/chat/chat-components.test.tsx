@@ -30,13 +30,12 @@ describe("chat dashboard components", () => {
     await waitFor(() => expect(fetch).toHaveBeenCalledWith("/api/chat", expect.objectContaining({ body: expect.stringContaining('"top_k":5') })));
   });
 
-  it("renders refusal notices and recommendation cards without destructive styling", () => {
+  it("renders refusal notices and attached evidence without destructive styling", () => {
     render(<AssistantAnswer response={{ answer: "근거 부족", citations: [], refusal_tier: "hard_refuse", confidence: 0, trace_id: "trace" }} recommendations={[recommendation]} onOpenCitation={vi.fn()} />);
     expect(screen.getByText("확인된 근거가 부족해 답변할 수 없어요. 공식 출처에서 최신 정보를 확인해 주세요.")).toBeTruthy();
-    expect(screen.getByText("맞춤 추천 · 점수 0.90")).toBeTruthy();
     expect(screen.getByText(/게시일 2026-05-01 · 수집일 2026-05-03/u)).toBeTruthy();
-    expect(screen.getByRole("link", { name: "백엔드 인턴 공식 페이지 새 창으로 열기" })).toBeTruthy();
-    expect(screen.getByText("전공 조건과 연결됩니다 [1]")).toBeTruthy();
+    expect(screen.getByRole("link", { name: "백엔드 인턴 원문 출처 새 창으로 열기" })).toBeTruthy();
+    expect(screen.queryByText("전공 조건과 연결됩니다 [1]")).toBeNull();
   });
 
   it("scopes repeated citation IDs to the assistant message that opened them", () => {
