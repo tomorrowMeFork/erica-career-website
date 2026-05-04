@@ -18,6 +18,7 @@ test("desktop 1280 shows safety disclaimer on consultation", async ({ page }) =>
   await expect(page.getByText("공식 한양대학교 인증 서비스가 아님")).toBeVisible();
   await expect(page.getByText("취업 결과를 보장하지 않습니다")).toBeVisible();
   await expect(page.getByText(/공식 한양대학교 인증 서비스입니다|취업 결과를 보장합니다/u)).toHaveCount(0);
+  await expect(page.getByText(/상담 기록|source_id|chunk_id|trace_id|record_id|수집일/u)).toHaveCount(0);
 
   await page.getByLabel("질문 입력").fill("채용 공고 알려줘");
   await page.getByRole("button", { name: "질문 보내기" }).click();
@@ -33,6 +34,7 @@ test("mobile 390 shows disclaimer while citation and privacy controls remain usa
   await expect(page.getByLabel("안전 안내")).toBeVisible();
   await expect(page.getByText("참고용 안내")).toBeVisible();
   await expect(page.getByText(/공식 한양대학교 인증 서비스입니다|취업 결과를 보장합니다/u)).toHaveCount(0);
+  await expect(page.getByText(/상담 기록|source_id|chunk_id|trace_id|record_id|수집일/u)).toHaveCount(0);
 
   await page.getByLabel("질문 입력").fill("채용 공고 알려줘");
   await page.getByRole("button", { name: "질문 보내기" }).click();

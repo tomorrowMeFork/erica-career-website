@@ -18,6 +18,9 @@ describe("preference components", () => {
     fireEvent.change(screen.getByLabelText("희망 직무"), { target: { value: "백엔드 개발자" } });
     expect(screen.getByRole<HTMLButtonElement>("button", { name: "추천 조건 저장" }).disabled).toBe(false);
     expect(screen.getByText("선택 조건 더보기")).toBeTruthy();
+    expect(screen.getByText("선택 조건 더보기").closest("details")?.hasAttribute("open")).toBe(false);
+    fireEvent.click(screen.getByText("선택 조건 더보기"));
+    expect(screen.getByText("선택 조건 더보기").closest("details")?.hasAttribute("open")).toBe(true);
     expect(screen.getByText(/현재 세션 전용/u)).toBeTruthy();
   });
 
