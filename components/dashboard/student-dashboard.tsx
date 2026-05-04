@@ -118,9 +118,15 @@ export function StudentDashboard() {
     <main className="phase5-shell" onKeyDown={(event) => { if (event.key === "Escape") closeSource(); }}>
       <div className="phase5-container">
         <header className="dashboard-header card-surface">
-          <div><p>ERICA Career Chat</p><h1>무엇을 도와드릴까요?</h1><p>채용 공고, 마감일, 취업 프로그램을 한국어로 질문하면 확인된 출처를 함께 보여드려요.</p></div>
-          <StorageScopeChip storageScope={preferenceState.storage_scope} rankingEnabled={preferenceState.preference_ranking_enabled} />
-          <SettingsMenu onClearPreferences={() => void handleClearPreferences()} onClearChatHistory={clearChatHistory} />
+          <div>
+            <p className="dashboard-kicker">ERICA 커리어 데스크</p>
+            <h1>출처와 마감일을 함께 확인하는 커리어 상담</h1>
+            <p>채용 공고, 마감일, 취업 프로그램을 한국어로 질문하면 확인된 출처와 최신성 정보를 함께 보여드려요.</p>
+          </div>
+          <div className="dashboard-actions" aria-label="세션 및 설정">
+            <StorageScopeChip storageScope={preferenceState.storage_scope} rankingEnabled={preferenceState.preference_ranking_enabled} />
+            <SettingsMenu onClearPreferences={() => void handleClearPreferences()} onClearChatHistory={clearChatHistory} />
+          </div>
         </header>
 
         <DisclaimerNotice />
