@@ -59,6 +59,7 @@
   --shadow-soft: none;
   --shadow-focus: 0 0 0 3px color-mix(in srgb, var(--color-primary), transparent 84%);
   --container-max: 1200px;
+  --settings-container-max: 760px;
   --desktop-left-panel: 284px;
   --desktop-source-rail: 300px;
   --wide-source-rail: 320px;
@@ -270,7 +271,8 @@ a { color: var(--color-primary); text-decoration-color: color-mix(in srgb, var(-
 .home-page,
 .explore-page,
 .source-page,
-.consultation-page { display: grid; gap: var(--space-5); }
+.consultation-page,
+.settings-page { display: grid; gap: var(--space-5); }
 
 .home-hero,
 .route-hero {
@@ -333,7 +335,10 @@ a { color: var(--color-primary); text-decoration-color: color-mix(in srgb, var(-
 .home-proof-card p:not(.panel-kicker),
 .route-helper p,
 .source-detail-placeholder p,
-.source-detail-card p { margin: 0; color: var(--color-body); }
+.source-detail-card p,
+.settings-controls p { margin: 0; color: var(--color-body); }
+.settings-page { width: min(100%, var(--settings-container-max)); justify-self: center; margin: 0 auto; }
+.settings-controls { display: grid; gap: var(--space-4); padding: var(--space-5); }
 
 .settings-menu { position: relative; }
 .settings-menu__popover,
