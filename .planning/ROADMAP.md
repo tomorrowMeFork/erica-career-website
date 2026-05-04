@@ -76,7 +76,7 @@ The active design standard is `DESIGN.md` as an independent design standard for 
   3. User no longer encounters overloaded left-side content, weak central consultation emphasis, or an ambiguous empty source panel as the default experience.
   4. User can use shared navigation and layout patterns consistently on desktop and mobile entry points.
 **Verification-first/TDD expectation**: Define navigation, route, active-state, and responsive shell checks before route implementation; client components should be justified only where interaction requires them.  
-**Plans**: TBD  
+**Plans**: 08-01 — Four-Page Routing and Shared Interaction Shell  
 **UI hint**: yes
 
 ### Phase 9: Career Information Explore and Source Verification Pages
@@ -124,7 +124,7 @@ The active design standard is `DESIGN.md` as an independent design standard for 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 7. UI Information Architecture and Design Contract | 1/1 | Complete | 2026-05-04 |
-| 8. Four-Page Routing and Shared Interaction Shell | 0/TBD | Not started | - |
+| 8. Four-Page Routing and Shared Interaction Shell | 0/1 | Executing | - |
 | 9. Career Information Explore and Source Verification Pages | 0/TBD | Not started | - |
 | 10. Career Consultation Page and Evidence Linking | 0/TBD | Not started | - |
 | 11. UI QA, Responsive Verification, and Scope Guardrails | 0/TBD | Not started | - |
@@ -159,4 +159,4 @@ The active design standard is `DESIGN.md` as an independent design standard for 
 
 ## Next Step
 
-Plan Phase 8 with `/gsd-plan-phase 8`, using the verified Phase 7 IA and design contract as the implementation boundary.
+Verify Phase 8 with `/gsd-verify-work 8`, confirming IA-02 and UXR-02 after implementation.
