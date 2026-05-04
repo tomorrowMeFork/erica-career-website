@@ -13,10 +13,14 @@ const requiredChecks = [
   { file: "components/chat/answer-attached-evidence.tsx", pattern: /답변에 참고한 정보/u, label: "evidence section title" },
   { file: "components/citations/source-card.tsx", pattern: /답변 근거|noopener noreferrer/u, label: "source safe links" },
   { file: "components/citations/mobile-source-sheet.tsx", pattern: /답변 출처/u, label: "mobile sheet title" },
+  { file: "components/shell/app-shell.tsx", pattern: /참고한 정보/u, label: "references nav label" },
+  { file: "components/shell/app-shell.tsx", pattern: /\/references/u, label: "references route" },
   { file: "lib/deadline-labels.ts", pattern: /모집중|마감됨|마감일 확인 필요|답변 근거 부족|확인 필요/u, label: "semantic Korean labels" },
 ];
 
-const prohibited = [/EventSource/u, /server-side chat history/u, /saved jobs/u, /reminders/u, /resume/u, /SSO/u, /production crawling/u, /application submission/u, /Career Consultation/u, /Information Explore/u, /Collected Information/u, /Source Verification/u];
+const prohibited = [/EventSource/u, /server-side chat history/u, /saved jobs/u, /reminders/u, /resume/u, /SSO/u, /production crawling/u, /application submission/u, /Career Consultation/u, /Information Explore/u, /Collected Information/u, /Source Verification/u, /정보 둘러보기/u, /상담 기록/u, /수집일/u];
+
+const prohibitedRendered = [/\{item\.source_id\}/u, /\{source_id\}/u, /\{item\.chunk_id\}/u, /\{item\.record_id\}/u, /\{item\.trace_id\}/u, /\{item\.score\}/u];
 
 export function verifyPhase5Ui(rootDir = process.cwd()): VerifyPhase5Result {
   const failures: string[] = [];
@@ -24,10 +28,17 @@ export function verifyPhase5Ui(rootDir = process.cwd()): VerifyPhase5Result {
     const text = readSource(rootDir, check.file);
     if (text === undefined || !check.pattern.test(text)) failures.push(`missing ${check.label} in ${check.file}`);
   }
-  for (const file of ["app/layout.tsx", "app/globals.css", ...collectSourceFiles(rootDir, "app"), ...collectSourceFiles(rootDir, "components"), ...collectSourceFiles(rootDir, "lib")]) {
+  const sweepFiles = [...collectSourceFiles(rootDir, "app"), ...collectSourceFiles(rootDir, "components"), ...collectSourceFiles(rootDir, "lib")].filter(f => !f.endsWith(".test.ts") && !f.endsWith(".test.tsx"));
+  for (const file of ["app/layout.tsx", "app/globals.css", ...sweepFiles]) {
     const text = readSource(rootDir, file);
     if (text === undefined) continue;
     for (const pattern of prohibited) if (pattern.test(text)) failures.push(`prohibited Phase 5 scope token ${pattern.source} in ${file}`);
+  }
+  const uiFiles = sweepFiles.filter(f => f.startsWith("app/") || f.startsWith("components/"));
+  for (const file of uiFiles) {
+    const text = readSource(rootDir, file);
+    if (text === undefined) continue;
+    for (const pattern of prohibitedRendered) if (pattern.test(text)) failures.push(`prohibited rendered pattern ${pattern.source} in ${file}`);
   }
   return { ok: failures.length === 0, failures };
 }
