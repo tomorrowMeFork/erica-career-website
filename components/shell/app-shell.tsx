@@ -5,10 +5,9 @@ import { usePathname } from "next/navigation";
 import type { ReactNode } from "react";
 
 const navigationItems = [
-  { label: "홈", href: "/", icon: "⌂", isActive: (pathname: string) => pathname === "/" },
-  { label: "커리어 정보 탐색", href: "/explore", icon: "◌", isActive: (pathname: string) => pathname === "/explore" },
-  { label: "출처 확인", href: "/source/example", icon: "◎", isActive: (pathname: string) => pathname.startsWith("/source/") },
   { label: "커리어 상담", href: "/consultation", icon: "✦", isActive: (pathname: string) => pathname === "/consultation" },
+  { label: "정보 둘러보기", href: "/explore", icon: "◌", isActive: (pathname: string) => pathname === "/explore" },
+  { label: "홈", href: "/", icon: "⌂", isActive: (pathname: string) => pathname === "/" },
 ];
 
 export function AppShell({ children }: { children: ReactNode }) {

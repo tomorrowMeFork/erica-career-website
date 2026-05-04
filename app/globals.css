@@ -245,13 +245,14 @@ a { color: var(--color-primary); text-decoration-color: color-mix(in srgb, var(-
 .shell-mobile-nav__link[aria-current="page"] { background: var(--color-surface-card); color: var(--color-ink); }
 
 .shell-mobile-nav {
+  --shell-mobile-nav-count: 3;
   position: fixed;
   right: var(--space-4);
   bottom: max(var(--space-3), env(safe-area-inset-bottom));
   left: var(--space-4);
   z-index: 40;
   display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
+  grid-template-columns: repeat(var(--shell-mobile-nav-count), minmax(0, 1fr));
   gap: var(--space-1);
   border: 1px solid var(--color-hairline);
   border-radius: var(--radius-xl);
