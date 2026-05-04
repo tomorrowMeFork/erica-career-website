@@ -3,10 +3,10 @@ gsd_state_version: 1.0
 milestone: v1.1
 milestone_name: UI Redesign
 status: planning
-last_updated: "2026-05-04T03:33:42.310Z"
+last_updated: "2026-05-04T00:00:00.000Z"
 last_activity: 2026-05-04
 progress:
-  total_phases: 0
+  total_phases: 5
   completed_phases: 0
   total_plans: 0
   completed_plans: 0
@@ -17,21 +17,22 @@ progress:
 
 **Initialized:** 2026-05-03  
 **Initialization mode:** Manual GSD initialization because `gsd-sdk` was unavailable in the shell.  
-**Current phase:** None — defining v1.1 requirements
+**Current phase:** Phase 7 — UI Information Architecture and Design Contract
 
 ## Project Reference
 
 See: `.planning/PROJECT.md` (updated 2026-05-04 for v1.1 UI Redesign)
 
 **Core value:** Students can ask career and recruitment questions in Korean and receive current, source-cited, personally relevant answers from Hanyang ERICA employment information.  
-**Current focus:** v1.1 UI Redesign requirements and roadmap
+**Current focus:** v1.1 UI Redesign roadmap created; next action is Phase 7 planning
 
 ## Progress
 
 - **Previous milestone:** v1.0 shipped 2026-05-04 with archived roadmap, requirements, and audit.
 - **Current milestone:** v1.1 UI Redesign started 2026-05-04.
-- **Current status:** Defining requirements and roadmap.
-- **Phase numbering:** Continue from v1.0; the next active phase starts at Phase 7.
+- **Current status:** Roadmap created for v1.1; Phase 7 is ready for planning.
+- **Phase numbering:** Continued from v1.0; active phases are Phase 7 through Phase 11.
+- **Requirement coverage:** 21/21 active v1.1 requirements mapped exactly once.
 - **Phase history:** `.planning/phases/` remains intentionally preserved for continuity and reference; do not clear old phase directories without explicit approval.
 
 ## Artifacts
@@ -126,16 +127,20 @@ See: `.planning/PROJECT.md` (updated 2026-05-04 for v1.1 UI Redesign)
 - Korean-first chat and citation reliability are more important than advanced resume/interview tooling in v1.
 - Personalization should start with explicit user preferences and data minimization.
 - `DESIGN.md` is the active v1.1 design standard, not another brand style to copy.
+- v1.1 roadmap starts at Phase 7 because v1.0 completed Phases 1-6 and is archived.
+- v1.1 is a UI information-architecture redesign for source-grounded ERICA career-information consultation software, not a job-board or recommendation-system upgrade.
+- Confirmed v1.1 page structure is home, career information explore, information detail/source verification, and career consultation.
+- v1.1 excludes semantic retrieval, ingestion expansion, matching/ranking algorithm changes, saved jobs, reminders, application tracking, SSO, official endorsement claims, and private/authenticated crawling.
 
 ## Next Action
 
-Define and approve v1.1 UI Redesign requirements, then create the Phase 7+ roadmap.
+Plan Phase 7 with `/gsd-plan-phase 7`, focused on UI information architecture and the design contract for the v1.1 four-page flow.
 
 Resume file: None
 
 ## Current Position
 
-Phase: Not started (defining requirements)
+Phase: 7 — UI Information Architecture and Design Contract
 Plan: —
-Status: Defining requirements
-Last activity: 2026-05-04 — Milestone v1.1 started
+Status: Roadmap created; ready for Phase 7 planning
+Last activity: 2026-05-04 — v1.1 roadmap created and requirements traceability updated

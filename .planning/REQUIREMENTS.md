@@ -76,37 +76,38 @@ Explicitly excluded for v1.1. Documented to prevent scope creep.
 
 ## Traceability
 
-Which phases cover which requirements. Updated during roadmap creation.
+Which phases cover which requirements. Updated during v1.1 roadmap creation.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| IA-01 | TBD | Pending |
-| IA-02 | TBD | Pending |
-| IA-03 | TBD | Pending |
-| INFO-01 | TBD | Pending |
-| INFO-02 | TBD | Pending |
-| INFO-03 | TBD | Pending |
-| INFO-04 | TBD | Pending |
-| SRCV-01 | TBD | Pending |
-| SRCV-02 | TBD | Pending |
-| SRCV-03 | TBD | Pending |
-| CHAT-01 | TBD | Pending |
-| CHAT-02 | TBD | Pending |
-| CHAT-03 | TBD | Pending |
-| CHAT-04 | TBD | Pending |
-| UXR-01 | TBD | Pending |
-| UXR-02 | TBD | Pending |
-| UXR-03 | TBD | Pending |
-| UXR-04 | TBD | Pending |
-| GUARD-01 | TBD | Pending |
-| GUARD-02 | TBD | Pending |
-| GUARD-03 | TBD | Pending |
+| IA-01 | Phase 7 | Pending |
+| IA-02 | Phase 8 | Pending |
+| IA-03 | Phase 7 | Pending |
+| INFO-01 | Phase 9 | Pending |
+| INFO-02 | Phase 9 | Pending |
+| INFO-03 | Phase 9 | Pending |
+| INFO-04 | Phase 9 | Pending |
+| SRCV-01 | Phase 9 | Pending |
+| SRCV-02 | Phase 9 | Pending |
+| SRCV-03 | Phase 9 | Pending |
+| CHAT-01 | Phase 10 | Pending |
+| CHAT-02 | Phase 10 | Pending |
+| CHAT-03 | Phase 10 | Pending |
+| CHAT-04 | Phase 10 | Pending |
+| UXR-01 | Phase 7 | Pending |
+| UXR-02 | Phase 8 | Pending |
+| UXR-03 | Phase 7 | Pending |
+| UXR-04 | Phase 11 | Pending |
+| GUARD-01 | Phase 11 | Pending |
+| GUARD-02 | Phase 11 | Pending |
+| GUARD-03 | Phase 11 | Pending |
 
 **Coverage:**
 - v1.1 requirements: 21 total
-- Mapped to phases: 0
-- Unmapped: 21 (pending roadmap)
+- Mapped to phases: 21
+- Unmapped: 0
+- Duplicate mappings: 0
 
 ---
 *Requirements defined: 2026-05-04*  
-*Last updated: 2026-05-04 after v1.1 requirements definition*
+*Last updated: 2026-05-04 after v1.1 roadmap creation*
