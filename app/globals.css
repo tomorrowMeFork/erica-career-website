@@ -359,8 +359,9 @@ a { color: var(--color-primary); text-decoration-color: color-mix(in srgb, var(-
 .empty-chat p { max-width: 54ch; margin: 0; color: var(--color-body); }
 .empty-chat__examples { display: grid; gap: var(--space-2); width: 100%; max-width: 62ch; margin-top: var(--space-2); }
 .empty-chat__examples h3 { margin: 0; color: var(--color-ink); font-size: 0.98rem; font-weight: 500; }
-.empty-chat__examples ul { display: grid; gap: var(--space-2); margin: 0; padding: 0; list-style: none; }
-.empty-chat__examples li { border: 1px solid var(--color-hairline); border-radius: var(--radius-lg); background: var(--color-surface-card); padding: var(--space-3) var(--space-4); color: var(--color-body); }
+.empty-chat__examples ul { display: flex; flex-wrap: wrap; gap: var(--space-2); margin: 0; padding: 0; list-style: none; }
+.empty-chat__examples li { display: flex; }
+.question-chip { border-radius: var(--radius-pill); background: var(--color-surface-card); color: var(--color-body-strong); white-space: normal; }
 .empty-chat__limits { border-left: 3px solid var(--color-accent-amber); padding-left: var(--space-3); font-weight: 500; }
 
 .sticky-composer { position: sticky; bottom: max(var(--space-3), env(safe-area-inset-bottom)); z-index: 10; }
@@ -504,7 +505,10 @@ a { color: var(--color-primary); text-decoration-color: color-mix(in srgb, var(-
 
 @media (min-width: 1024px) {
   .app-shell { padding: var(--space-6) var(--space-7); }
-  .consultation-layout { grid-template-columns: var(--desktop-left-panel) minmax(0, 1fr) var(--desktop-source-rail); align-items: start; gap: var(--space-5); }
+  .consultation-layout { grid-template-columns: var(--desktop-left-panel) minmax(0, 1fr) var(--desktop-source-rail); grid-template-areas: "preferences chat source"; align-items: start; gap: var(--space-5); }
+  .chat-column { grid-area: chat; }
+  .consultation-preferences { grid-area: preferences; }
+  .consultation-source { grid-area: source; }
   .consultation-preferences { display: grid; gap: var(--space-4); }
   .consultation-source { display: grid; gap: var(--space-4); }
   .chat-column { min-height: calc(100vh - 230px); padding: var(--space-5); }

@@ -5,7 +5,7 @@ export function ChatComposer({ query, onQueryChange, onSubmit, isLoading, maxLen
       <textarea aria-label="질문 입력" value={query} maxLength={maxLength} onChange={(event) => onQueryChange(event.target.value)} onKeyDown={(event) => {
         if ((event.metaKey || event.ctrlKey) && event.key === "Enter" && !disabled) onSubmit();
       }} placeholder="채용 공고, 마감일, 취업 프로그램을 질문해 보세요" />
-      {isLoading ? <p>관련 출처를 확인하고 답변을 준비하고 있어요…</p> : <p>⌘/Ctrl + Enter로 전송 · 답변은 참고 안내이며 공식 출처 확인이 필요합니다.</p>}
+      {isLoading ? <p>관련 출처를 확인하고 답변을 준비하고 있어요…</p> : <p>⌘/Ctrl + Enter로 전송 · 답변은 참고용이며, 중요 내용은 원문에서 확인하세요.</p>}
       <button type="submit" className="pill-control primary-button" disabled={disabled}>질문 보내기</button>
     </form>
   );

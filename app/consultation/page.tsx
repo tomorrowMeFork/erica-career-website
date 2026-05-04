@@ -106,9 +106,8 @@ export default function ConsultationPage() {
     <div className="consultation-page" onKeyDown={(event) => { if (event.key === "Escape") closeSource(); }}>
       <header className="route-hero consultation-hero card-surface">
         <div>
-          <p className="eyebrow">Career Consultation</p>
           <h1>커리어 상담</h1>
-          <p>질문을 입력하면 확인된 ERICA 커리어 정보에 근거해 한국어로 답변합니다.</p>
+          <p>궁금한 점을 물어보세요. ERICA 커리어 정보를 바탕으로 답변드려요.</p>
         </div>
         <div className="shell-actions" aria-label="세션 및 설정">
           <StorageScopeChip storageScope={preferenceState.storage_scope} rankingEnabled={preferenceState.preference_ranking_enabled} />
@@ -116,23 +115,23 @@ export default function ConsultationPage() {
         </div>
       </header>
 
-      <DisclaimerNotice />
-
       <div className="consultation-layout">
-        <aside className="consultation-preferences" aria-label="상담 조건">
-          <PreferencePanel state={preferenceState} sessionKey={sessionKey} onSet={handleSave} onUpdate={handleUpdate} onClear={handleClearPreferences} onRead={handleRead} />
-        </aside>
-
         <section className="chat-column card-surface" aria-label="채팅">
-          <ChatMessageList messages={messages} onOpenCitation={openCitation} />
+          <ChatMessageList messages={messages} onOpenCitation={openCitation} onSelectExample={setQuery} />
           {isLoading ? <div className="card-surface loading-card">관련 출처를 확인하고 답변을 준비하고 있어요…</div> : null}
           <ChatComposer query={query} onQueryChange={setQuery} onSubmit={submitQuestion} isLoading={isLoading} />
         </section>
 
+        <aside className="consultation-preferences" aria-label="상담 조건">
+          <PreferencePanel state={preferenceState} sessionKey={sessionKey} onSet={handleSave} onUpdate={handleUpdate} onClear={handleClearPreferences} onRead={handleRead} />
+        </aside>
+
         <aside className="consultation-source" aria-label="출처 패널">
-          {sourcePanelOpen ? <SourceInspectionRail citations={sourceCitations} selectedCitation={selectedCitation} onSelect={handleSelectCitation} onClose={closeSource} /> : <div className="soft-surface source-placeholder">답변의 인용 번호를 선택하면 출처와 수집 정보를 확인할 수 있어요.</div>}
+          {sourcePanelOpen ? <SourceInspectionRail citations={sourceCitations} selectedCitation={selectedCitation} onSelect={handleSelectCitation} onClose={closeSource} /> : <div className="soft-surface source-placeholder">답변의 인용 번호를 선택하면 참고한 원문 정보를 확인할 수 있어요.</div>}
         </aside>
       </div>
+
+      <DisclaimerNotice />
 
       <MobileSourceSheet open={sourcePanelOpen} citations={sourceCitations} selectedCitation={selectedCitation} opener={sourceOpener} onClose={closeSource} />
     </div>
