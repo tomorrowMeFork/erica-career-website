@@ -46,7 +46,7 @@ The active design standard is `DESIGN.md` as an independent design standard for 
 ## Phases
 
 - [x] **Phase 7: UI Information Architecture and Design Contract** - Establish the v1.1 page model, design interpretation, CTA hierarchy, and consultation-vs-exploration distinction.
-- [ ] **Phase 8: Four-Page Routing and Shared Interaction Shell** - Users can move through the confirmed home, information explore, information detail/source verification, and career consultation pages with a clear shared shell.
+- [x] **Phase 8: Four-Page Routing and Shared Interaction Shell** - Users can move through the confirmed home, information explore, information detail/source verification, and career consultation pages with a clear shared shell.
 - [ ] **Phase 9: Career Information Explore and Source Verification Pages** - Users can browse ERICA career information and inspect source evidence, freshness, deadline status, and AI interpretation limits.
 - [ ] **Phase 10: Career Consultation Page and Evidence Linking** - Users can consult through chat as the primary surface while related information appears only as supporting cited evidence.
 - [ ] **Phase 11: UI QA, Responsive Verification, and Scope Guardrails** - The redesigned UI is verified on mobile/desktop and protected from v1.1 scope creep.
@@ -124,7 +124,7 @@ The active design standard is `DESIGN.md` as an independent design standard for 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 7. UI Information Architecture and Design Contract | 1/1 | Complete | 2026-05-04 |
-| 8. Four-Page Routing and Shared Interaction Shell | 0/1 | Executing | - |
+| 8. Four-Page Routing and Shared Interaction Shell | 1/1 | Complete | 2026-05-04 |
 | 9. Career Information Explore and Source Verification Pages | 0/TBD | Not started | - |
 | 10. Career Consultation Page and Evidence Linking | 0/TBD | Not started | - |
 | 11. UI QA, Responsive Verification, and Scope Guardrails | 0/TBD | Not started | - |
@@ -159,4 +159,4 @@ The active design standard is `DESIGN.md` as an independent design standard for 
 
 ## Next Step
 
-Verify Phase 8 with `/gsd-verify-work 8`, confirming IA-02 and UXR-02 after implementation.
+Plan Phase 9 with `/gsd-plan-phase 9`, using verified four-page shell as the implementation base.
