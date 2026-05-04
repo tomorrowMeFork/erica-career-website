@@ -17,6 +17,30 @@ const sessionReferencesFixture = {
       referenceCount: 1,
       lastQuery: "컴퓨터공학과 현장실습 알려줘",
     },
+    {
+      url: "https://cdp.hanyang.ac.kr/recruit/beta",
+      title: "나노디그리 설명회",
+      sourceLabel: "한양대학교 ERICA 커리어개발센터",
+      postedAt: "2026-04-28",
+      fetchedAt: "2026-05-04",
+      deadlineStatus: "closed",
+      firstReferencedAt: "2026-05-04T08:00:00.000Z",
+      lastReferencedAt: "2026-05-04T10:00:00.000Z",
+      referenceCount: 2,
+      lastQuery: "설명회 알려줘",
+    },
+    {
+      url: "https://ibus.hanyang.ac.kr/recruit/alpha",
+      title: "가나다 채용 상담",
+      sourceLabel: "ERICA 취업게시판",
+      postedAt: null,
+      fetchedAt: "2026-05-04",
+      deadlineStatus: "unknown",
+      firstReferencedAt: "2026-05-04T07:00:00.000Z",
+      lastReferencedAt: "2026-05-04T09:00:00.000Z",
+      referenceCount: 3,
+      lastQuery: "채용 상담 알려줘",
+    },
   ],
 };
 const forbiddenRenderedStrings = ["정보 둘러보기", "정보 더 둘러보기", "홈", "source_id", "chunk_id", "trace_id", "record_id", "수집일", "score", "점수", "상담 기록"];
@@ -98,7 +122,7 @@ test("primary navigation points to consultation, references, and settings only",
 test("primary navigation active state is exact-match only", async ({ page }) => {
   const navs = [page.locator('nav[aria-label="주요 페이지"]'), page.locator('nav[aria-label="모바일 주요 페이지"]')];
 
-  for (const path of ["/", "/source/example", "/explore"]) {
+  for (const path of ["/", "/source/example"]) {
     await page.goto(path);
     for (const nav of navs) {
       await expect(nav.locator('[aria-current="page"]')).toHaveCount(0);
@@ -111,6 +135,58 @@ test("primary navigation active state is exact-match only", async ({ page }) => 
       await expect(nav.locator('[aria-current="page"]')).toHaveAttribute("href", path);
     }
   }
+});
+
+test("references empty state reads sessionStorage only and shows exact guidance", async ({ page }) => {
+  let recommendationApiCalled = false;
+  await page.route("**/api/recommendations**", async (route) => {
+    recommendationApiCalled = true;
+    await route.abort();
+  });
+
+  await page.goto("/references");
+  await expect(page.getByRole("heading", { name: "아직 참고한 정보가 없습니다" })).toBeVisible();
+  await expect(page.getByText("커리어 상담에서 질문하면 이 탭에서 답변에 참고한 출처와 공고를 확인할 수 있어요.")).toBeVisible();
+  await expect(page.getByRole("link", { name: "커리어 상담 시작하기" })).toHaveAttribute("href", "/consultation");
+  await expect(page.getByText("이번 상담에서 답변에 참고된 출처와 공고만 모았어요.")).toHaveCount(0);
+  expect(recommendationApiCalled, "/references must read sessionStorage without calling /api/recommendations").toBe(false);
+});
+
+test("references populated state sorts and renders only session reference card fields", async ({ page }) => {
+  let recommendationApiCalled = false;
+  await page.route("**/api/recommendations**", async (route) => {
+    recommendationApiCalled = true;
+    await route.abort();
+  });
+  await page.context().addInitScript((referencesJson) => {
+    window.sessionStorage.setItem("erica-career-chat:session-references", referencesJson);
+  }, JSON.stringify(sessionReferencesFixture));
+
+  await page.goto("/references");
+  await page.waitForLoadState("networkidle");
+  await expect(page.getByRole("heading", { name: "참고한 정보" })).toBeVisible();
+  await expect(page.getByText("이번 상담에서 답변에 참고된 출처와 공고만 모았어요.")).toBeVisible();
+
+  await expect(page.locator(".reference-card h2")).toHaveText(["나노디그리 설명회", "가나다 채용 상담", "ERICA 현장실습 모집"]);
+  await expect(page.getByText("한양대학교 ERICA 커리어개발센터")).toBeVisible();
+  await expect(page.getByText("ERICA 취업게시판")).toBeVisible();
+  await expect(page.getByLabel("마감 상태: 마감됨")).toBeVisible();
+  await expect(page.getByText("게시일").first()).toBeVisible();
+  await expect(page.getByText("확인일").first()).toBeVisible();
+  await expect(page.getByText("답변에서").first()).toBeVisible();
+  await expect(page.getByText("2회 참고")).toBeVisible();
+  await expect(page.getByRole("link", { name: /원문 열기/u })).toHaveCount(3);
+  await expect(page.getByRole("link", { name: "상담 이어가기" })).toHaveCount(3);
+  await expect(page.getByText(/source_id|chunk_id|trace_id|record_id|점수|score|컴퓨터공학과 현장실습 알려줘|설명회 알려줘|채용 상담 알려줘/u)).toHaveCount(0);
+  expect(recommendationApiCalled, "/references must not fetch /api/recommendations for stored references").toBe(false);
+});
+
+test("explore redirects to references without rendering old browsing UI", async ({ page }) => {
+  await page.goto("/explore");
+  await expect(page).toHaveURL(/\/references$/u);
+  await expect(page.getByRole("heading", { name: "아직 참고한 정보가 없습니다" })).toBeVisible();
+  await expect(page.getByText("정보 둘러보기", { exact: true })).toHaveCount(0);
+  await expect(page.getByText("공고와 프로그램", { exact: true })).toHaveCount(0);
 });
 
 test.describe.skip("references-first redesign contract", () => {
