@@ -1,0 +1,93 @@
+- generic [ref=e1]:
+  - generic [ref=e2]:
+    - banner "서비스 내비게이션" [ref=e3]:
+      - link "ERICA Career Chat 홈으로 이동" [ref=e4] [cursor=pointer]:
+        - /url: /
+        - generic [ref=e5]: E
+        - generic [ref=e6]: ERICA Career Chat
+      - navigation "주요 페이지" [ref=e7]:
+        - link "커리어 상담" [ref=e8] [cursor=pointer]:
+          - /url: /consultation
+        - link "정보 둘러보기" [ref=e9] [cursor=pointer]:
+          - /url: /explore
+        - link "홈" [ref=e10] [cursor=pointer]:
+          - /url: /
+    - main [ref=e11]:
+      - generic [ref=e12]:
+        - generic [ref=e13]:
+          - generic [ref=e14]:
+            - heading "커리어 상담" [level=1] [ref=e15]
+            - paragraph [ref=e16]: 궁금한 점을 물어보세요. ERICA 커리어 정보를 바탕으로 답변드려요.
+          - generic "세션 및 설정" [ref=e17]:
+            - generic [ref=e18]: 저장 안 함
+            - button "설정" [ref=e20] [cursor=pointer]
+        - generic [ref=e21]:
+          - region "채팅" [ref=e22]:
+            - region "대화 기록" [ref=e23]:
+              - article [ref=e24]:
+                - paragraph [ref=e25]: 채용 공고 알려줘
+              - article [ref=e26]:
+                - generic [ref=e27]:
+                  - generic [ref=e28]: 테스트 답변입니다
+                  - button "1번 출처 보기" [ref=e29] [cursor=pointer]: "[1]"
+                - button "근거 보기 (1개)" [active] [ref=e30] [cursor=pointer]
+                - generic [ref=e31]:
+                  - generic [ref=e32]: 출처 기반 답변
+                  - generic [ref=e33]: 공식 출처 확인 필요
+            - generic [ref=e34]:
+              - textbox "질문 입력" [ref=e35]:
+                - /placeholder: 채용 공고, 마감일, 취업 프로그램을 질문해 보세요
+              - paragraph [ref=e36]: ⌘/Ctrl + Enter로 전송 · 답변은 참고용이며, 중요 내용은 원문에서 확인하세요.
+              - button "질문 보내기" [disabled] [ref=e37]
+          - complementary "상담 조건" [ref=e38]:
+            - region "추천 조건" [ref=e39]:
+              - generic [ref=e40]:
+                - heading "입력한 조건" [level=2] [ref=e41]
+                - generic [ref=e42]: 저장 안 함
+              - paragraph [ref=e43]: 전공과 희망 직무를 입력하면 현재 세션 기준으로 추천 순서를 조정할 수 있어요.
+              - generic [ref=e44]:
+                - generic [ref=e45]:
+                  - text: 전공
+                  - textbox "전공" [ref=e46]
+                - generic [ref=e47]:
+                  - text: 희망 직무
+                  - textbox "희망 직무" [ref=e48]
+              - group [ref=e49]:
+                - generic "선택 조건 더보기" [ref=e50] [cursor=pointer]
+                - option "마감 임박 우선"
+                - option "균형" [selected]
+                - option "미정 포함"
+              - generic [ref=e51]:
+                - button "추천 조건 저장" [disabled] [ref=e52]
+                - button "추천 조건 업데이트" [disabled] [ref=e53]
+                - button "추천 조건 지우기" [ref=e54] [cursor=pointer]
+          - complementary "출처 패널" [ref=e55]:
+            - complementary "답변 출처" [ref=e72]:
+              - generic [ref=e73]:
+                - heading "답변 출처" [level=2] [ref=e74]
+                - button "닫기" [ref=e75] [cursor=pointer]
+              - button "근거 보기 · 채용 공고" [ref=e77] [cursor=pointer]
+              - article "채용 공고 출처 카드" [ref=e78]:
+                - generic [ref=e79]: 답변 근거
+                - heading "채용 공고" [level=3] [ref=e80]
+                - generic [ref=e81]:
+                  - paragraph [ref=e82]: "출처: ERICA 취업게시판"
+                  - paragraph [ref=e83]:
+                    - text: "확인일:"
+                    - time [ref=e84]: 2026-05-03
+                  - paragraph [ref=e85]:
+                    - text: "게시일:"
+                    - time [ref=e86]: 2026-05-01
+                  - paragraph [ref=e87]: ibus.hanyang.ac.kr
+                - 'generic "마감 상태: 모집중" [ref=e88]': 모집중
+                - link "채용 공고 원문 보기 새 창으로 열기" [ref=e89] [cursor=pointer]:
+                  - /url: https://ibus.hanyang.ac.kr/jobs/1
+                  - text: 원문 보기
+        - region "안전 안내" [ref=e57]:
+          - paragraph [ref=e58]: 참고용 안내
+          - heading "답변은 취업 정보 확인을 돕는 참고용입니다." [level=2] [ref=e59]
+          - paragraph [ref=e60]: ERICA Career Chat의 답변은 수집된 출처를 바탕으로 한 정보 안내이며, 지원 자격·마감일·신청 방법·장소처럼 중요한 내용은 반드시 각 카드의 공식 출처 페이지에서 확인해 주세요.
+          - paragraph [ref=e61]: 공식 한양대학교 인증 서비스가 아님을 알려드리며, 특정 채용 합격이나 취업 결과를 보장하지 않습니다.
+  - button "Open Next.js Dev Tools" [ref=e67] [cursor=pointer]:
+    - img [ref=e68]
+  - alert [ref=e71]

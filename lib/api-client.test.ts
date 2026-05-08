@@ -11,8 +11,10 @@ describe("browser API helpers", () => {
   afterEach(() => vi.unstubAllGlobals());
 
   it("validates chat responses and returns Korean safe errors", async () => {
-    vi.stubGlobal("fetch", vi.fn().mockResolvedValue(new Response(JSON.stringify({ answer: "답변 [1]", citations: [citation], refusal_tier: "normal_answer", confidence: 0.8, trace_id: "trace" }), { status: 200 })));
-    await expect(sendChatMessage({ query: "채용", top_k: 5 })).resolves.toMatchObject({ ok: true, data: { trace_id: "trace" } });
+    const fetchMock = vi.fn().mockResolvedValue(new Response(JSON.stringify({ answer: "답변 [1]", citations: [citation], refusal_tier: "normal_answer", confidence: 0.8, trace_id: "trace" }), { status: 200 }));
+    vi.stubGlobal("fetch", fetchMock);
+    await expect(sendChatMessage({ query: "채용", top_k: 5, session_key: " session-a " })).resolves.toMatchObject({ ok: true, data: { trace_id: "trace" } });
+    expect(fetchMock).toHaveBeenCalledWith("/api/chat", expect.objectContaining({ body: JSON.stringify({ query: "채용", top_k: 5, session_key: "session-a" }) }));
 
     vi.stubGlobal("fetch", vi.fn().mockResolvedValue(new Response(JSON.stringify({ error: "boom" }), { status: 500 })));
     await expect(sendChatMessage({ query: "채용", top_k: 5 })).resolves.toMatchObject({ ok: false, message: expect.stringContaining("요청을 처리하지 못했어요") });

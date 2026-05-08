@@ -1,0 +1,48 @@
+- generic [ref=e1]:
+  - generic [ref=e2]:
+    - banner "서비스 내비게이션" [ref=e3]:
+      - link "ERICA Career Chat 홈으로 이동" [ref=e4] [cursor=pointer]:
+        - /url: /
+        - generic [ref=e5]: E
+        - generic [ref=e6]: ERICA Career Chat
+    - main [ref=e7]:
+      - generic [ref=e82]:
+        - region "커리어 상담" [ref=e83]:
+          - heading "커리어 상담" [level=1] [ref=e84]
+          - paragraph [ref=e85]: ERICA의 확인된 커리어 정보를 바탕으로 질문에 답해드려요.
+          - paragraph [ref=e86]: 답변에 참고한 공고와 마감 정보도 함께 확인할 수 있습니다.
+          - generic "주요 이동" [ref=e87]:
+            - link "커리어 상담 시작하기" [ref=e88] [cursor=pointer]:
+              - /url: /consultation
+            - link "정보 둘러보기" [ref=e89] [cursor=pointer]:
+              - /url: /explore
+        - region "서비스 방식" [ref=e90]:
+          - article [ref=e91]:
+            - paragraph [ref=e92]: 답변 근거
+            - heading "답변에 참고한 정보와 출처를 함께 보여드려요." [level=2] [ref=e93]
+            - paragraph [ref=e94]: 답변에 활용한 공고와 원문을 함께 확인할 수 있어요.
+          - article [ref=e95]:
+            - paragraph [ref=e96]: 마감 확인
+            - heading "게시일과 마감 상태를 함께 확인하고, 중요한 조건은 원문에서 다시 확인하도록 안내합니다." [level=2] [ref=e97]
+            - paragraph [ref=e98]: 마감일과 모집 조건은 원문 기준으로 다시 확인하도록 안내합니다.
+        - region "안전 안내" [ref=e99]:
+          - paragraph [ref=e100]: 참고용 안내
+          - heading "답변은 취업 정보 확인을 돕는 참고용입니다." [level=2] [ref=e101]
+          - paragraph [ref=e102]: ERICA Career Chat의 답변은 수집된 출처를 바탕으로 한 정보 안내이며, 지원 자격·마감일·신청 방법·장소처럼 중요한 내용은 반드시 각 카드의 공식 출처 페이지에서 확인해 주세요.
+          - paragraph [ref=e103]: 공식 한양대학교 인증 서비스가 아님을 알려드리며, 특정 채용 합격이나 취업 결과를 보장하지 않습니다.
+    - navigation "모바일 주요 페이지" [ref=e62]:
+      - link "커리어 상담" [ref=e63] [cursor=pointer]:
+        - /url: /consultation
+        - generic [ref=e64]: ✦
+        - generic [ref=e65]: 커리어 상담
+      - link "정보 둘러보기" [ref=e66] [cursor=pointer]:
+        - /url: /explore
+        - generic [ref=e67]: ◌
+        - generic [ref=e68]: 정보 둘러보기
+      - link "홈" [active] [ref=e69] [cursor=pointer]:
+        - /url: /
+        - generic [ref=e70]: ⌂
+        - generic [ref=e71]: 홈
+  - button "Open Next.js Dev Tools" [ref=e77] [cursor=pointer]:
+    - img [ref=e78]
+  - alert [ref=e81]

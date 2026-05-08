@@ -35,13 +35,6 @@ export function StudentDashboard() {
   const [activeFilter, setActiveFilter] = useState<ListingFilter>("전체");
   const [activePanel, setActivePanel] = useState<"chat" | "listings" | "preferences">("chat");
 
-  useEffect(() => {
-    const key = getOrCreateSessionKey();
-    setSessionKey(key);
-    void readPreferences(key).then((result) => { if (result.ok) setPreferenceState(result.data); });
-    void refreshRecommendations(key);
-  }, []);
-
   const refreshRecommendations = useCallback(async (key: string, profile?: PreferenceProfile, requestQuery?: string) => {
     const result = await fetchRecommendations({ session_key: key, ...(profile !== undefined ? { profile } : {}), ...(requestQuery !== undefined ? { query: requestQuery } : {}), limit: 5 });
     if (result.ok) {
@@ -52,13 +45,20 @@ export function StudentDashboard() {
     return [];
   }, []);
 
+  useEffect(() => {
+    const key = getOrCreateSessionKey();
+    setSessionKey(key);
+    void readPreferences(key).then((result) => { if (result.ok) setPreferenceState(result.data); });
+    void refreshRecommendations(key);
+  }, [refreshRecommendations]);
+
   const submitQuestion = useCallback(async () => {
     const trimmed = query.trim();
     if (trimmed.length === 0 || isLoading) return;
     setIsLoading(true);
     setMessages((current) => [...current, { id: `user-${Date.now()}`, role: "user", query: trimmed }]);
     setQuery("");
-    const chatResult = await sendChatMessage({ query: trimmed, top_k: 5 });
+    const chatResult = await sendChatMessage({ query: trimmed, top_k: 5, session_key: sessionKey });
     if (chatResult.ok) {
       const answerId = `assistant-${Date.now()}`;
       const attached = await refreshRecommendations(sessionKey, undefined, trimmed);
@@ -123,7 +123,7 @@ export function StudentDashboard() {
             <h1>출처와 마감일을 함께 확인하는 커리어 상담</h1>
             <p>채용 공고, 마감일, 취업 프로그램을 한국어로 질문하면 확인된 출처와 최신성 정보를 함께 보여드려요.</p>
           </div>
-          <div className="dashboard-actions" aria-label="세션 및 설정">
+          <div className="dashboard-actions">
             <StorageScopeChip storageScope={preferenceState.storage_scope} rankingEnabled={preferenceState.preference_ranking_enabled} />
             <SettingsMenu onClearPreferences={() => void handleClearPreferences()} onClearChatHistory={clearChatHistory} />
           </div>

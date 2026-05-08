@@ -134,6 +134,77 @@ describe("ChatService", () => {
     expect(audit[0]?.prompt_snapshot).toBeUndefined();
   });
 
+  it("resolves active session preferences and passes only minimized fields into the prompt", async () => {
+    const provider = createProvider(normalProviderContent("trace-preference"));
+    const preferenceService = {
+      readState: vi.fn(async () => ({
+        preference_ranking_enabled: true,
+        profile: {
+          major: "컴퓨터학부",
+          target_role: "백엔드 개발자",
+          industry: ["IT"],
+          region: ["서울"],
+          employment_type: ["인턴"],
+          deadline_sensitivity: "balanced" as const,
+          session_only_optional_text: "자기소개서 원문과 민감한 메모",
+        },
+        storage_scope: "session" as const,
+      })),
+    };
+    const service = new ChatService({
+      retriever: createRetriever([retrieved()]),
+      provider,
+      auditLogger: vi.fn(async () => undefined),
+      preferenceService,
+      traceIdGenerator: () => "trace-preference",
+    });
+
+    await service.ask({ query: "내 조건에 맞는 현장실습 알려줘", top_k: 5, session_key: " session-a " });
+
+    expect(preferenceService.readState).toHaveBeenCalledWith("session-a");
+    expect(provider.complete).toHaveBeenCalledTimes(1);
+    const request = provider.complete.mock.calls[0]?.[0] as ChatModelRequest | undefined;
+    const promptText = request?.messages.map((message) => message.content).join("\n") ?? "";
+    expect(promptText).toContain("major: 컴퓨터학부");
+    expect(promptText).toContain("target_role: 백엔드 개발자");
+    expect(promptText).not.toContain("session-a");
+    expect(promptText).not.toContain("storage_scope");
+    expect(promptText).not.toContain("session_only_optional_text");
+    expect(promptText).not.toContain("자기소개서 원문과 민감한 메모");
+    expect(promptText).not.toContain("industry");
+    expect(promptText).not.toContain("region");
+    expect(promptText).not.toContain("employment_type");
+    expect(promptText).not.toContain("인턴");
+  });
+
+  it("omits preference prompt context when session preferences are cleared", async () => {
+    const provider = createProvider(normalProviderContent("trace-cleared-preference"));
+    const preferenceService = {
+      readState: vi.fn(async () => ({
+        preference_ranking_enabled: false,
+        profile: null,
+        storage_scope: "none" as const,
+      })),
+    };
+    const service = new ChatService({
+      retriever: createRetriever([retrieved()]),
+      provider,
+      auditLogger: vi.fn(async () => undefined),
+      preferenceService,
+      traceIdGenerator: () => "trace-cleared-preference",
+    });
+
+    await service.ask({ query: "내 조건에 맞는 현장실습 알려줘", session_key: "session-cleared" });
+
+    expect(preferenceService.readState).toHaveBeenCalledWith("session-cleared");
+    const request = provider.complete.mock.calls[0]?.[0] as ChatModelRequest | undefined;
+    const promptText = request?.messages.map((message) => message.content).join("\n") ?? "";
+    expect(promptText).not.toContain("explicit_preference_context");
+    expect(promptText).not.toContain("major:");
+    expect(promptText).not.toContain("target_role:");
+    expect(promptText).not.toContain("session-cleared");
+  });
+
   it("hard-refuses no-evidence questions and provider not called", async () => {
     const auditPath = join(createTempDir(), "audit.jsonl");
     const provider = createProvider(normalProviderContent("unused"));

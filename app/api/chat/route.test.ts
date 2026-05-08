@@ -22,10 +22,10 @@ describe("/api/chat", () => {
     const ask = vi.fn().mockResolvedValue({ answer: "채용 공고입니다 [1]", citations: [citation], refusal_tier: "normal_answer", confidence: 0.8, trace_id: "trace-chat" });
     overrideServicesForTest({ chat: { ask } });
 
-    const response = await POST(new Request("https://app.test/api/chat", { method: "POST", body: JSON.stringify({ query: "채용 공고 알려줘", top_k: 5 }) }));
+    const response = await POST(new Request("https://app.test/api/chat", { method: "POST", body: JSON.stringify({ query: "채용 공고 알려줘", top_k: 5, session_key: " session-a " }) }));
     expect(response.status).toBe(200);
     await expect(response.json()).resolves.toMatchObject({ trace_id: "trace-chat", citations: [citation] });
-    expect(ask).toHaveBeenCalledWith({ query: "채용 공고 알려줘", top_k: 5 });
+    expect(ask).toHaveBeenCalledWith({ query: "채용 공고 알려줘", top_k: 5, session_key: "session-a" });
   });
 
   it("converts setup errors to safe Korean 503 JSON", async () => {

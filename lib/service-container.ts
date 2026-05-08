@@ -28,6 +28,7 @@ export function getChatService(): ChatLike {
   chatService ??= new ChatService({
     retriever: new Bm25Retriever(loadKnowledgeBaseChunks()),
     provider: createOpenAiCompatibleChatProviderFromEnv(process.env),
+    preferenceService: getPreferenceService(),
     auditLogPath: "data/audit/phase5-chat.jsonl",
   });
   return chatService;

@@ -32,6 +32,7 @@ describe("chat dashboard components", () => {
     expect(screen.getAllByText("백엔드 인턴").length).toBeGreaterThan(0);
     expect(screen.queryByText(/trace-chat|trace-rec|trace_id|source_id|chunk_id|record_id|수집일|점수|personalized_match|전공 조건과 연결됩니다/u)).toBeNull();
     await waitFor(() => expect(fetch).toHaveBeenCalledWith("/api/chat", expect.objectContaining({ body: expect.stringContaining('"top_k":5') })));
+    await waitFor(() => expect(fetch).toHaveBeenCalledWith("/api/chat", expect.objectContaining({ body: expect.stringContaining('"session_key":"erica-career-chat:') })));
   });
 
   it("renders refusal notices and attached evidence without destructive styling", () => {
@@ -41,6 +42,42 @@ describe("chat dashboard components", () => {
     expect(screen.getByText("마감 상태:")).toBeTruthy();
     expect(screen.getByRole("link", { name: "백엔드 인턴 원문 보기 새 창으로 열기" })).toBeTruthy();
     expect(screen.queryByText("전공 조건과 연결됩니다 [1]")).toBeNull();
+  });
+
+  it("renders markdown answer content without exposing raw markers and keeps inline citations interactive", () => {
+    const onOpenCitation = vi.fn();
+    render(<AssistantAnswer response={{ answer: "### 핵심 요약\n\n- **백엔드 인턴** 지원 가능 [1]\n- *마감일*을 원문에서 확인하세요", citations: [citation], refusal_tier: "normal_answer", confidence: 0.8, trace_id: "trace" }} onOpenCitation={onOpenCitation} />);
+
+    const answerArticle = screen.getByRole("heading", { name: "핵심 요약" }).closest("article");
+    expect(answerArticle).toBeTruthy();
+    expect(within(answerArticle as HTMLElement).getByRole("list")).toBeTruthy();
+    expect(within(answerArticle as HTMLElement).getByText("백엔드 인턴")).toBeTruthy();
+    expect(answerArticle?.textContent).not.toContain("###");
+    expect(answerArticle?.textContent).not.toContain("**");
+    expect(answerArticle?.textContent).not.toContain("*마감일*");
+
+    fireEvent.click(within(answerArticle as HTMLElement).getByRole("button", { name: "1번 출처 보기" }));
+    expect(onOpenCitation).toHaveBeenCalledWith(citation, [citation], expect.any(HTMLButtonElement));
+  });
+
+  it("does not render or execute unsafe HTML from markdown answers", () => {
+    const unsafeWindow = window as typeof window & { __markdownExecuted?: boolean };
+    unsafeWindow.__markdownExecuted = false;
+    render(<AssistantAnswer response={{ answer: "안내 <script>window.__markdownExecuted = true</script><img alt=\"unsafe\" src=\"x\" />\n\n**마크다운 강조**", citations: [], refusal_tier: "normal_answer", confidence: 0.8, trace_id: "trace" }} onOpenCitation={vi.fn()} />);
+
+    expect(screen.getByText("마크다운 강조")).toBeTruthy();
+    expect(document.querySelector(".assistant-answer__body script")).toBeNull();
+    expect(document.querySelector(".assistant-answer__body img")).toBeNull();
+    expect(screen.queryByText(/window.__markdownExecuted/u)).toBeNull();
+    expect(unsafeWindow.__markdownExecuted).toBe(false);
+  });
+
+  it("does not render markdown image nodes while rendering normal markdown text", () => {
+    render(<AssistantAnswer response={{ answer: "![unsafe](https://example.edu/image.png)\n\n**정상 안내**는 계속 보여야 합니다.", citations: [], refusal_tier: "normal_answer", confidence: 0.8, trace_id: "trace" }} onOpenCitation={vi.fn()} />);
+
+    expect(screen.getByText("정상 안내")).toBeTruthy();
+    expect(screen.queryByRole("img", { name: "unsafe" })).toBeNull();
+    expect(document.querySelector(".assistant-answer__body img")).toBeNull();
   });
 
   it("scopes repeated citation IDs to the assistant message that opened them", () => {

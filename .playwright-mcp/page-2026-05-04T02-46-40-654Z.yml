@@ -1,0 +1,245 @@
+- generic [active] [ref=e1]:
+  - main [ref=e2]:
+    - generic [ref=e3]:
+      - generic [ref=e4]:
+        - generic [ref=e5]:
+          - paragraph [ref=e6]: ERICA 커리어 데스크
+          - heading "출처와 마감일을 함께 확인하는 커리어 상담" [level=1] [ref=e7]
+          - paragraph [ref=e8]: 채용 공고, 마감일, 취업 프로그램을 한국어로 질문하면 확인된 출처와 최신성 정보를 함께 보여드려요.
+        - generic "세션 및 설정" [ref=e9]:
+          - generic [ref=e10]: 저장 안 함
+          - button "설정" [ref=e12] [cursor=pointer]
+      - region "안전 안내" [ref=e13]:
+        - paragraph [ref=e14]: 참고용 안내
+        - heading "답변은 취업 정보 확인을 돕는 참고용입니다." [level=2] [ref=e15]
+        - paragraph [ref=e16]: ERICA Career Chat의 답변과 추천은 수집된 출처를 바탕으로 한 정보 안내이며, 지원 자격·마감일·신청 방법·장소처럼 중요한 내용은 반드시 각 카드의 공식 출처 페이지에서 확인해 주세요.
+        - paragraph [ref=e17]: 공식 한양대학교 인증 서비스가 아님을 알려드리며, 특정 채용 합격이나 취업 결과를 보장하지 않습니다.
+      - generic [ref=e18]:
+        - complementary [ref=e19]:
+          - region "추천 조건" [ref=e21]:
+            - generic [ref=e22]:
+              - heading "입력한 조건" [level=2] [ref=e23]
+              - generic [ref=e24]: 저장 안 함
+            - paragraph [ref=e25]: 전공과 희망 직무를 입력하면 현재 세션 기준으로 추천 순서를 조정할 수 있어요.
+            - generic [ref=e26]:
+              - generic [ref=e27]:
+                - text: 전공
+                - textbox "전공" [ref=e28]
+              - generic [ref=e29]:
+                - text: 희망 직무
+                - textbox "희망 직무" [ref=e30]
+            - group [ref=e31]:
+              - generic "선택 조건 더보기" [ref=e32] [cursor=pointer]
+              - option "마감 임박 우선"
+              - option "균형" [selected]
+              - option "미정 포함"
+            - generic [ref=e33]:
+              - button "추천 조건 저장" [disabled] [ref=e34]
+              - button "추천 조건 업데이트" [disabled] [ref=e35]
+              - button "추천 조건 지우기" [ref=e36] [cursor=pointer]
+          - region "추천 및 최신 공고" [ref=e38]:
+            - generic [ref=e39]:
+              - heading "추천 공고" [level=2] [ref=e40]
+              - generic [ref=e41]: 기본 추천
+            - group "공고 필터" [ref=e42]:
+              - button "전체" [pressed] [ref=e43] [cursor=pointer]
+              - button "추천" [ref=e44] [cursor=pointer]
+              - button "최신" [ref=e45] [cursor=pointer]
+              - button "마감 임박" [ref=e46] [cursor=pointer]
+              - button "출처" [ref=e47] [cursor=pointer]
+              - button "상태" [ref=e48] [cursor=pointer]
+            - paragraph [ref=e49]: 저장 안 함
+            - button "새로고침" [ref=e50] [cursor=pointer]
+            - article [ref=e51]:
+              - generic [ref=e52]:
+                - heading "[채용시까지] ERICA 경상대학 현장실습 참여기업 모집" [level=3] [ref=e146]
+                - 'generic "마감 상태: 모집중" [ref=e147]': 모집중
+              - generic [ref=e55]:
+                - paragraph [ref=e56]: ERICA 경상대학 취업정보 · source_id ibus-employment-board
+                - paragraph [ref=e57]: "게시일: 2026-05-01 · 수집일: 2026-05-03"
+              - paragraph [ref=e58]:
+                - text: 점수 0.50
+                - generic [ref=e59]: 일반 안내
+              - list [ref=e60]:
+                - listitem [ref=e61]: "- 일반 안내: 현재 공고/프로그램 정보와 출처 메타데이터를 기준으로 확인할 수 있는 항목입니다 [1]"
+                - listitem [ref=e148]: "- 마감/최신성: 현재 마감 상태가 진행 중인 정보로 표시되어 우선 확인할 가치가 있습니다 [1]"
+              - paragraph [ref=e63]: "출처 맥락 [1] 공식 취업정보 상세: [채용시까지] ERICA 경상대학 현장실습 참여기업 모집"
+              - link "[채용시까지] ERICA 경상대학 현장실습 참여기업 모집 공식 페이지 새 창으로 열기" [ref=e149] [cursor=pointer]:
+                - /url: https://ibus.hanyang.ac.kr/front/recruit/r-1
+                - text: 공식 페이지 열기
+            - article [ref=e65]:
+              - generic [ref=e66]:
+                - heading "CDP 학생 매뉴얼 PDF 1쪽" [level=3] [ref=e150]
+                - 'generic "마감 상태: 마감일 확인 필요" [ref=e68]': 마감일 확인 필요
+              - generic [ref=e69]:
+                - paragraph [ref=e70]: CDP 학생 매뉴얼 · source_id cdp-student-guide-pdf
+                - paragraph [ref=e71]: "게시일: 확인 필요 · 수집일: 2026-05-03"
+              - paragraph [ref=e72]:
+                - text: 점수 0.17
+                - generic [ref=e73]: 일반 안내
+              - list [ref=e74]:
+                - listitem [ref=e75]: "- 일반 안내: 현재 공고/프로그램 정보와 출처 메타데이터를 기준으로 확인할 수 있는 항목입니다 [2]"
+                - listitem [ref=e76]: "- 마감/최신성: 마감 상태가 불명확하므로 원문과 게시·수집일을 함께 확인하세요 [2]"
+              - paragraph [ref=e77]: 출처 맥락 [2] CDP 학생 매뉴얼 PDF 1쪽
+              - link "CDP 학생 매뉴얼 PDF 1쪽 공식 페이지 새 창으로 열기" [ref=e151] [cursor=pointer]:
+                - /url: https://cdp.hanyang.ac.kr/office/%EB%A7%A4%EB%89%B4%EC%96%BC_%ED%95%99%EC%83%9D.pdf
+                - text: 공식 페이지 열기
+            - article [ref=e79]:
+              - generic [ref=e80]:
+                - heading "한양대학교 HY-CDP" [level=3] [ref=e81]
+                - 'generic "마감 상태: 마감일 확인 필요" [ref=e82]': 마감일 확인 필요
+              - generic [ref=e83]:
+                - paragraph [ref=e84]: CDP root discovery · source_id cdp-root
+                - paragraph [ref=e85]: "게시일: 확인 필요 · 수집일: 2026-05-03"
+              - paragraph [ref=e86]:
+                - text: 점수 0.16
+                - generic [ref=e87]: 일반 안내
+              - list [ref=e88]:
+                - listitem [ref=e89]: "- 일반 안내: 현재 공고/프로그램 정보와 출처 메타데이터를 기준으로 확인할 수 있는 항목입니다 [3]"
+                - listitem [ref=e90]: "- 마감/최신성: 마감 상태가 불명확하므로 원문과 게시·수집일을 함께 확인하세요 [3]"
+              - paragraph [ref=e91]: "출처 맥락 [3] 공식 출처: 한양대 커리어 개발센터"
+              - link "한양대학교 HY-CDP 공식 페이지 새 창으로 열기" [ref=e92] [cursor=pointer]:
+                - /url: https://cdp.hanyang.ac.kr/Main/default.aspx
+                - text: 공식 페이지 열기
+            - article [ref=e93]:
+              - generic [ref=e94]:
+                - heading "한양대학교 HY-CDP" [level=3] [ref=e95]
+                - 'generic "마감 상태: 마감일 확인 필요" [ref=e96]': 마감일 확인 필요
+              - generic [ref=e97]:
+                - paragraph [ref=e98]: CDP root discovery · source_id cdp-root
+                - paragraph [ref=e99]: "게시일: 확인 필요 · 수집일: 2026-05-03"
+              - paragraph [ref=e100]:
+                - text: 점수 0.15
+                - generic [ref=e101]: 일반 안내
+              - list [ref=e102]:
+                - listitem [ref=e103]: "- 일반 안내: 현재 공고/프로그램 정보와 출처 메타데이터를 기준으로 확인할 수 있는 항목입니다 [4]"
+                - listitem [ref=e104]: "- 마감/최신성: 마감 상태가 불명확하므로 원문과 게시·수집일을 함께 확인하세요 [4]"
+              - paragraph [ref=e105]: "출처 맥락 [4] 공식 출처: 한양대 커리어 개발센터"
+              - link "한양대학교 HY-CDP 공식 페이지 새 창으로 열기" [ref=e106] [cursor=pointer]:
+                - /url: https://cdp.hanyang.ac.kr/Main/default.aspx
+                - text: 공식 페이지 열기
+            - article [ref=e107]:
+              - generic [ref=e108]:
+                - heading "한양대학교 HY-CDP" [level=3] [ref=e152]
+                - 'generic "마감 상태: 마감일 확인 필요" [ref=e153]': 마감일 확인 필요
+              - generic [ref=e111]:
+                - paragraph [ref=e112]: CDP root discovery · source_id cdp-root
+                - paragraph [ref=e113]: "게시일: 확인 필요 · 수집일: 2026-05-03"
+              - paragraph [ref=e114]:
+                - text: 점수 0.15
+                - generic [ref=e115]: 일반 안내
+              - list [ref=e116]:
+                - listitem [ref=e117]: "- 일반 안내: 현재 공고/프로그램 정보와 출처 메타데이터를 기준으로 확인할 수 있는 항목입니다 [5]"
+                - listitem [ref=e154]: "- 마감/최신성: 마감 상태가 불명확하므로 원문과 게시·수집일을 함께 확인하세요 [5]"
+              - paragraph [ref=e119]: "출처 맥락 [5] 공식 출처: 한양대 커리어 개발센터"
+              - link "한양대학교 HY-CDP 공식 페이지 새 창으로 열기" [ref=e155] [cursor=pointer]:
+                - /url: https://cdp.hanyang.ac.kr/Main/default.aspx
+                - text: 공식 페이지 열기
+        - region "채팅" [ref=e121]:
+          - region "대화 기록" [ref=e142]:
+            - article [ref=e143]:
+              - paragraph [ref=e144]: ERICA 현장실습 모집 공고 알려줘
+            - article [ref=e156]:
+              - generic [ref=e157]:
+                - generic [ref=e158]:
+                  - generic [ref=e159]: 현재 수집된 자료 기준으로, ERICA 관련 현장실습 모집 공고는 다음과 같습니다.
+                  - text: "**ERICA 경상대학 현장실습 참여기업 모집**"
+                - button "1번 출처 보기" [ref=e160] [cursor=pointer]: "[1]"
+                - generic [ref=e161]: "- **지원 대상:** 경상대학 재학생 및 졸업예정자"
+                - button "1번 출처 보기" [ref=e162] [cursor=pointer]: "[1]"
+                - generic [ref=e163]: "- **마감:** 채용시까지"
+                - button "1번 출처 보기" [ref=e164] [cursor=pointer]: "[1]"
+                - generic [ref=e165]: "- **문의:** 경상대학 행정팀"
+                - button "1번 출처 보기" [ref=e166] [cursor=pointer]: "[1]"
+                - generic [ref=e167]: "- **공식 상세 URL:** https://ibus.hanyang.ac.kr/front/recruit/r-1/view?id=6468"
+                - button "1번 출처 보기" [ref=e168] [cursor=pointer]: "[1]"
+                - generic [ref=e169]:
+                  - generic [ref=e170]: 위 공고는 경상대학 소속 학생을 대상으로 하는 현장실습 참여기업 모집입니다. 타 단과대학 대상의 현장실습 공고나 신청 방법, 장소 등 세부 절차에 대해서는 제공된 자료에서 확인되지 않습니다.
+                  - text: 추가적인 현장실습 및 인턴 관련 채용 정보는 **HY-CDP(한양대학교 커리어개발포털)**의 채용정보 > 인턴채용 메뉴에서 확인할 수 있으며
+                - button "3번 출처 보기" [ref=e171] [cursor=pointer]: "[3]"
+                - generic [ref=e172]: ", ERICA 캠퍼스 커리어개발팀(학술정보관 1층, 전화 031-400-4315~7)으로 문의하실 수도 있습니다"
+                - button "4번 출처 보기" [ref=e173] [cursor=pointer]: "[4]"
+                - generic [ref=e174]:
+                  - generic [ref=e175]: .
+                  - text: 모집 기간, 신청 방법, 대상, 장소 등 최신 정보는 반드시 각 공식 페이지에서 직접 확인해 주시기 바랍니다.
+              - button "5개 출처 사용" [ref=e176] [cursor=pointer]
+              - generic [ref=e177]:
+                - generic [ref=e178]: 신뢰도 100%
+                - generic [ref=e179]: 참고용 안내
+              - group [ref=e180]:
+                - generic "응답 추적 ID 보기" [ref=e181] [cursor=pointer]
+              - region "관련 추천 공고" [ref=e182]:
+                - article [ref=e183]:
+                  - generic [ref=e184]:
+                    - heading "[채용시까지] ERICA 경상대학 현장실습 참여기업 모집" [level=4] [ref=e185]
+                    - 'generic "마감 상태: 모집중" [ref=e186]': 모집중
+                  - generic [ref=e187]: 일반 안내 · 점수 0.50
+                  - paragraph [ref=e188]: source_id ibus-employment-board · 게시일 2026-05-01 · 수집일 2026-05-03
+                  - list [ref=e189]:
+                    - listitem [ref=e190]: "- 일반 안내: 현재 공고/프로그램 정보와 출처 메타데이터를 기준으로 확인할 수 있는 항목입니다 [1]"
+                    - listitem [ref=e191]: "- 마감/최신성: 현재 마감 상태가 진행 중인 정보로 표시되어 우선 확인할 가치가 있습니다 [1]"
+                  - paragraph [ref=e192]: "인용 맥락 [1] 공식 취업정보 상세: [채용시까지] ERICA 경상대학 현장실습 참여기업 모집"
+                  - link "[채용시까지] ERICA 경상대학 현장실습 참여기업 모집 공식 페이지 새 창으로 열기" [ref=e193] [cursor=pointer]:
+                    - /url: https://ibus.hanyang.ac.kr/front/recruit/r-1
+                    - text: 공식 페이지 열기
+                - article [ref=e194]:
+                  - generic [ref=e195]:
+                    - heading "CDP 학생 매뉴얼 PDF 1쪽" [level=4] [ref=e196]
+                    - 'generic "마감 상태: 마감일 확인 필요" [ref=e197]': 마감일 확인 필요
+                  - generic [ref=e198]: 일반 안내 · 점수 0.17
+                  - paragraph [ref=e199]: source_id cdp-student-guide-pdf · 게시일 확인 필요 · 수집일 2026-05-03
+                  - list [ref=e200]:
+                    - listitem [ref=e201]: "- 일반 안내: 현재 공고/프로그램 정보와 출처 메타데이터를 기준으로 확인할 수 있는 항목입니다 [2]"
+                    - listitem [ref=e202]: "- 마감/최신성: 마감 상태가 불명확하므로 원문과 게시·수집일을 함께 확인하세요 [2]"
+                  - paragraph [ref=e203]: 인용 맥락 [2] CDP 학생 매뉴얼 PDF 1쪽
+                  - link "CDP 학생 매뉴얼 PDF 1쪽 공식 페이지 새 창으로 열기" [ref=e204] [cursor=pointer]:
+                    - /url: https://cdp.hanyang.ac.kr/office/%EB%A7%A4%EB%89%B4%EC%96%BC_%ED%95%99%EC%83%9D.pdf
+                    - text: 공식 페이지 열기
+                - article [ref=e205]:
+                  - generic [ref=e206]:
+                    - heading "한양대학교 HY-CDP" [level=4] [ref=e207]
+                    - 'generic "마감 상태: 마감일 확인 필요" [ref=e208]': 마감일 확인 필요
+                  - generic [ref=e209]: 일반 안내 · 점수 0.16
+                  - paragraph [ref=e210]: source_id cdp-root · 게시일 확인 필요 · 수집일 2026-05-03
+                  - list [ref=e211]:
+                    - listitem [ref=e212]: "- 일반 안내: 현재 공고/프로그램 정보와 출처 메타데이터를 기준으로 확인할 수 있는 항목입니다 [3]"
+                    - listitem [ref=e213]: "- 마감/최신성: 마감 상태가 불명확하므로 원문과 게시·수집일을 함께 확인하세요 [3]"
+                  - paragraph [ref=e214]: "인용 맥락 [3] 공식 출처: 한양대 커리어 개발센터"
+                  - link "한양대학교 HY-CDP 공식 페이지 새 창으로 열기" [ref=e215] [cursor=pointer]:
+                    - /url: https://cdp.hanyang.ac.kr/Main/default.aspx
+                    - text: 공식 페이지 열기
+                - article [ref=e216]:
+                  - generic [ref=e217]:
+                    - heading "한양대학교 HY-CDP" [level=4] [ref=e218]
+                    - 'generic "마감 상태: 마감일 확인 필요" [ref=e219]': 마감일 확인 필요
+                  - generic [ref=e220]: 일반 안내 · 점수 0.15
+                  - paragraph [ref=e221]: source_id cdp-root · 게시일 확인 필요 · 수집일 2026-05-03
+                  - list [ref=e222]:
+                    - listitem [ref=e223]: "- 일반 안내: 현재 공고/프로그램 정보와 출처 메타데이터를 기준으로 확인할 수 있는 항목입니다 [4]"
+                    - listitem [ref=e224]: "- 마감/최신성: 마감 상태가 불명확하므로 원문과 게시·수집일을 함께 확인하세요 [4]"
+                  - paragraph [ref=e225]: "인용 맥락 [4] 공식 출처: 한양대 커리어 개발센터"
+                  - link "한양대학교 HY-CDP 공식 페이지 새 창으로 열기" [ref=e226] [cursor=pointer]:
+                    - /url: https://cdp.hanyang.ac.kr/Main/default.aspx
+                    - text: 공식 페이지 열기
+                - article [ref=e227]:
+                  - generic [ref=e228]:
+                    - heading "한양대학교 HY-CDP" [level=4] [ref=e229]
+                    - 'generic "마감 상태: 마감일 확인 필요" [ref=e230]': 마감일 확인 필요
+                  - generic [ref=e231]: 일반 안내 · 점수 0.15
+                  - paragraph [ref=e232]: source_id cdp-root · 게시일 확인 필요 · 수집일 2026-05-03
+                  - list [ref=e233]:
+                    - listitem [ref=e234]: "- 일반 안내: 현재 공고/프로그램 정보와 출처 메타데이터를 기준으로 확인할 수 있는 항목입니다 [5]"
+                    - listitem [ref=e235]: "- 마감/최신성: 마감 상태가 불명확하므로 원문과 게시·수집일을 함께 확인하세요 [5]"
+                  - paragraph [ref=e236]: "인용 맥락 [5] 공식 출처: 한양대 커리어 개발센터"
+                  - link "한양대학교 HY-CDP 공식 페이지 새 창으로 열기" [ref=e237] [cursor=pointer]:
+                    - /url: https://cdp.hanyang.ac.kr/Main/default.aspx
+                    - text: 공식 페이지 열기
+          - generic [ref=e126]:
+            - textbox "질문 입력" [ref=e127]:
+              - /placeholder: 채용 공고, 마감일, 취업 프로그램을 질문해 보세요
+            - paragraph [ref=e128]: ⌘/Ctrl + Enter로 전송 · 답변은 참고 안내이며 공식 출처 확인이 필요합니다.
+            - button "질문 보내기" [disabled] [ref=e129]
+        - generic [ref=e131]: 출처 확인하기
+  - button "Open Next.js Dev Tools" [ref=e137] [cursor=pointer]:
+    - img [ref=e138]
+  - alert [ref=e141]

@@ -7,6 +7,7 @@ export const RefusalTierSchema = z.enum(["hard_refuse", "soft_hedge", "normal_an
 export const ChatRequestSchema = z.object({
   query: z.string().trim().min(1).max(2000),
   top_k: z.number().int().min(1).max(10).default(5),
+  session_key: z.string().trim().min(1).max(120).optional(),
 });
 
 export const ChatCitationSchema = z.object({

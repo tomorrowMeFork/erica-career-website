@@ -1,0 +1,72 @@
+- generic [ref=e2]:
+  - banner "서비스 내비게이션" [ref=e3]:
+    - link "ERICA Career Chat 홈으로 이동" [ref=e4] [cursor=pointer]:
+      - /url: /
+      - generic [ref=e5]: E
+      - generic [ref=e6]: ERICA Career Chat
+    - navigation "주요 페이지" [ref=e7]:
+      - link "홈" [ref=e8] [cursor=pointer]:
+        - /url: /
+      - link "커리어 정보 탐색" [ref=e9] [cursor=pointer]:
+        - /url: /explore
+      - link "출처 확인" [ref=e10] [cursor=pointer]:
+        - /url: /source/example
+      - link "커리어 상담" [ref=e11] [cursor=pointer]:
+        - /url: /consultation
+  - main [ref=e12]:
+    - generic [ref=e13]:
+      - generic [ref=e14]:
+        - generic [ref=e15]:
+          - paragraph [ref=e16]: Career Consultation
+          - heading "커리어 상담" [level=1] [ref=e17]
+          - paragraph [ref=e18]: 질문을 입력하면 확인된 ERICA 커리어 정보에 근거해 한국어로 답변합니다.
+        - generic "세션 및 설정" [ref=e19]:
+          - generic [ref=e20]: 저장 안 함
+          - button "설정" [ref=e22] [cursor=pointer]
+      - region "안전 안내" [ref=e23]:
+        - paragraph [ref=e24]: 참고용 안내
+        - heading "답변은 취업 정보 확인을 돕는 참고용입니다." [level=2] [ref=e25]
+        - paragraph [ref=e26]: ERICA Career Chat의 답변은 수집된 출처를 바탕으로 한 정보 안내이며, 지원 자격·마감일·신청 방법·장소처럼 중요한 내용은 반드시 각 카드의 공식 출처 페이지에서 확인해 주세요.
+        - paragraph [ref=e27]: 공식 한양대학교 인증 서비스가 아님을 알려드리며, 특정 채용 합격이나 취업 결과를 보장하지 않습니다.
+      - generic [ref=e28]:
+        - complementary "상담 조건" [ref=e29]:
+          - region "추천 조건" [ref=e30]:
+            - generic [ref=e31]:
+              - heading "입력한 조건" [level=2] [ref=e32]
+              - generic [ref=e33]: 저장 안 함
+            - paragraph [ref=e34]: 전공과 희망 직무를 입력하면 현재 세션 기준으로 추천 순서를 조정할 수 있어요.
+            - generic [ref=e35]:
+              - generic [ref=e36]:
+                - text: 전공
+                - textbox "전공" [ref=e37]
+              - generic [ref=e38]:
+                - text: 희망 직무
+                - textbox "희망 직무" [ref=e39]
+            - group [ref=e40]:
+              - generic "선택 조건 더보기" [ref=e41] [cursor=pointer]
+              - option "마감 임박 우선"
+              - option "균형" [selected]
+              - option "미정 포함"
+            - generic [ref=e42]:
+              - button "추천 조건 저장" [disabled] [ref=e43]
+              - button "추천 조건 업데이트" [disabled] [ref=e44]
+              - button "추천 조건 지우기" [ref=e45] [cursor=pointer]
+        - region "채팅" [ref=e46]:
+          - generic [ref=e47]:
+            - paragraph [ref=e48]: Korean-first academic career service
+            - heading "무엇을 도와드릴까요?" [level=2] [ref=e49]
+            - paragraph [ref=e50]: 채용 공고, 마감일, 취업 프로그램을 한국어로 질문하면 확인된 출처와 수집일을 함께 보여드려요.
+            - region "예시 질문" [ref=e51]:
+              - heading "예시 질문" [level=3] [ref=e52]
+              - list [ref=e53]:
+                - listitem [ref=e54]: 컴퓨터학부 학생이 이번 달 확인할 만한 인턴 정보가 있나요?
+                - listitem [ref=e55]: ERICA 학생 대상 취업 프로그램 중 아직 모집 중인 게 있나요?
+                - listitem [ref=e56]: 최근 수집된 채용 정보 중 IT 직무 관련은 어떤 게 있나요?
+            - paragraph [ref=e57]: 근거가 부족하거나 오래된 정보만 있으면 답변을 제한합니다.
+          - generic [ref=e58]:
+            - textbox "질문 입력" [ref=e59]:
+              - /placeholder: 채용 공고, 마감일, 취업 프로그램을 질문해 보세요
+            - paragraph [ref=e60]: ⌘/Ctrl + Enter로 전송 · 답변은 참고 안내이며 공식 출처 확인이 필요합니다.
+            - button "질문 보내기" [disabled] [ref=e61]
+        - complementary "출처 패널" [ref=e62]:
+          - generic [ref=e63]: 답변의 인용 번호를 선택하면 출처와 수집 정보를 확인할 수 있어요.

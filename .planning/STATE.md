@@ -1,38 +1,40 @@
 ---
 gsd_state_version: 1.0
-milestone: v1.1
-milestone_name: UI Redesign
-status: planning
-last_updated: "2026-05-04T00:00:00.000Z"
-last_activity: 2026-05-04
+milestone: v1.2
+milestone_name: Markdown Rendering and Prompt Context
+status: targeted_implementation_complete
+last_updated: "2026-05-08T00:00:00.000Z"
+last_activity: 2026-05-08
 progress:
-  total_phases: 5
-  completed_phases: 5
-  total_plans: 1
-  completed_plans: 5
-  percent: 100
+  total_phases: 3
+  completed_phases: 3
+  total_plans: 0
+  completed_plans: 0
+  percent: 75
 ---
 
 # State: ERICA Career Chat
 
 **Initialized:** 2026-05-03  
 **Initialization mode:** Manual GSD initialization because `gsd-sdk` was unavailable in the shell.  
-**Current phase:** Complete — v1.1 UI Redesign milestone finished
+**Current phase:** Targeted implementation and verification complete, v1.2 Markdown Rendering and Prompt Context
 
 ## Project Reference
 
-See: `.planning/PROJECT.md` (updated 2026-05-04 for v1.1 UI Redesign)
+See: `.planning/PROJECT.md` (updated 2026-05-08 for v1.2 Markdown Rendering and Prompt Context)
 
 **Core value:** Students can ask career and recruitment questions in Korean and receive current, source-cited, personally relevant answers from Hanyang ERICA employment information.  
-**Current focus:** v1.1 UI Redesign complete; all 5 phases verified
+**Current focus:** v1.2 targeted implementation is complete for clean `react-markdown` answer rendering and privacy-safe explicit preference prompt context; broader release gates remain pending.
 
 ## Progress
 
-- **Previous milestone:** v1.0 shipped 2026-05-04 with archived roadmap, requirements, and audit.
-- **Current milestone:** v1.1 UI Redesign started 2026-05-04.
-- **Current status:** v1.1 UI Redesign complete. All 5 phases (7-11) verified. All 21 requirements PASS.
-- **Phase numbering:** Continued from v1.0; active phases are Phase 7 through Phase 11.
-- **Requirement coverage:** 21/21 active v1.1 requirements mapped exactly once.
+- **Previous milestones:** v1.0 shipped 2026-05-04 with archived roadmap, requirements, and audit; v1.1 UI Redesign shipped 2026-05-04 with all 21 requirements PASS.
+- **Current milestone:** v1.2 Markdown Rendering and Prompt Context started 2026-05-08.
+- **Current status:** Targeted v1.2 implementation and focused verification are complete. This is not a full release gate, tag, or shipped release claim.
+- **Phase numbering:** Continued from v1.1; active phases are Phase 12 through Phase 14.
+- **Requirement coverage:** 17/17 active v1.2 requirements mapped exactly once.
+- **Targeted verification:** `npm test -- src/chat/prompt.test.ts src/chat/chat-service.test.ts app/api/chat/route.test.ts lib/api-client.test.ts components/chat/chat-components.test.tsx` passed with 5 files and 30 tests. `npm run typecheck -- --pretty false` passed after a TS7006 test typing fix.
+- **Pending release gates:** Full `npm test`, build, Playwright QA, and `release:ready` remain pending unless run separately later.
 - **Phase history:** `.planning/phases/` remains intentionally preserved for continuity and reference; do not clear old phase directories without explicit approval.
 
 ## Artifacts
@@ -154,16 +156,22 @@ See: `.planning/PROJECT.md` (updated 2026-05-04 for v1.1 UI Redesign)
 - Phase 9 transforms explore and source pages into information exploration and source verification surfaces; passed verification for INFO-01~04, SRCV-01~03.
 - Phase 10 reframes consultation from recommendation to evidence-based consultation; passed verification for CHAT-01~04.
 - Phase 11 verified UXR-04 (responsive, 44px touch targets, Korean typography) and GUARD-01~03 (no scope violations). All PASS.
+- v1.2 starts after v1.1 shipped and focuses on `react-markdown` answer rendering plus explicit preference prompt context.
+- v1.2 targeted rendering implementation added `react-markdown` answer rendering for chat answers while preserving citations, source labels, freshness metadata, deadline status, confidence, and refusal/no-answer states.
+- v1.2 safe rendering constrains unsafe raw HTML, script, style, and iframe handling, and disables markdown images.
+- v1.2 targeted prompt-context implementation adds an optional `session_key` chat request path and resolves explicit server-side preferences into minimized prompt context containing only `major` and `target_role`.
+- v1.2 prompt context excludes raw chat history, session-only optional text, extra preference fields, secrets, storage metadata, hidden profiling, and cleared preferences.
+- v1.2 excludes semantic retrieval, ingestion expansion, crawling, matching/ranking algorithm changes, saved jobs, reminders, application tracking, SSO, official endorsement claims, and job-board workflow scope.
 
 ## Next Action
 
-v1.1 milestone is complete. Consider archiving with `/gsd-complete-milestone v1.1`.
+Run remaining v1.2 release-gate verification when ready: broad test suite, build, Playwright QA, and any release-readiness command required by the active workflow.
 
 Resume file: None
 
 ## Current Position
 
-Phase: 11 — UI QA, Responsive Verification, and Scope Guardrails
-Plan: —
-Status: v1.1 UI Redesign COMPLETE — all phases verified
-Last activity: 2026-05-04 — Phase 11 verified, v1.1 milestone complete
+Phase: 12, Markdown Answer Rendering
+Plan: Targeted implementation complete across markdown rendering, prompt context, and focused regression coverage
+Status: Targeted v1.2 implementation and focused verification complete; full release gate pending
+Last activity: 2026-05-08, v1.2 targeted implementation and verification recorded

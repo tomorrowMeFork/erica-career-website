@@ -1,3 +1,6 @@
+import { Children, type ReactNode } from "react";
+import ReactMarkdown, { type Components } from "react-markdown";
+
 import type { ChatCitation, ChatResponse } from "../../src/chat/chat-contract.js";
 import type { RecommendationItem } from "../../src/recommendations/recommendation-contract.js";
 import { CitationTrigger } from "../citations/citation-trigger.js";
@@ -9,7 +12,9 @@ export function AssistantAnswer({ response, recommendations = [], onOpenCitation
   return (
     <article className="assistant-answer card-surface">
       <RefusalNoticeCard refusalTier={response.refusal_tier} />
-      <div className="assistant-answer__body">{renderAnswer(response.answer, response.citations, onOpenCitation)}</div>
+      <div className="assistant-answer__body">
+        <ReactMarkdown components={createMarkdownComponents(response.citations, onOpenCitation)} skipHtml>{stripUnsafeHtml(response.answer)}</ReactMarkdown>
+      </div>
       <CitationTrigger count={response.citations.length} onOpen={(opener) => {
         const firstCitation = response.citations[0];
         if (firstCitation !== undefined) onOpenCitation(firstCitation, response.citations, opener);
@@ -20,14 +25,44 @@ export function AssistantAnswer({ response, recommendations = [], onOpenCitation
   );
 }
 
-function renderAnswer(answer: string, citations: ChatCitation[], onOpenCitation: (citation: ChatCitation, scopedCitations: ChatCitation[], opener?: HTMLElement) => void) {
-  const parts = answer.split(/(\[\d+\])/gu);
-  return parts.map((part, index) => {
-    const match = /^\[(\d+)\]$/u.exec(part);
-    if (match === null) return <span key={`${part}-${index}`}>{part.split("\n").map((line, lineIndex) => <span key={`${line}-${lineIndex}`}>{line}{lineIndex < part.split("\n").length - 1 ? <br /> : null}</span>)}</span>;
+function stripUnsafeHtml(answer: string): string {
+  return answer.replace(/<(script|style|iframe)\b[^>]*>[\s\S]*?<\/\1>/giu, "");
+}
+
+function createMarkdownComponents(citations: ChatCitation[], onOpenCitation: (citation: ChatCitation, scopedCitations: ChatCitation[], opener?: HTMLElement) => void): Components {
+  const renderChildren = (children: ReactNode) => renderCitationText(children, citations, onOpenCitation);
+  return {
+    a: ({ children, href }) => <a href={href} target="_blank" rel="noopener noreferrer">{renderChildren(children)}</a>,
+    em: ({ children }) => <em>{renderChildren(children)}</em>,
+    h1: ({ children }) => <h2>{renderChildren(children)}</h2>,
+    h2: ({ children }) => <h2>{renderChildren(children)}</h2>,
+    h3: ({ children }) => <h3>{renderChildren(children)}</h3>,
+    h4: ({ children }) => <h4>{renderChildren(children)}</h4>,
+    h5: ({ children }) => <h4>{renderChildren(children)}</h4>,
+    h6: ({ children }) => <h4>{renderChildren(children)}</h4>,
+    img: () => null,
+    li: ({ children }) => <li>{renderChildren(children)}</li>,
+    p: ({ children }) => <p>{renderChildren(children)}</p>,
+    strong: ({ children }) => <strong>{renderChildren(children)}</strong>,
+  };
+}
+
+function renderCitationText(children: ReactNode, citations: ChatCitation[], onOpenCitation: (citation: ChatCitation, scopedCitations: ChatCitation[], opener?: HTMLElement) => void): ReactNode {
+  if (typeof children === "string") return renderCitationString(children, citations, onOpenCitation);
+  if (Array.isArray(children)) return Children.map(children, (child) => renderCitationText(child, citations, onOpenCitation));
+  return children;
+}
+
+function renderCitationString(text: string, citations: ChatCitation[], onOpenCitation: (citation: ChatCitation, scopedCitations: ChatCitation[], opener?: HTMLElement) => void): ReactNode[] {
+  const nodes: ReactNode[] = [];
+  let textCursor = 0;
+  for (const match of text.matchAll(/\[(\d+)\]/gu)) {
+    if (match.index > textCursor) nodes.push(text.slice(textCursor, match.index));
     const citationId = Number(match[1]);
     const citation = citations.find((candidate) => candidate.citation_id === citationId);
-    if (citation === undefined) return <span key={part}>{part}</span>;
-    return <InlineCitationMarker key={`${part}-${index}`} citation={citation} scopedCitations={citations} onOpen={onOpenCitation} />;
-  });
+    nodes.push(citation === undefined ? match[0] : <InlineCitationMarker key={`${citationId}-${match.index}`} citation={citation} scopedCitations={citations} onOpen={onOpenCitation} />);
+    textCursor = match.index + match[0].length;
+  }
+  if (textCursor < text.length) nodes.push(text.slice(textCursor));
+  return nodes.length === 0 ? [text] : nodes;
 }

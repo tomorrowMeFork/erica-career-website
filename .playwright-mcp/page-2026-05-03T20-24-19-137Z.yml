@@ -1,0 +1,60 @@
+- main [ref=e2]:
+  - generic [ref=e3]:
+    - generic [ref=e4]:
+      - generic [ref=e5]:
+        - paragraph [ref=e6]: ERICA Career Chat
+        - heading "무엇을 도와드릴까요?" [level=1] [ref=e7]
+        - paragraph [ref=e8]: 채용 공고, 마감일, 취업 프로그램을 한국어로 질문하면 확인된 출처를 함께 보여드려요.
+      - generic [ref=e9]: 저장 안 함
+      - button "설정" [ref=e11] [cursor=pointer]
+    - navigation "대시보드 패널" [ref=e12]:
+      - button "채팅" [ref=e13] [cursor=pointer]
+      - button "공고" [ref=e14] [cursor=pointer]
+      - button "추천 조건" [ref=e15] [cursor=pointer]
+    - generic [ref=e16]:
+      - complementary [ref=e17]:
+        - region "추천 조건" [ref=e18]:
+          - generic [ref=e19]:
+            - heading "입력한 조건" [level=2] [ref=e20]
+            - generic [ref=e21]: 저장 안 함
+          - paragraph [ref=e22]: 전공과 희망 직무를 입력하면 추천 순서를 조정할 수 있어요.
+          - generic [ref=e23]:
+            - generic [ref=e24]:
+              - text: 전공
+              - textbox "전공" [ref=e25]
+            - generic [ref=e26]:
+              - text: 희망 직무
+              - textbox "희망 직무" [ref=e27]
+          - group [ref=e28]:
+            - generic "선택 조건 더보기" [ref=e29]
+            - option "마감 임박 우선"
+            - option "균형" [selected]
+            - option "미정 포함"
+          - button "추천 조건 저장" [disabled] [ref=e30]
+          - button "추천 조건 업데이트" [disabled] [ref=e31]
+          - button "추천 조건 지우기" [ref=e32] [cursor=pointer]
+        - region "추천 및 최신 공고" [ref=e33]:
+          - generic [ref=e34]:
+            - heading "추천 공고" [level=2] [ref=e35]
+            - text: 기본 추천
+          - group "공고 필터" [ref=e36]:
+            - button "전체" [pressed] [ref=e37] [cursor=pointer]
+            - button "추천" [ref=e38] [cursor=pointer]
+            - button "최신" [ref=e39] [cursor=pointer]
+            - button "마감 임박" [ref=e40] [cursor=pointer]
+            - button "출처" [ref=e41] [cursor=pointer]
+            - button "상태" [ref=e42] [cursor=pointer]
+          - paragraph [ref=e43]: 저장 안 함
+          - button "새로고침" [ref=e44] [cursor=pointer]
+          - generic [ref=e45]:
+            - heading "아직 표시할 추천 공고가 없어요" [level=3] [ref=e46]
+            - paragraph [ref=e47]: 전공과 희망 직무를 입력하거나 최신 공고 탭에서 출처 기반 정보를 확인해 보세요.
+      - region "채팅" [ref=e48]:
+        - generic [ref=e49]:
+          - heading "무엇을 도와드릴까요?" [level=2] [ref=e50]
+          - paragraph [ref=e51]: 채용 공고, 마감일, 취업 프로그램을 한국어로 질문하면 확인된 출처를 함께 보여드려요.
+        - generic [ref=e52]:
+          - textbox "질문 입력" [ref=e53]:
+            - /placeholder: 채용 공고, 마감일, 취업 프로그램을 질문해 보세요
+          - button "질문 보내기" [disabled] [ref=e54]
+      - generic [ref=e56]: 출처 확인하기

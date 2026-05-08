@@ -1,17 +1,18 @@
 # Roadmap: ERICA Career Chat
 
 **Created:** 2026-05-03  
-**Last updated:** 2026-05-04 for v1.1 UI Redesign roadmap  
+**Last updated:** 2026-05-08 for v1.2 Markdown Rendering and Prompt Context roadmap  
 **Mode:** Constant-size post-milestone roadmap  
-**Active milestone:** v1.1 — UI Redesign  
+**Active milestone:** v1.2 Markdown Rendering and Prompt Context  
 **Granularity:** coarse
 
 ## Milestones
 
 | Milestone | Status | Shipped | Scope | Archives |
 |---|---|---:|---|---|
-| v1.0 — ERICA Career Chat v1.0 | Shipped with known tech debt | 2026-05-04 | 6 phases, 30 plans, 32/32 requirements covered | [Roadmap](milestones/v1.0-ROADMAP.md) · [Requirements](milestones/v1.0-REQUIREMENTS.md) · [Audit](milestones/v1.0-MILESTONE-AUDIT.md) |
-| v1.1 — UI Redesign | Active roadmap | — | 5 phases, 21/21 v1.1 requirements mapped | Active in this file |
+| v1.0 ERICA Career Chat v1.0 | Shipped with known tech debt | 2026-05-04 | 6 phases, 30 plans, 32/32 requirements covered | [Roadmap](milestones/v1.0-ROADMAP.md) · [Requirements](milestones/v1.0-REQUIREMENTS.md) · [Audit](milestones/v1.0-MILESTONE-AUDIT.md) |
+| v1.1 UI Redesign | Shipped | 2026-05-04 | 5 phases, 21/21 requirements verified PASS | See [MILESTONES.md](MILESTONES.md) |
+| v1.2 Markdown Rendering and Prompt Context | Targeted implementation complete, release gate pending | - | 3 phases, 17/17 v1.2 requirements mapped | Active in this file |
 
 ## v1.0 Archive Reference
 
@@ -27,136 +28,112 @@
 | 5 | Student-Facing Experience | 5 | Complete | Next.js/Tailwind Korean dashboard with chat, citations/source inspection, listing browse, preference controls, and responsive UI QA. |
 | 6 | Safety, Evaluation, and Release Readiness | 5 | Complete | Safety disclaimer, reference QA/eval gates, freshness/operator status, manual release checklist, and `release:ready` gate. |
 
-Full phase details are archived in [v1.0 roadmap archive](milestones/v1.0-ROADMAP.md). Phase directories remain in `.planning/phases/` for near-term continuation and reference and must not be cleared, moved, or deleted as part of v1.1 planning.
+Full phase details are archived in [v1.0 roadmap archive](milestones/v1.0-ROADMAP.md). Phase directories remain in `.planning/phases/` for near-term continuation and reference and must not be cleared, moved, or deleted as part of v1.2 planning.
 
 </details>
 
-## v1.1 Framing
+## v1.1 Shipped Reference
 
-v1.1 redesigns ERICA Career Chat as source-grounded ERICA career-information consultation software. It is not a job-board, recommendation-system upgrade, application tracker, or official Hanyang service. The UI must preserve Korean-first behavior, citations, freshness/deadline metadata, insufficient-evidence/no-answer behavior, and explicit scope limits from v1.0.
+v1.1 shipped on 2026-05-04. It completed the UI Redesign milestone across Phases 7 through 11, including four-page navigation, 참고한 정보, source verification, career consultation, responsive QA, and scope guardrails. v1.2 starts from that shipped UI and must preserve the source-grounded Korean-first consultation model.
 
-The active design standard is `DESIGN.md` as an independent design standard for this project. It should inform spacing, typography, rounded cards, pill controls, restrained color roles, and CTA hierarchy without framing the result as another brand style or copying another brand identity.
+## v1.2 Framing
+
+v1.2 focuses on clean chat answer rendering and explicit prompt-context personalization. The primary work is to render model answers with `react-markdown` so Korean 답변 can contain readable paragraphs, lists, emphasis, and sections without exposing raw markdown symbols to users. The bonus work is to include stable, user-provided core preference information such as 전공 and target role in system/developer prompt context in a minimized, privacy-safe way.
+
+v1.2 must preserve citations, source labels, freshness metadata, deadlines, refusal/no-answer behavior, Korean-first copy, and the no-official-endorsement safety posture. It must not add retrieval-system scope, crawling scope, ranking algorithm changes, saved jobs, reminders, SSO, or job-board workflow features.
+
+Targeted v1.2 implementation is complete. Chat answers now render with `react-markdown`, citations/freshness/refusal states are preserved, unsafe raw HTML/script/style/iframe handling is constrained, markdown images are disabled, and chat requests can use an optional `session_key` path. Server-side prompt context resolves explicit preferences and includes only minimized `major` and `target_role`, while excluding raw chat history, session-only optional text, extra preference fields, secrets, storage metadata, hidden profiling, and cleared preferences. This does not mark v1.2 as shipped or release-ready.
 
 ## Verification-First Expectations
 
-- Each v1.1 phase should plan verification before implementation, including route-level expectations, component behavior checks, citation/source metadata visibility checks, and responsive Korean UI checks where relevant.
-- UI redesign work should be TDD/verification-first for observable behavior: four-page navigation, page primary actions, empty states, evidence/source inspection, no-answer/refusal display, and scope guardrail copy.
-- Automated or manual QA should prove the redesign does not introduce matching/ranking algorithm changes, semantic retrieval, ingestion expansion, saved-job workflows, SSO, or official endorsement claims.
+- Each v1.2 phase should plan verification before implementation, including markdown rendering cases, Korean readability checks, citation/freshness preservation, refusal/no-answer display, sanitization, and prompt-context privacy checks.
+- UI work should prove users no longer see raw markdown artifacts such as `#`, `*`, or list syntax in normal rendered 답변 text while citations and freshness metadata remain visible.
+- Prompt-context work should prove only explicit minimized preference fields are added, cleared preferences are omitted, and hidden profiling from chat history is not introduced.
+- Final QA should prove v1.2 does not introduce semantic retrieval, ingestion expansion, crawling, matching/ranking algorithm changes, saved-job workflows, SSO, or official endorsement claims.
+- Targeted verification passed: `npm test -- src/chat/prompt.test.ts src/chat/chat-service.test.ts app/api/chat/route.test.ts lib/api-client.test.ts components/chat/chat-components.test.tsx`, with 5 files and 30 tests passing.
+- Typecheck passed: `npm run typecheck -- --pretty false`, after a TS7006 test typing fix.
+- Remaining release gates are still pending: broad `npm test`, build, Playwright QA, and any release-readiness command.
 
 ## Phases
 
-- [x] **Phase 7: UI Information Architecture and Design Contract** - Establish the v1.1 page model, design interpretation, CTA hierarchy, and consultation-vs-references distinction.
-- [x] **Phase 8: Four-Page Routing and Shared Interaction Shell** - Users can move through the confirmed home, 참고한 정보, information detail/source verification, and career consultation pages with a clear shared shell.
-- [ ] **Phase 9: 참고한 정보 (References) and Source Verification Pages** - Users can review ERICA career information referenced during consultation and inspect source evidence, freshness, deadline status, and AI interpretation limits.
-- [ ] **Phase 10: Career Consultation Page and Evidence Linking** - Users can consult through chat as the primary surface while related information appears only as supporting cited evidence.
-- [ ] **Phase 11: UI QA, Responsive Verification, and Scope Guardrails** - The redesigned UI is verified on mobile/desktop and protected from v1.1 scope creep.
+- [x] **Phase 12: Markdown Answer Rendering** - Chat answers render cleanly with `react-markdown` while preserving Korean readability, citations, freshness metadata, and refusal/no-answer states.
+- [x] **Phase 13: Explicit Preference Prompt Context** - Stable user-provided preferences such as 전공 and target role can be added to system/developer prompt context with data minimization and no hidden profiling.
+- [x] **Phase 14: v1.2 Regression QA and Scope Guardrails** - Targeted markdown rendering, prompt-context privacy, citations, freshness, refusal behavior, and scope exclusions are verified together. Full release-gate QA remains pending.
 
 ## Phase Details
 
-### Phase 7: UI Information Architecture and Design Contract
-**Goal**: Users understand what ERICA Career Chat does, how source-grounded consultation differs from reference review, and which action to take first.  
-**Depends on**: v1.0 archive and active v1.1 requirements  
-**Requirements**: IA-01, IA-03, UXR-01, UXR-03  
+### Phase 12: Markdown Answer Rendering
+**Goal**: Users read Korean chat answers without visible markdown symbols or raw bullet/heading artifacts while still seeing the evidence that supports the answer.  
+**Depends on**: v1.1 shipped consultation UI  
+**Requirements**: V12-MD-01, V12-MD-02, V12-MD-03, V12-MD-04, V12-SAFE-01, V12-SAFE-02, V12-SAFE-03  
 **Success Criteria** (what must be TRUE):
-  1. User can understand from the home experience that the product provides Korean, source-grounded ERICA career-information consultation rather than generic job-board browsing.
-  2. User can identify one clear primary action per page concept and distinguish reference-review actions from consultation actions.
-  3. User can see a restrained visual hierarchy aligned with `DESIGN.md` tokens and principles without repeated accent-color or competing badge/CTA emphasis.
-  4. User can understand service limits and source-grounding expectations before relying on consultation or information pages.
-**Verification-first/TDD expectation**: Define route/page acceptance checks for purpose clarity, primary CTA hierarchy, reference-vs-consultation labels, Korean-first copy, and design-standard conformance before UI implementation.  
-**Plans**: 07-01 — UI Information Architecture and Design Contract  
+  1. User sees rendered paragraphs, lists, emphasis, and section-like answer structure without raw `#`, `*`, or stray markdown list artifacts in normal 답변 text.
+  2. User can still inspect citations, source labels, freshness metadata, deadline status, confidence, and refusal/no-answer guidance after rendering changes.
+  3. User receives readable Korean answer spacing that fits the existing chat UI rather than a separate document layout.
+  4. Unsafe markdown or HTML cannot inject scripts, unsafe attributes, hostile links, or UI-breaking markup.
+**Verification-first/TDD expectation**: Define rendering fixture cases before implementation, including Korean paragraphs, bullet lists, numbered lists, headings, citation-adjacent text, refusal answers, and hostile markdown/HTML.  
+**Plans**: Targeted implementation complete  
 **UI hint**: yes
 
-### Phase 8: Four-Page Routing and Shared Interaction Shell
-**Goal**: Users can navigate the confirmed four-page structure through a shared shell that removes the crowded one-dashboard experience.  
-**Depends on**: Phase 7  
-**Requirements**: IA-02, UXR-02  
+### Phase 13: Explicit Preference Prompt Context
+**Goal**: Chat can include stable, explicit preference context such as 전공, target role, and core interests in system/developer prompt context without hidden profiling or unnecessary personal data.  
+**Depends on**: Phase 12 or existing chat provider boundary, depending on implementation order  
+**Requirements**: V12-PCTX-01, V12-PCTX-02, V12-PCTX-03, V12-PCTX-04, V12-PCTX-05  
 **Success Criteria** (what must be TRUE):
-  1. User can move between home, 참고한 정보, information detail/source verification, and career consultation pages through clear navigation.
-  2. User can tell where they are and what the page is for without relying on a crowded all-in-one dashboard.
-  3. User no longer encounters overloaded left-side content, weak central consultation emphasis, or an ambiguous empty source panel as the default experience.
-  4. User can use shared navigation and layout patterns consistently on desktop and mobile entry points.
-**Verification-first/TDD expectation**: Define navigation, route, active-state, and responsive shell checks before route implementation; client components should be justified only where interaction requires them.  
-**Plans**: 08-01 — Four-Page Routing and Shared Interaction Shell  
-**UI hint**: yes
+  1. Explicit stable preferences can be represented as minimized prompt context when present, such as 전공 and target role.
+  2. Absent or cleared preferences are not added to future prompt context.
+  3. Prompt context excludes raw chat history, unnecessary free text, secrets, unrelated personal data, and inferred sensitive traits.
+  4. Personalized context remains subordinate to source-grounded Korean answers, citations, freshness metadata, and refusal/no-answer rules.
+**Verification-first/TDD expectation**: Define prompt-builder privacy tests before implementation, covering allowed fields, absent fields, cleared preferences, excluded free text, no hidden profiling, and preservation of citation/refusal instructions.  
+**Plans**: Targeted implementation complete  
+**UI hint**: no
 
-### Phase 9: 참고한 정보 (References) and Source Verification Pages
-**Goal**: Users can review ERICA career information referenced during consultation and verify original source evidence, dates, deadlines, and interpretation limits.  
-**Depends on**: Phase 8  
-**Requirements**: INFO-01, INFO-02, INFO-03, INFO-04, SRCV-01, SRCV-02, SRCV-03  
+### Phase 14: v1.2 Regression QA and Scope Guardrails
+**Goal**: v1.2 is verified as a presentation and explicit prompt-context milestone with no regression to source grounding, privacy, or scope limits.  
+**Depends on**: Phases 12 and 13  
+**Requirements**: V12-TEST-01, V12-TEST-02, V12-TEST-03, V12-TEST-04, V12-TEST-05  
 **Success Criteria** (what must be TRUE):
-  1. User can review ERICA career information referenced during a consultation session on a dedicated references page.
-  2. User can compare deadline status, posted/fetched dates, source status, and source identity from reference list items without interpreting the page as a ranking product.
-  3. User can scan visible references by deadline status and source and receive clear Korean guidance when no referenced information is available.
-  4. User can open a detail/source-verification page and inspect original source link, source name, posted/fetched dates, and deadline status.
-  5. User can see which citation evidence supports an AI interpretation and when evidence is insufficient, uncertain, or only general guidance.
-**Verification-first/TDD expectation**: Define reference list, empty-state, detail metadata, citation evidence, insufficient-evidence, and source-link visibility checks before page implementation.  
-**Plans**: TBD  
-**UI hint**: yes
-
-### Phase 10: Career Consultation Page and Evidence Linking
-**Goal**: Users can ask career questions in Korean on a dedicated consultation page and inspect supporting cited information without the UI becoming a job-board or recommendation surface.  
-**Depends on**: Phase 9  
-**Requirements**: CHAT-01, CHAT-02, CHAT-03, CHAT-04  
-**Success Criteria** (what must be TRUE):
-  1. User can use chat as the primary action on the career consultation page.
-  2. User receives consultation answers that preserve Korean-first behavior, citations, freshness metadata, and refusal/no-answer behavior.
-  3. User can inspect related information as supporting evidence connected to the answer, not as ranked jobs or application workflow items.
-  4. User can understand example questions and service limits from the consultation empty state before sending a message.
-**Verification-first/TDD expectation**: Define chat empty-state, Korean answer, citation/freshness display, refusal/no-answer, and supporting-evidence-link checks before consultation UI implementation.  
-**Plans**: TBD  
-**UI hint**: yes
-
-### Phase 11: UI QA, Responsive Verification, and Scope Guardrails
-**Goal**: Users can trust the redesigned UI across mobile and desktop while the product remains within the approved v1.1 UI redesign scope.  
-**Depends on**: Phase 10  
-**Requirements**: UXR-04, GUARD-01, GUARD-02, GUARD-03  
-**Success Criteria** (what must be TRUE):
-  1. User can complete the four-page flow on mobile and desktop with readable Korean typography, usable source/citation inspection, and 44px touch targets.
-  2. User does not encounter new matching/ranking algorithm claims, ranking-weight controls, or matching-logic changes in the redesigned UI.
-  3. User does not encounter semantic retrieval, ingestion-source expansion, production crawling, authenticated/private crawling, saved jobs, reminders, application tracking, SSO, or official Hanyang endorsement claims.
-  4. User can distinguish the product as source-grounded career-information consultation software throughout final QA, not a general job-board or matching/ranking product.
-**Verification-first/TDD expectation**: Define responsive browser checks, Korean readability checks, citation/source inspection checks, and negative guardrail checks before release readiness evaluation.  
-**Plans**: TBD  
+  1. Regression tests prove markdown-formatted answers render cleanly without raw heading, bullet, or emphasis artifacts.
+  2. Regression tests prove citations, freshness metadata, deadline status, and refusal/no-answer behavior remain present.
+  3. Regression tests prove unsafe markdown or HTML is sanitized, escaped, or rejected by the chosen rendering policy.
+  4. Regression tests prove explicit preference prompt context includes only allowed minimized fields and is omitted when absent or cleared.
+  5. Scope guardrail checks show no semantic retrieval, crawling, ranking algorithm changes, saved jobs/reminders, SSO, official endorsement claims, or job-board workflow scope were added.
+**Verification-first/TDD expectation**: Start Phase 14 by collecting the Phase 12 and Phase 13 test evidence, then run focused UI, prompt-builder, privacy, and guardrail checks before declaring v1.2 complete.  
+**Plans**: Targeted verification complete; full release gate pending  
 **UI hint**: yes
 
 ## Progress Table
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 7. UI Information Architecture and Design Contract | 1/1 | Complete | 2026-05-04 |
-| 8. Four-Page Routing and Shared Interaction Shell | 1/1 | Complete | 2026-05-04 |
-| 9. 참고한 정보 (References) and Source Verification Pages | 0/TBD | Not started | - |
-| 10. Career Consultation Page and Evidence Linking | 0/TBD | Not started | - |
-| 11. UI QA, Responsive Verification, and Scope Guardrails | 0/TBD | Not started | - |
+| 12. Markdown Answer Rendering | Targeted implementation complete | Complete for targeted scope | 2026-05-08 |
+| 13. Explicit Preference Prompt Context | Targeted implementation complete | Complete for targeted scope | 2026-05-08 |
+| 14. v1.2 Regression QA and Scope Guardrails | Targeted tests and typecheck passed | Targeted verification complete, broad release gate pending | 2026-05-08 |
 
 ## Requirement Coverage
 
 | Requirement | Phase |
 |-------------|-------|
-| IA-01 | Phase 7 |
-| IA-02 | Phase 8 |
-| IA-03 | Phase 7 |
-| INFO-01 | Phase 9 |
-| INFO-02 | Phase 9 |
-| INFO-03 | Phase 9 |
-| INFO-04 | Phase 9 |
-| SRCV-01 | Phase 9 |
-| SRCV-02 | Phase 9 |
-| SRCV-03 | Phase 9 |
-| CHAT-01 | Phase 10 |
-| CHAT-02 | Phase 10 |
-| CHAT-03 | Phase 10 |
-| CHAT-04 | Phase 10 |
-| UXR-01 | Phase 7 |
-| UXR-02 | Phase 8 |
-| UXR-03 | Phase 7 |
-| UXR-04 | Phase 11 |
-| GUARD-01 | Phase 11 |
-| GUARD-02 | Phase 11 |
-| GUARD-03 | Phase 11 |
+| V12-MD-01 | Phase 12 |
+| V12-MD-02 | Phase 12 |
+| V12-MD-03 | Phase 12 |
+| V12-MD-04 | Phase 12 |
+| V12-SAFE-01 | Phase 12 |
+| V12-SAFE-02 | Phase 12 |
+| V12-SAFE-03 | Phase 12 |
+| V12-PCTX-01 | Phase 13 |
+| V12-PCTX-02 | Phase 13 |
+| V12-PCTX-03 | Phase 13 |
+| V12-PCTX-04 | Phase 13 |
+| V12-PCTX-05 | Phase 13 |
+| V12-TEST-01 | Phase 14 |
+| V12-TEST-02 | Phase 14 |
+| V12-TEST-03 | Phase 14 |
+| V12-TEST-04 | Phase 14 |
+| V12-TEST-05 | Phase 14 |
 
-**Coverage:** 21/21 v1.1 requirements mapped exactly once ✓
+**Coverage:** 17/17 v1.2 requirements mapped exactly once.
 
 ## Next Step
 
-Plan Phase 9 with `/gsd-plan-phase 9`, using verified four-page shell as the implementation base.
+Run remaining broad release-gate verification when ready: full test suite, build, Playwright QA, and release-readiness command if required.

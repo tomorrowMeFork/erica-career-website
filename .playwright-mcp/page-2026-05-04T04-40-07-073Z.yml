@@ -1,0 +1,45 @@
+- generic [active] [ref=e1]:
+  - generic [ref=e2]:
+    - banner "서비스 내비게이션" [ref=e3]:
+      - link "ERICA Career Chat 홈으로 이동" [ref=e4] [cursor=pointer]:
+        - /url: /
+        - generic [ref=e5]: E
+        - generic [ref=e6]: ERICA Career Chat
+      - navigation "주요 페이지" [ref=e7]:
+        - link "홈" [ref=e8] [cursor=pointer]:
+          - /url: /
+        - link "커리어 정보 탐색" [ref=e9] [cursor=pointer]:
+          - /url: /explore
+        - link "출처 확인" [ref=e10] [cursor=pointer]:
+          - /url: /source/example
+        - link "커리어 상담" [ref=e11] [cursor=pointer]:
+          - /url: /consultation
+    - main [ref=e12]:
+      - generic [ref=e13]:
+        - generic [ref=e14]:
+          - paragraph [ref=e15]: Information Explore
+          - heading "커리어 정보 탐색" [level=1] [ref=e16]
+          - paragraph [ref=e17]: 수집된 ERICA 커리어 정보를 출처와 마감 상태 중심으로 살펴보세요.
+          - paragraph [ref=e18]: 필터는 보기 범위를 줄이는 용도이며, 새로운 매칭/순위 산정이 아닙니다.
+        - region "탐색 안내" [ref=e19]:
+          - heading "정보 탐색하기" [level=2] [ref=e20]
+          - paragraph [ref=e21]: 마감 및 모집 조건은 원문에서 다시 확인해야 합니다. 아래 목록은 수집된 정보의 출처, 게시일, 수집일, 마감 상태를 빠르게 살펴보는 용도입니다.
+        - region "커리어 정보 목록" [ref=e22]:
+          - generic [ref=e23]:
+            - generic [ref=e24]:
+              - paragraph [ref=e25]: Collected Information
+              - heading "수집 정보" [level=2] [ref=e26]
+            - button "새로고침" [ref=e27] [cursor=pointer]
+          - group "정보 필터" [ref=e28]:
+            - button "전체" [pressed] [ref=e29] [cursor=pointer]
+            - button "마감 임박" [ref=e30] [cursor=pointer]
+            - button "최신순" [ref=e31] [cursor=pointer]
+            - button "출처별" [ref=e32] [cursor=pointer]
+            - button "상태별" [ref=e33] [cursor=pointer]
+          - paragraph [ref=e34]: source_id, 게시일, 수집일, 마감 상태를 기준으로 정보를 확인하세요.
+          - generic [ref=e35]:
+            - heading "조건에 맞는 정보가 없습니다." [level=3] [ref=e36]
+            - paragraph [ref=e37]: 조건을 줄이거나 상담에서 질문해 보세요.
+  - button "Open Next.js Dev Tools" [ref=e43] [cursor=pointer]:
+    - img [ref=e44]
+  - alert [ref=e47]

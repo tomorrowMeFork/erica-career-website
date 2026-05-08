@@ -48,7 +48,7 @@ export default function ConsultationPage() {
     setIsLoading(true);
     setMessages((current) => [...current, { id: `user-${Date.now()}`, role: "user", query: trimmed }]);
     setQuery("");
-    const chatResult = await sendChatMessage({ query: trimmed, top_k: 5 });
+    const chatResult = await sendChatMessage({ query: trimmed, top_k: 5, session_key: sessionKey });
     if (chatResult.ok) {
       const answerId = `assistant-${Date.now()}`;
       const attached = await refreshRecommendations(sessionKey, undefined, trimmed);
@@ -111,13 +111,13 @@ export default function ConsultationPage() {
   const preferenceSummary = summarizePreferences(preferenceState.profile);
 
   return (
-    <div className="consultation-page" onKeyDown={(event) => { if (event.key === "Escape") closeSource(); }}>
+    <main className="consultation-page" onKeyDown={(event) => { if (event.key === "Escape") closeSource(); }}>
       <header className="route-hero consultation-hero card-surface">
         <div>
           <h1>커리어 상담</h1>
           <p>궁금한 점을 물어보세요. ERICA 커리어 정보를 바탕으로 답변드려요.</p>
         </div>
-        <div className="shell-actions" aria-label="세션 및 설정">
+        <div className="shell-actions">
           <StorageScopeChip storageScope={preferenceState.storage_scope} rankingEnabled={preferenceState.preference_ranking_enabled} />
           <SettingsMenu onClearPreferences={() => void handleClearPreferences()} onClearChatHistory={clearChatHistory} />
         </div>
@@ -135,9 +135,9 @@ export default function ConsultationPage() {
           </button>
         </div>
         {preferencesOpen ? (
-          <div id="consultation-preference-panel" className="consultation-preferences" aria-label="상담 조건">
+          <section id="consultation-preference-panel" className="consultation-preferences" aria-label="상담 조건">
             <PreferencePanel state={preferenceState} sessionKey={sessionKey} onSet={handleSave} onUpdate={handleUpdate} onClear={handleClearPreferences} onRead={handleRead} />
-          </div>
+          </section>
         ) : null}
       </section>
 
@@ -156,7 +156,7 @@ export default function ConsultationPage() {
       </div>
 
       <MobileSourceSheet open={sourcePanelOpen} citations={sourceCitations} selectedCitation={selectedCitation} opener={sourceOpener} onClose={closeSource} />
-    </div>
+    </main>
   );
 }
 

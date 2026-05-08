@@ -5,6 +5,7 @@ import {
   hashQuery,
   type ChatAuditRecord,
 } from "../audit/audit-log.js";
+import type { PreferenceState } from "../personalization/preference-contract.js";
 import type { Retriever } from "../retrieval/retriever.js";
 import { ChatRequestSchema, type ChatResponse } from "./chat-contract.js";
 import {
@@ -13,15 +14,20 @@ import {
   evaluateEvidence,
   type EvidencePolicyConfig,
 } from "./evidence-policy.js";
-import { buildChatPrompt, PROMPT_VERSION } from "./prompt.js";
-import type { ChatModelProvider } from "./provider.js";
 import { validateChatResponseOutput } from "./output-validation.js";
+import { buildChatPrompt, PROMPT_VERSION, type ExplicitPreferencePromptContext } from "./prompt.js";
+import type { ChatModelProvider } from "./provider.js";
 
 export type ChatAuditLogger = (record: ChatAuditRecord) => Promise<void>;
 
 export type ChatServiceAskInput = {
   query: string;
   top_k?: number;
+  session_key?: string;
+};
+
+export type ChatPreferenceReader = {
+  readState(sessionKey: string): Promise<PreferenceState>;
 };
 
 export type ChatServiceOptions = {
@@ -30,6 +36,7 @@ export type ChatServiceOptions = {
   auditLogger?: ChatAuditLogger;
   auditLogPath?: string;
   promptVersion?: string;
+  preferenceService?: ChatPreferenceReader;
   clock?: () => Date;
   traceIdGenerator?: () => string;
   evidencePolicyConfig?: EvidencePolicyConfig;
@@ -42,6 +49,7 @@ export class ChatService {
   private readonly provider: ChatModelProvider;
   private readonly auditLogger: ChatAuditLogger;
   private readonly promptVersion: string;
+  private readonly preferenceService: ChatPreferenceReader | undefined;
   private readonly clock: () => Date;
   private readonly traceIdGenerator: () => string;
   private readonly evidencePolicyConfig: EvidencePolicyConfig;
@@ -50,6 +58,7 @@ export class ChatService {
     this.retriever = options.retriever;
     this.provider = options.provider;
     this.promptVersion = options.promptVersion ?? PROMPT_VERSION;
+    this.preferenceService = options.preferenceService;
     this.clock = options.clock ?? (() => new Date());
     this.traceIdGenerator = options.traceIdGenerator ?? randomUUID;
     this.evidencePolicyConfig = options.evidencePolicyConfig ?? DEFAULT_EVIDENCE_POLICY;
@@ -86,7 +95,13 @@ export class ChatService {
       return response;
     }
 
-    const builtPrompt = buildChatPrompt({ query: request.query, results, refusal_tier: evidence.refusal_tier });
+    const explicitPreferences = await this.resolveExplicitPreferences(request.session_key);
+    const builtPrompt = buildChatPrompt({
+      query: request.query,
+      results,
+      refusal_tier: evidence.refusal_tier,
+      ...(explicitPreferences !== undefined ? { explicit_preferences: explicitPreferences } : {}),
+    });
     try {
       const providerResponse = await this.provider.complete({ messages: builtPrompt.messages });
       const candidate = candidateFromProviderContent(providerResponse.content, {
@@ -202,6 +217,16 @@ export class ChatService {
   private nowIso(): string {
     return this.clock().toISOString();
   }
+
+  private async resolveExplicitPreferences(sessionKey: string | undefined): Promise<ExplicitPreferencePromptContext | undefined> {
+    if (sessionKey === undefined || this.preferenceService === undefined) return undefined;
+    const state = await this.preferenceService.readState(sessionKey);
+    if (!state.preference_ranking_enabled || state.profile === null) return undefined;
+    return {
+      major: state.profile.major,
+      target_role: state.profile.target_role,
+    };
+  }
 }
 
 function candidateFromProviderContent(
@@ -229,7 +254,7 @@ function parseJsonObject(content: string): Record<string, unknown> | undefined {
       return parsed as Record<string, unknown>;
     }
     return undefined;
-  } catch (error) {
+  } catch {
     return undefined;
   }
 }

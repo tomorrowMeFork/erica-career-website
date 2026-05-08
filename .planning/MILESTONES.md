@@ -4,7 +4,7 @@
 
 **Status:** Shipped with known tech debt  
 **Phases completed:** 6 phases, 30 plans, 13 tasks  
-**Audit:** `tech_debt` — 32/32 requirements covered, 5/5 milestone flows covered
+**Audit:** `tech_debt`, 32/32 requirements covered, 5/5 milestone flows covered
 
 **Archives:**
 
@@ -52,3 +52,30 @@
 - No saved jobs, reminders, application tracking, SSO, endorsement claims, or job-board tooling.
 
 ---
+
+## v1.2 Markdown Rendering and Prompt Context (Active: 2026-05-08)
+
+**Status:** Targeted implementation complete, release gate pending  
+**Phases planned:** 3 phases (12-14)  
+**Requirements:** 17/17 mapped; targeted implementation and focused verification complete  
+**Tag:** TBD
+
+**Implemented targeted scope:**
+
+- Clean chat answer rendering with `react-markdown` so Korean 답변 no longer exposes raw markdown symbols, heading markers, or bullet syntax artifacts.
+- Preservation of citations, source labels, freshness/deadline metadata, confidence, and refusal/no-answer behavior after rendering changes.
+- Constrained markdown rendering so unsafe raw HTML, script, style, and iframe handling is limited, and markdown images are disabled.
+- Optional `session_key` chat request path for resolving server-side explicit preferences.
+- Privacy-safe prompt context that includes only minimized `major` and `target_role`, with no hidden profiling, raw chat history, session-only optional text, extra preference fields, secrets, storage metadata, or cleared preferences.
+
+**Targeted verification:**
+
+- `npm test -- src/chat/prompt.test.ts src/chat/chat-service.test.ts app/api/chat/route.test.ts lib/api-client.test.ts components/chat/chat-components.test.tsx` passed with 5 files and 30 tests.
+- `npm run typecheck -- --pretty false` passed after a TS7006 test typing fix.
+- Full release gate, broad `npm test`, build, and Playwright QA remain pending unless run separately later.
+
+**Scope guardrails preserved:**
+
+- No semantic retrieval, ingestion expansion, production crawling, or authenticated crawling.
+- No matching/ranking algorithm changes.
+- No saved jobs, reminders, application tracking, SSO, endorsement claims, or job-board tooling.
