@@ -1,0 +1,450 @@
+- generic [ref=e2]:
+  - generic [ref=e4]:
+    - heading "한양대학교 한양대학교 ERICA 경상대학" [level=1] [ref=e5]:
+      - link "한양대학교" [ref=e6] [cursor=pointer]:
+        - /url: http://www.hanyang.ac.kr/
+        - generic [ref=e7]: 한양대학교
+      - link "한양대학교 ERICA 경상대학" [ref=e8] [cursor=pointer]:
+        - /url: /
+        - generic [ref=e9]: 한양대학교 ERICA 경상대학
+    - list [ref=e11]:
+      - listitem [ref=e12]:
+        - link "경상대학 소개" [ref=e13] [cursor=pointer]:
+          - /url: /front/introduce/introduce
+      - listitem [ref=e14]:
+        - link "학부소개" [ref=e15] [cursor=pointer]:
+          - /url: /front/college/introduce
+      - listitem [ref=e16]:
+        - link "대학원" [ref=e17] [cursor=pointer]:
+          - /url: /front/graduateschool/notice-2
+      - listitem [ref=e18]:
+        - link "부설연구소" [ref=e19] [cursor=pointer]:
+          - /url: /front/laboratory/applylab
+      - listitem [ref=e20]:
+        - link "학사안내" [ref=e21] [cursor=pointer]:
+          - /url: "#none"
+      - listitem [ref=e22]:
+        - link "정보광장" [ref=e23] [cursor=pointer]:
+          - /url: /front/community/notice
+      - listitem [ref=e24]:
+        - link "취업정보" [ref=e25] [cursor=pointer]:
+          - /url: /front/recruit/r-2
+      - listitem [ref=e26]:
+        - link "경상NEWS" [ref=e27] [cursor=pointer]:
+          - /url: /front/news
+      - listitem [ref=e28]:
+        - link "발전기금" [ref=e29] [cursor=pointer]:
+          - /url: /front/donation/d-1
+      - listitem [ref=e30]:
+        - link "공간예약" [ref=e31] [cursor=pointer]:
+          - /url: https://cbe-space.hanyang.ac.kr/
+    - list [ref=e33]:
+      - listitem [ref=e34]:
+        - link "HOME" [ref=e35] [cursor=pointer]:
+          - /url: /
+      - listitem [ref=e36]:
+        - link "HANYANG UNIVERSITY" [ref=e37] [cursor=pointer]:
+          - /url: http://www.hanyang.ac.kr/
+      - listitem [ref=e38]:
+        - link "HY-in" [ref=e39] [cursor=pointer]:
+          - /url: https://portal.hanyang.ac.kr/sso/lgin.do
+      - listitem [ref=e40]:
+        - link "CBE.ENGLISH" [ref=e41] [cursor=pointer]:
+          - /url: http://ibusen.hanyang.ac.kr/
+  - generic [ref=e46]:
+    - heading "취업정보" [level=3] [ref=e48]
+    - list [ref=e49]:
+      - listitem [ref=e50]:
+        - link "홈" [ref=e51] [cursor=pointer]:
+          - /url: /
+      - listitem [ref=e52]:
+        - link "취업정보" [ref=e53] [cursor=pointer]:
+          - /url: /front/recruit/r-2
+        - link "사이드 메뉴 열기/닫기" [ref=e54] [cursor=pointer]:
+          - /url: "#snb-toggle"
+          - generic [ref=e55]: 사이드 메뉴 열기/닫기
+      - listitem [ref=e56]:
+        - link "취업정보" [ref=e57] [cursor=pointer]:
+          - /url: /front/recruit/r-1
+        - link "사이드 메뉴 열기/닫기" [ref=e58] [cursor=pointer]:
+          - /url: "#snb-toggle"
+          - generic [ref=e59]: 사이드 메뉴 열기/닫기
+    - generic [ref=e61]:
+      - table "게시판" [ref=e62]:
+        - caption [ref=e63]: 게시판
+        - rowgroup [ref=e64]:
+          - row "번호 제목 등록일" [ref=e65]:
+            - columnheader "번호" [ref=e66]
+            - columnheader "제목" [ref=e67]
+            - columnheader "등록일" [ref=e68]
+        - rowgroup [ref=e69]:
+          - row "1956 [해외취업] 말레이시아 글로벌기업 정규직채용 화상설명회 Hit 56 New 2026-05-04" [ref=e70]:
+            - cell "1956" [ref=e71]
+            - cell "[해외취업] 말레이시아 글로벌기업 정규직채용 화상설명회 Hit 56 New" [ref=e72]:
+              - link "[해외취업] 말레이시아 글로벌기업 정규직채용 화상설명회 Hit 56 New" [ref=e73] [cursor=pointer]:
+                - /url: /front/recruit/r-1/view?id=6469
+            - cell "2026-05-04" [ref=e74]
+          - row "1955 [한국전기기술인협회] 2026년도 정규직(신입) 직원 채용 공고(~5/13) Hit 75 2026-04-30" [ref=e75]:
+            - cell "1955" [ref=e76]
+            - cell "[한국전기기술인협회] 2026년도 정규직(신입) 직원 채용 공고(~5/13) Hit 75" [ref=e77]:
+              - link "[한국전기기술인협회] 2026년도 정규직(신입) 직원 채용 공고(~5/13) Hit 75" [ref=e78] [cursor=pointer]:
+                - /url: /front/recruit/r-1/view?id=6468
+            - cell "2026-04-30" [ref=e79]
+          - row "1954 [한국보건산업진흥원] 2026년 2분기 계약직원(용역사업) 채용(~5/11) Hit 72 2026-04-30" [ref=e80]:
+            - cell "1954" [ref=e81]
+            - cell "[한국보건산업진흥원] 2026년 2분기 계약직원(용역사업) 채용(~5/11) Hit 72" [ref=e82]:
+              - link "[한국보건산업진흥원] 2026년 2분기 계약직원(용역사업) 채용(~5/11) Hit 72" [ref=e83] [cursor=pointer]:
+                - /url: /front/recruit/r-1/view?id=6467
+            - cell "2026-04-30" [ref=e84]
+          - row "1953 [한국보건산업진흥원] 2026년 2분기 계약직원(휴직대체, 사업수행, 청년인턴, 장애인) 채용(~5/11) Hit 92 2026-04-30" [ref=e85]:
+            - cell "1953" [ref=e86]
+            - cell "[한국보건산업진흥원] 2026년 2분기 계약직원(휴직대체, 사업수행, 청년인턴, 장애인) 채용(~5/11) Hit 92" [ref=e87]:
+              - link "[한국보건산업진흥원] 2026년 2분기 계약직원(휴직대체, 사업수행, 청년인턴, 장애인) 채용(~5/11) Hit 92" [ref=e88] [cursor=pointer]:
+                - /url: /front/recruit/r-1/view?id=6466
+            - cell "2026-04-30" [ref=e89]
+          - row "1952 [한국에너지공단] 청년인턴(체험형 인턴) 채용 공고(~5/13) Hit 97 2026-04-30" [ref=e90]:
+            - cell "1952" [ref=e91]
+            - cell "[한국에너지공단] 청년인턴(체험형 인턴) 채용 공고(~5/13) Hit 97" [ref=e92]:
+              - link "[한국에너지공단] 청년인턴(체험형 인턴) 채용 공고(~5/13) Hit 97" [ref=e93] [cursor=pointer]:
+                - /url: /front/recruit/r-1/view?id=6465
+            - cell "2026-04-30" [ref=e94]
+          - row "1951 [국립낙동강생물자원관] 2026년 직원 채용 공고(~5/13) Hit 70 2026-04-30" [ref=e95]:
+            - cell "1951" [ref=e96]
+            - cell "[국립낙동강생물자원관] 2026년 직원 채용 공고(~5/13) Hit 70" [ref=e97]:
+              - link "[국립낙동강생물자원관] 2026년 직원 채용 공고(~5/13) Hit 70" [ref=e98] [cursor=pointer]:
+                - /url: /front/recruit/r-1/view?id=6464
+            - cell "2026-04-30" [ref=e99]
+          - row "1950 [서울에너지공사] 2026년도 상반기 신규직원 채용 공고(~5/14) Hit 70 2026-04-30" [ref=e100]:
+            - cell "1950" [ref=e101]
+            - cell "[서울에너지공사] 2026년도 상반기 신규직원 채용 공고(~5/14) Hit 70" [ref=e102]:
+              - link "[서울에너지공사] 2026년도 상반기 신규직원 채용 공고(~5/14) Hit 70" [ref=e103] [cursor=pointer]:
+                - /url: /front/recruit/r-1/view?id=6463
+            - cell "2026-04-30" [ref=e104]
+          - row "1949 [인천시설공단] 2026년 청년체험형 인턴 채용계획 공고(~5/14) Hit 104 2026-04-30" [ref=e105]:
+            - cell "1949" [ref=e106]
+            - cell "[인천시설공단] 2026년 청년체험형 인턴 채용계획 공고(~5/14) Hit 104" [ref=e107]:
+              - link "[인천시설공단] 2026년 청년체험형 인턴 채용계획 공고(~5/14) Hit 104" [ref=e108] [cursor=pointer]:
+                - /url: /front/recruit/r-1/view?id=6462
+            - cell "2026-04-30" [ref=e109]
+          - row "1948 [창업진흥원] 2026년 제3차 체험형 청년인턴(일반) 채용 Hit 49 2026-04-30" [ref=e110]:
+            - cell "1948" [ref=e111]
+            - cell "[창업진흥원] 2026년 제3차 체험형 청년인턴(일반) 채용 Hit 49" [ref=e112]:
+              - link "[창업진흥원] 2026년 제3차 체험형 청년인턴(일반) 채용 Hit 49" [ref=e113] [cursor=pointer]:
+                - /url: /front/recruit/r-1/view?id=6461
+            - cell "2026-04-30" [ref=e114]
+          - row "1947 [창업진흥원] 2026년 제1차 기간제계약직(육휴대체) 채용 공고(~5/7) Hit 49 2026-04-30" [ref=e115]:
+            - cell "1947" [ref=e116]
+            - cell "[창업진흥원] 2026년 제1차 기간제계약직(육휴대체) 채용 공고(~5/7) Hit 49" [ref=e117]:
+              - link "[창업진흥원] 2026년 제1차 기간제계약직(육휴대체) 채용 공고(~5/7) Hit 49" [ref=e118] [cursor=pointer]:
+                - /url: /front/recruit/r-1/view?id=6460
+            - cell "2026-04-30" [ref=e119]
+          - row "1946 [아동권리보장원] 직원 채용(~5/6) Hit 44 2026-04-30" [ref=e120]:
+            - cell "1946" [ref=e121]
+            - cell "[아동권리보장원] 직원 채용(~5/6) Hit 44" [ref=e122]:
+              - link "[아동권리보장원] 직원 채용(~5/6) Hit 44" [ref=e123] [cursor=pointer]:
+                - /url: /front/recruit/r-1/view?id=6459
+            - cell "2026-04-30" [ref=e124]
+          - row "1945 [한국교통안전공단] 직원(실무직) 공개채용 공고(~5/7) Hit 48 2026-04-30" [ref=e125]:
+            - cell "1945" [ref=e126]
+            - cell "[한국교통안전공단] 직원(실무직) 공개채용 공고(~5/7) Hit 48" [ref=e127]:
+              - link "[한국교통안전공단] 직원(실무직) 공개채용 공고(~5/7) Hit 48" [ref=e128] [cursor=pointer]:
+                - /url: /front/recruit/r-1/view?id=6458
+            - cell "2026-04-30" [ref=e129]
+      - generic [ref=e130]:
+        - list [ref=e131]:
+          - listitem [ref=e132]:
+            - generic [ref=e133]: <<
+          - listitem [ref=e134]:
+            - generic [ref=e135]: <
+          - listitem [ref=e136]:
+            - link "1" [ref=e137]:
+              - /url: /front/recruit/r-1?page=1&per-page=12
+          - listitem [ref=e138]:
+            - link "2" [ref=e139] [cursor=pointer]:
+              - /url: /front/recruit/r-1?page=2&per-page=12
+          - listitem [ref=e140]:
+            - link "3" [ref=e141] [cursor=pointer]:
+              - /url: /front/recruit/r-1?page=3&per-page=12
+          - listitem [ref=e142]:
+            - link "4" [ref=e143] [cursor=pointer]:
+              - /url: /front/recruit/r-1?page=4&per-page=12
+          - listitem [ref=e144]:
+            - link "5" [ref=e145] [cursor=pointer]:
+              - /url: /front/recruit/r-1?page=5&per-page=12
+          - listitem [ref=e146]:
+            - link "6" [ref=e147] [cursor=pointer]:
+              - /url: /front/recruit/r-1?page=6&per-page=12
+          - listitem [ref=e148]:
+            - link "7" [ref=e149] [cursor=pointer]:
+              - /url: /front/recruit/r-1?page=7&per-page=12
+          - listitem [ref=e150]:
+            - link "8" [ref=e151] [cursor=pointer]:
+              - /url: /front/recruit/r-1?page=8&per-page=12
+          - listitem [ref=e152]:
+            - link "9" [ref=e153] [cursor=pointer]:
+              - /url: /front/recruit/r-1?page=9&per-page=12
+          - listitem [ref=e154]:
+            - link "10" [ref=e155] [cursor=pointer]:
+              - /url: /front/recruit/r-1?page=10&per-page=12
+          - listitem [ref=e156]:
+            - link ">" [ref=e157] [cursor=pointer]:
+              - /url: /front/recruit/r-1?page=2&per-page=12
+          - listitem [ref=e158]:
+            - link ">>" [ref=e159] [cursor=pointer]:
+              - /url: /front/recruit/r-1?page=163&per-page=12
+        - generic [ref=e161]:
+          - textbox [ref=e163]:
+            - /placeholder: 검색어를 입력해 주세요.
+          - button "검색" [ref=e164] [cursor=pointer]
+  - generic [ref=e165]:
+    - generic [ref=e167]:
+      - list [ref=e168]:
+        - listitem [ref=e169]:
+          - link "개인정보처리방침" [ref=e170] [cursor=pointer]:
+            - /url: /front/policy
+        - listitem [ref=e171]:
+          - link "찾아오시는길" [ref=e172] [cursor=pointer]:
+            - /url: /front/introduce/location
+        - listitem [ref=e173]:
+          - link "업무별전화번호" [ref=e174] [cursor=pointer]:
+            - /url: http://ibus.hanyang.ac.kr/front/introduce/employee
+        - listitem [ref=e175]:
+          - link "HY-in(업무포털)" [ref=e176] [cursor=pointer]:
+            - /url: https://portal.hanyang.ac.kr/sso/lgin.do
+        - listitem [ref=e177]:
+          - link "HY-CDP(커리어개발센터)" [ref=e178] [cursor=pointer]:
+            - /url: http://cdp.hanyang.ac.kr/
+        - listitem [ref=e179]:
+          - link "(ERICA)현장실습" [ref=e180] [cursor=pointer]:
+            - /url: https://e-wil.hanyang.ac.kr/index.do
+        - listitem [ref=e181]:
+          - link "ERICA 캠퍼스가이드북" [ref=e182] [cursor=pointer]:
+            - /url: https://book.hanyang.ac.kr/Viewer/B4I787ATX48O
+      - link "관련사이트 토글" [ref=e184] [cursor=pointer]:
+        - /url: "#family-site"
+        - generic [ref=e185]: 관련사이트 토글
+    - generic [ref=e187]:
+      - generic [ref=e188]:
+        - text: 15588 경기도 안산시 상록구 한양대학로 55 한양대학교 경상대학
+        - link "[업무담당자 연락처 보기]" [ref=e189] [cursor=pointer]:
+          - /url: /front/introduce/employee
+          - strong [ref=e190]: "[업무담당자 연락처 보기]"
+      - paragraph [ref=e191]: Copyrights (c) 2016 Hanyang University. All rights reserved. If you have any question,
+      - paragraph [ref=e192]:
+        - 'link "홈페이지 책임자 : 경상대학장 송유진" [ref=e193] [cursor=pointer]':
+          - /url: mailto:songeugene@hanyang.ac.kr
+        - 'link "홈페이지 관리자 : 팀장 이상근" [ref=e194] [cursor=pointer]':
+          - /url: mailto:sklee@hanyang.ac.kr
+        - 'link "홈페이지 담당자 : 김연수" [ref=e195] [cursor=pointer]':
+          - /url: mailto:kys7562@hanyang.ac.kr
+      - generic [ref=e196]:
+        - link "AACSB 바로가기":
+          - /url: https://ibus.hanyang.ac.kr/front/introduce/aacsb
+          - generic [ref=e197] [cursor=pointer]: AACSB 바로가기
+        - paragraph [ref=e198]: "* 경제학 프로그램 제외"
+    - paragraph [ref=e201]: LEAD THE WORLD WITH VISION, HANYANG UNIVERSITY COLLEGE OF BUSINESS AND ECONOMICS
+  - generic [ref=e202]:
+    - strong [ref=e203]:
+      - generic [ref=e204]: QUICK MENU SERVICE
+    - generic [ref=e205]:
+      - link "빠른메뉴 열기/닫기" [ref=e206] [cursor=pointer]:
+        - /url: "#qnb-toggle"
+        - generic [ref=e207]: 빠른메뉴 열기/닫기
+      - list [ref=e208]:
+        - listitem [ref=e209]:
+          - link "AACSB" [ref=e210] [cursor=pointer]:
+            - /url: https://ibus.hanyang.ac.kr/front/introduce/aacsb
+            - generic [ref=e211]: AACSB
+        - listitem [ref=e212]:
+          - link "입학안내" [ref=e213] [cursor=pointer]:
+            - /url: http://goerica.hanyang.ac.kr/intro.asp
+            - generic [ref=e214]: 입학안내
+        - listitem [ref=e215]:
+          - link "리모델링백서" [ref=e216] [cursor=pointer]:
+            - /url: http://book.hanyang.ac.kr/Viewer/TBMP6UDFTI0J
+            - generic [ref=e217]: 리모델링백서
+        - listitem [ref=e218]:
+          - link "발전기금" [ref=e219] [cursor=pointer]:
+            - /url: http://hyfund.hanyang.ac.kr/
+            - generic [ref=e220]: 발전기금
+      - link "맨 위로" [ref=e221] [cursor=pointer]:
+        - /url: "#goto-and-top"
+        - generic [ref=e222]: 맨 위로
+    - generic [ref=e223]:
+      - list [ref=e224]:
+        - listitem [ref=e225]:
+          - link "경상대학 소개" [ref=e226] [cursor=pointer]:
+            - /url: /front/introduce/introduce
+          - list [ref=e227]:
+            - listitem [ref=e228]:
+              - link "대학소개" [ref=e229] [cursor=pointer]:
+                - /url: /front/introduce/introduce
+            - listitem [ref=e230]:
+              - link "역대 학장" [ref=e231] [cursor=pointer]:
+                - /url: /front/introduce/Dean
+            - listitem [ref=e232]:
+              - link "학장인사말" [ref=e233] [cursor=pointer]:
+                - /url: /front/introduce/greeting
+            - listitem [ref=e234]:
+              - link "연혁" [ref=e235] [cursor=pointer]:
+                - /url: /front/introduce/history
+            - listitem [ref=e236]:
+              - link "조직" [ref=e237] [cursor=pointer]:
+                - /url: /front/introduce/organization
+            - listitem [ref=e238]:
+              - link "AACSB" [ref=e239] [cursor=pointer]:
+                - /url: /front/introduce/aacsb
+            - listitem [ref=e240]:
+              - link "직원소개" [ref=e241] [cursor=pointer]:
+                - /url: /front/introduce/employee
+            - listitem [ref=e242]:
+              - link "찾아오시는 길" [ref=e243] [cursor=pointer]:
+                - /url: /front/introduce/location
+        - listitem [ref=e244]:
+          - link "학부소개" [ref=e245] [cursor=pointer]:
+            - /url: /front/college/introduce
+          - list [ref=e246]:
+            - listitem [ref=e247]:
+              - link "학부소개" [ref=e248] [cursor=pointer]:
+                - /url: /front/college/introduce
+            - listitem [ref=e249]:
+              - link "경제학부" [ref=e250] [cursor=pointer]:
+                - /url: /front/college/economics
+            - listitem [ref=e251]:
+              - link "경영학부" [ref=e252] [cursor=pointer]:
+                - /url: /front/college/management
+            - listitem [ref=e253]:
+              - link "보험계리학과" [ref=e254] [cursor=pointer]:
+                - /url: /front/college/actsci
+            - listitem [ref=e255]:
+              - link "회계세무학과" [ref=e256] [cursor=pointer]:
+                - /url: /front/college/accounting
+            - listitem [ref=e257]:
+              - link "비즈니스애널리틱스융합전공" [ref=e258] [cursor=pointer]:
+                - /url: /front/college/ba
+        - listitem [ref=e259]:
+          - link "대학원" [ref=e260] [cursor=pointer]:
+            - /url: /front/graduateschool/notice-2
+          - list [ref=e261]:
+            - listitem [ref=e262]:
+              - link "대학원 공지사항" [ref=e263] [cursor=pointer]:
+                - /url: /front/graduateschool/notice-2
+            - listitem [ref=e264]:
+              - link "자료실" [ref=e265] [cursor=pointer]:
+                - /url: /front/graduateschool/data
+            - listitem [ref=e266]:
+              - link "대학원 학사일정" [ref=e267] [cursor=pointer]:
+                - /url: http://www.grad.hanyang.ac.kr/academics/calendar.php?ptype=view&code=administrative&idx=5403
+            - listitem [ref=e268]:
+              - link "학과요람" [ref=e269] [cursor=pointer]:
+                - /url: /front/graduateschool/rule/2026
+            - listitem [ref=e270]:
+              - link "응용경제학과" [ref=e271] [cursor=pointer]:
+                - /url: /front/graduateschool/application
+            - listitem [ref=e272]:
+              - link "경영컨설팅학과" [ref=e273] [cursor=pointer]:
+                - /url: /front/graduateschool/consulting
+            - listitem [ref=e274]:
+              - link "전략경영학과" [ref=e275] [cursor=pointer]:
+                - /url: /front/graduateschool/strategy
+            - listitem [ref=e276]:
+              - link "금융보험학과" [ref=e277] [cursor=pointer]:
+                - /url: /front/graduateschool/actsci
+        - listitem [ref=e278]:
+          - link "부설연구소" [ref=e279] [cursor=pointer]:
+            - /url: /front/laboratory/applylab
+          - list [ref=e280]:
+            - listitem [ref=e281]:
+              - link "응용경제연구소" [ref=e282] [cursor=pointer]:
+                - /url: /front/laboratory/applylab
+            - listitem [ref=e283]:
+              - link "지식서비스연구소" [ref=e284] [cursor=pointer]:
+                - /url: http://iks.hanyang.ac.kr
+            - listitem [ref=e285]:
+              - link "산업경영연구소" [ref=e286] [cursor=pointer]:
+                - /url: http://hymri.com/
+        - listitem [ref=e287]:
+          - link "학사안내" [ref=e288] [cursor=pointer]:
+            - /url: "#none"
+          - list [ref=e289]:
+            - listitem [ref=e290]:
+              - link "학사일정" [ref=e291] [cursor=pointer]:
+                - /url: http://www.hanyang.ac.kr/web/www/cal_academic?p_p_id=calendarView_WAR_eventportlet&p_p_lifecycle=0&p_p_state=normal&p_p_mode=view&p_p_col_id=column-1&p_p_col_count=1&_calendarView_WAR_eventportlet_action=view
+            - listitem [ref=e292]:
+              - link "전공제도" [ref=e293] [cursor=pointer]:
+                - /url: http://ehaksa.hanyang.ac.kr/major_intro
+            - listitem [ref=e294]:
+              - link "학적변동" [ref=e295] [cursor=pointer]:
+                - /url: http://ehaksa.hanyang.ac.kr/register
+            - listitem [ref=e296]:
+              - link "복수학위" [ref=e297] [cursor=pointer]:
+                - /url: /front/schoolaffairs/multiple
+            - listitem [ref=e298]:
+              - link "성적" [ref=e299] [cursor=pointer]:
+                - /url: http://ehaksa.hanyang.ac.kr/-grade-process
+            - listitem [ref=e300]:
+              - link "졸업" [ref=e301] [cursor=pointer]:
+                - /url: http://ehaksa.hanyang.ac.kr/graduate
+            - listitem [ref=e302]:
+              - link "증명서 발급" [ref=e303] [cursor=pointer]:
+                - /url: http://ehaksa.hanyang.ac.kr/certificate
+            - listitem [ref=e304]:
+              - link "경영인증" [ref=e305] [cursor=pointer]:
+                - /url: /front/schoolaffairs/management
+            - listitem [ref=e306]:
+              - link "전공트랙" [ref=e307] [cursor=pointer]:
+                - /url: /front/schoolaffairs/track/t-eco
+            - listitem [ref=e308]:
+              - link "교직안내" [ref=e309] [cursor=pointer]:
+                - /url: https://asteaching.hanyang.ac.kr/home
+        - listitem [ref=e310]:
+          - link "정보광장" [ref=e311] [cursor=pointer]:
+            - /url: /front/community/notice
+          - list [ref=e312]:
+            - listitem [ref=e313]:
+              - link "공지사항" [ref=e314] [cursor=pointer]:
+                - /url: /front/community/notice
+            - listitem [ref=e315]:
+              - link "자료실" [ref=e316] [cursor=pointer]:
+                - /url: /front/community/reference/reference
+            - listitem [ref=e317]:
+              - link "학회 및 소모임" [ref=e318] [cursor=pointer]:
+                - /url: /front/community/smallgroup
+            - listitem [ref=e319]:
+              - link "고시반" [ref=e320] [cursor=pointer]:
+                - /url: /front/community/organ/accountant
+            - listitem [ref=e321]:
+              - link "포토갤러리" [ref=e322] [cursor=pointer]:
+                - /url: /front/community/photogallery
+        - listitem [ref=e323]:
+          - link "취업정보" [ref=e324] [cursor=pointer]:
+            - /url: /front/recruit/r-2
+          - list [ref=e325]:
+            - listitem [ref=e326]:
+              - link "취업특강" [ref=e327] [cursor=pointer]:
+                - /url: /front/recruit/r-2
+            - listitem [ref=e328]:
+              - link "취업정보" [ref=e329] [cursor=pointer]:
+                - /url: /front/recruit/r-1
+        - listitem [ref=e330]:
+          - link "경상NEWS" [ref=e331] [cursor=pointer]:
+            - /url: /front/news
+        - listitem [ref=e332]:
+          - link "발전기금" [ref=e333] [cursor=pointer]:
+            - /url: /front/donation/d-1
+          - list [ref=e334]:
+            - listitem [ref=e335]:
+              - link "경상 명예의 전당" [ref=e336] [cursor=pointer]:
+                - /url: /front/donation/d-1
+            - listitem [ref=e337]:
+              - link "기부 참여하기" [ref=e338] [cursor=pointer]:
+                - /url: https://hyfund.hanyang.ac.kr/donation/way.php
+            - listitem [ref=e339]:
+              - link "기부자 예우프로그램" [ref=e340] [cursor=pointer]:
+                - /url: http://hyfund.hanyang.ac.kr/contributor/program.php
+        - listitem [ref=e341]:
+          - link "공간예약" [ref=e342] [cursor=pointer]:
+            - /url: https://cbe-space.hanyang.ac.kr/
+      - link "맨 위로" [ref=e343] [cursor=pointer]:
+        - /url: "#goto-and-top"
+        - generic [ref=e344]: 맨 위로
