@@ -1,17 +1,18 @@
 import { existsSync, readFileSync } from "node:fs";
 import { join } from "node:path";
-import { z } from "zod";
+import type { z } from "zod";
 
-import { KnowledgeChunkSchema, type KnowledgeChunk } from "../ingestion/normalized-record.js";
+import { type KnowledgeChunk, KnowledgeChunkSchema } from "../ingestion/normalized-record.js";
 
 export const DEFAULT_KNOWLEDGE_BASE_DIRS = ["data/knowledge-base/fixture-ibus", "data/knowledge-base/fixture-cdp-pdf", "data/knowledge-base/playwright-sources"] as const;
+export const OPTIONAL_KNOWLEDGE_BASE_DIRS = ["data/knowledge-base/manual-cdp-posts"] as const;
 
 export type LoadKnowledgeBaseChunksInput = {
   directories?: readonly string[];
 };
 
 export function loadKnowledgeBaseChunks(input: LoadKnowledgeBaseChunksInput = {}): KnowledgeChunk[] {
-  const directories = input.directories ?? DEFAULT_KNOWLEDGE_BASE_DIRS;
+  const directories = input.directories ?? [...DEFAULT_KNOWLEDGE_BASE_DIRS, ...OPTIONAL_KNOWLEDGE_BASE_DIRS.filter((directory) => existsSync(directory))];
   const failures: string[] = [];
   const chunksByDirectory = directories.map((directory) => readChunksJsonl(directory, failures));
 
@@ -26,7 +27,7 @@ function readChunksJsonl(outputDir: string, failures: string[]): KnowledgeChunk[
   return readJsonl(outputDir, "chunks.jsonl", KnowledgeChunkSchema, failures).map((chunk) => {
     const chunkFailures = validateChunkInvariants(chunk);
     if (chunkFailures.length > 0) {
-      failures.push(...chunkFailures.map((failure) => join(outputDir, "chunks.jsonl") + `:${failure}`));
+      failures.push(...chunkFailures.map((failure) => `${join(outputDir, "chunks.jsonl")}:${failure}`));
     }
     return chunk;
   });
