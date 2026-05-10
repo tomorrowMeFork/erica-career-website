@@ -1,8 +1,10 @@
 (() => {
+  // biome-ignore lint/suspicious/noRedundantUseStrict: this file is pasted into browser consoles, not loaded as an ES module.
   "use strict";
 
   const allowedHost = "cdp.hanyang.ac.kr";
   const allowedBoards = ["채용상담 및 설명회", "일반채용공고"];
+  const defaultFetchDelayMs = 1200;
   const detailPathPattern =
     /(?:\/Career\/Job\/[A-Za-z0-9]*View\d*\.aspx|\/Office\/SiteMgr\/Notice\/FuncScheView\.aspx)$/u;
   const listPathPattern =
@@ -53,6 +55,25 @@
       return null;
     }
     return listPathPattern.test(new URL(url).pathname) ? url : null;
+  };
+
+  const listUrlFromScriptText = (scriptText, baseUrl) => {
+    const text = scriptText ?? "";
+    const hcSubmit = text.match(
+      /hcSubmit\s*\(\s*['"]([^'"]+\.aspx\?[^'"]*)['"]/iu,
+    );
+    if (hcSubmit) {
+      return toCdpListUrl(new URL(hcSubmit[1], baseUrl).toString());
+    }
+
+    const directListPath = text.match(
+      /(?:https?:\/\/cdp\.hanyang\.ac\.kr)?(\/(?:Career\/Job\/(?:RecruitList\d*|AlbaList|RecruitEvent)|Office\/SiteMgr\/Notice\/FuncScheList|Community\/Notice\/RecruitEvent)\.aspx\?[^'"\s)]+)/u,
+    );
+    if (directListPath) {
+      return toCdpListUrl(new URL(directListPath[0], baseUrl).toString());
+    }
+
+    return null;
   };
 
   const isFuncSchePageUrl = (href) => {
@@ -291,7 +312,9 @@
     const diagnosticRoot = document.cloneNode(true);
     diagnosticRoot
       .querySelectorAll("script, style, noscript, iframe, header, nav, footer")
-      .forEach((element) => element.remove());
+      .forEach((element) => {
+        element.remove();
+      });
     const selector =
       "a[href], button, input[type='button'], input[type='submit'], [role='button'], [onclick], [data-url], [data-href], [data-funcidx], [data-func-idx], [data-idx], [data-id], [data-seq], [class*='btn'], [class*='more'], [class*='detail'], [class*='view']";
     const elements = Array.from(diagnosticRoot.querySelectorAll(selector));
@@ -389,32 +412,99 @@
     };
   };
 
-  const collectListPageUrls = () => {
-    const urls = Array.from(document.querySelectorAll("a[href]"))
-      .map((anchor) => {
+  const collectListUrlsFromDocument = (doc, baseUrl, allowedPathname) => {
+    const elements = Array.from(
+      doc.querySelectorAll(
+        "a[href], [onclick], button, input[type='button'], input[type='submit']",
+      ),
+    );
+    const urls = elements.flatMap((element) => {
+      const candidates = [];
+      const href = element.getAttribute("href");
+      if (href) {
         try {
-          return toCdpListUrl(
-            new URL(
-              anchor.getAttribute("href") ?? "",
-              window.location.href,
-            ).toString(),
-          );
+          candidates.push(toCdpListUrl(new URL(href, baseUrl).toString()));
         } catch (_error) {
-          return null;
+          candidates.push(null);
         }
-      })
-      .filter(Boolean);
+        candidates.push(listUrlFromScriptText(href, baseUrl));
+      }
 
-    return unique([window.location.href, ...urls]);
+      candidates.push(
+        listUrlFromScriptText(element.getAttribute("onclick"), baseUrl),
+      );
+
+      return candidates.filter((url) => {
+        if (!url) {
+          return false;
+        }
+        return new URL(url).pathname === allowedPathname;
+      });
+    });
+
+    return unique(urls);
+  };
+
+  const collectListPageUrls = async () => {
+    const startUrl = toCdpListUrl(window.location.href) ?? window.location.href;
+    const allowedPathname = new URL(startUrl).pathname;
+    const queue = [startUrl];
+    const seen = new Set();
+    const maxListPages = 200;
+
+    for (let index = 0; index < queue.length; index += 1) {
+      if (queue.length > maxListPages) {
+        throw new Error(
+          `Too many CDP list pages discovered; stopped at ${maxListPages}.`,
+        );
+      }
+
+      const pageUrl = queue[index];
+      if (seen.has(pageUrl)) {
+        continue;
+      }
+      seen.add(pageUrl);
+
+      const doc =
+        pageUrl === startUrl || pageUrl === window.location.href
+          ? document
+          : await fetchDocument(pageUrl);
+
+      for (const nextUrl of collectListUrlsFromDocument(
+        doc,
+        pageUrl,
+        allowedPathname,
+      )) {
+        if (!seen.has(nextUrl) && !queue.includes(nextUrl)) {
+          queue.push(nextUrl);
+        }
+      }
+    }
+
+    const listPageUrls = Array.from(seen);
+    console.log("[CDP export] List pages discovered:", listPageUrls);
+    return listPageUrls;
   };
 
   const fetchDocument = async (url) => {
+    await delayBeforeFetch();
     const response = await window.fetch(url, { credentials: "same-origin" });
     if (!response.ok) {
       throw new Error(`Failed to fetch ${url}: ${response.status}`);
     }
     const html = await response.text();
     return new DOMParser().parseFromString(html, "text/html");
+  };
+
+  const delayBeforeFetch = async () => {
+    const override = Number(window.__CDP_EXPORT_FETCH_DELAY_MS__);
+    const delayMs = Number.isFinite(override) && override >= 0
+      ? override
+      : defaultFetchDelayMs;
+    if (delayMs === 0) {
+      return;
+    }
+    await new Promise((resolve) => window.setTimeout(resolve, delayMs));
   };
 
   const removeNoise = (doc) => {
@@ -428,7 +518,9 @@
       "nav",
       "footer",
     ]) {
-      doc.querySelectorAll(selector).forEach((element) => element.remove());
+      doc.querySelectorAll(selector).forEach((element) => {
+        element.remove();
+      });
     }
   };
 
@@ -728,7 +820,7 @@
     );
     const exportedAt = new Date();
     const listPageUrls = includeLinkedPages
-      ? collectListPageUrls()
+      ? await collectListPageUrls()
       : [window.location.href];
     const detailUrls = [];
 
