@@ -26,6 +26,15 @@ export const CdpManualPostSchema = z.object({
 	deadline_status: DeadlineStatusSchema.default("unknown"),
 	deadline_raw_text: z.string().default(""),
 	body_text: z.string().trim().min(1),
+}).superRefine((post, context) => {
+	const expectedBoard = getExpectedBoardForDetailUrl(post.detail_url);
+	if (expectedBoard !== null && post.board !== expectedBoard) {
+		context.addIssue({
+			code: "custom",
+			message: `detail_url path requires board ${expectedBoard}`,
+			path: ["board"],
+		});
+	}
 });
 
 export const CdpManualPostExportSchema = z.object({
@@ -156,6 +165,24 @@ function isAllowedCdpDetailUrl(value: string): boolean {
 	} catch (_error) {
 		return false;
 	}
+}
+
+function getExpectedBoardForDetailUrl(
+	value: string,
+): z.infer<typeof CdpManualBoardSchema> | null {
+	let pathname: string;
+	try {
+		pathname = new URL(value).pathname.toLowerCase();
+	} catch (_error) {
+		return null;
+	}
+	if (pathname === "/office/sitemgr/notice/funcscheview.aspx") {
+		return "채용상담 및 설명회";
+	}
+	if (pathname.startsWith("/career/job/") && pathname.endsWith(".aspx")) {
+		return "일반채용공고";
+	}
+	return null;
 }
 
 function normalizeUrl(value: string): string {
