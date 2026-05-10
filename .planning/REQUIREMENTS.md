@@ -9,7 +9,7 @@ v1.1 UI Redesign shipped on 2026-05-04. It delivered the four-page Korean-first 
 
 ## v1.2 Requirements
 
-Requirements for the v1.2 milestone. Each maps to roadmap phases 12 through 14. v1.2 is a chat-answer presentation and privacy-safe prompt-context milestone, not a retrieval, crawling, ranking, or job-board workflow milestone. Targeted implementation and focused verification are complete, but full release gates remain pending.
+Requirements for the v1.2 milestone. Each maps to roadmap phases 12 through 14. v1.2 is a chat-answer presentation and privacy-safe prompt-context milestone, not a retrieval, crawling, ranking, or job-board workflow milestone. Targeted implementation and focused verification are complete; typecheck, build, and Playwright QA pass; broad Vitest/evaluation gates still fail and block `release:ready`.
 
 ### Markdown Answer Rendering
 
@@ -38,13 +38,21 @@ Requirements for the v1.2 milestone. Each maps to roadmap phases 12 through 14. 
 - [x] **V12-TEST-02**: Add or update tests proving citations, freshness metadata, deadline status, and refusal/no-answer behavior remain present after markdown rendering.
 - [x] **V12-TEST-03**: Add or update tests proving unsafe markdown or HTML input is sanitized, escaped, or rejected according to the chosen rendering policy.
 - [x] **V12-TEST-04**: Add or update tests proving explicit preference prompt context includes only allowed minimized fields and is omitted when preferences are absent or cleared.
-- [x] **V12-TEST-05**: Targeted verification shows v1.2 does not add semantic retrieval, crawling, ranking algorithm changes, saved jobs/reminders, SSO, official endorsement claims, or job-board workflow scope. Full release gate, broad test suite, build, and Playwright QA remain pending.
+- [x] **V12-TEST-05**: Targeted verification shows v1.2 does not add semantic retrieval, crawling, ranking algorithm changes, saved jobs/reminders, SSO, official endorsement claims, or job-board workflow scope. Typecheck, build, and Playwright QA pass, but broad Vitest/evaluation gates still fail and block `release:ready`.
 
-**Targeted verification evidence:**
+**Verification evidence:**
 
 - `npm test -- src/chat/prompt.test.ts src/chat/chat-service.test.ts app/api/chat/route.test.ts lib/api-client.test.ts components/chat/chat-components.test.tsx` passed with 5 files and 30 tests.
-- `npm run typecheck -- --pretty false` passed after a TS7006 test typing fix.
-- Full `npm test`, build, Playwright QA, `release:ready`, tag, and shipped release status are not claimed.
+- `npm run typecheck -- --pretty false` passed.
+- `npm run build:web` passed.
+- Initial `npm run qa:web` failed only because the Playwright Chromium/headless shell executable was missing locally.
+- `npx playwright install chromium` installed the required browser artifacts.
+- Re-run `npm run qa:web` passed with 28/28 tests.
+- Full `npm test` failed: 42 test files total, 40 passed, 2 failed; 292 tests total, 287 passed, 5 failed.
+- Failed test files: `scripts/evaluate-rag-mvp.test.ts` and `scripts/evaluate-release-readiness.test.ts`.
+- Direct `npm run evaluate:rag:mvp` reported: `CDP 학생 가이드북: expected source cdp-student-guide-pdf in top 5`.
+- Direct `npm run evaluate:release-readiness` reported failures for `phase6-listing-deadline: expected chunk 3986f65fde23212320ca478290394113c27ffaa776f8de59f7e292989ee8f270 in top results`, `phase6-personalization-recommendation: expected chunk 3986f65fde23212320ca478290394113c27ffaa776f8de59f7e292989ee8f270 in top results`, and `rag_mvp: CDP 학생 가이드북: expected source cdp-student-guide-pdf in top 5`.
+- `release:ready`, tag, shipped release status, and release-ready status are not claimed. `release:ready` remains blocked/pending because broad Vitest/evaluation gates are failing.
 
 ## Future Requirements
 
@@ -97,7 +105,7 @@ Which phases cover which requirements. Updated during v1.2 roadmap creation.
 | V12-TEST-02 | Phase 14 | Targeted verification passed |
 | V12-TEST-03 | Phase 14 | Targeted verification passed |
 | V12-TEST-04 | Phase 14 | Targeted verification passed |
-| V12-TEST-05 | Phase 14 | Targeted verification passed, broad release gate pending |
+| V12-TEST-05 | Phase 14 | Targeted verification passed; typecheck/build/Playwright passed; broad Vitest/evaluation gates failing |
 
 **Coverage:**
 
@@ -105,8 +113,8 @@ Which phases cover which requirements. Updated during v1.2 roadmap creation.
 - Mapped to phases: 17
 - Unmapped: 0
 - Duplicate mappings: 0
-- Broad release gates pending: full test suite, build, Playwright QA, and release-readiness command if required
+- Broad release gate blocked: full `npm test` and direct evaluation commands fail as recorded above; typecheck, build, and Playwright QA pass
 
 ---
 *Requirements defined: 2026-05-08*  
-*Last updated: 2026-05-08 after v1.2 targeted implementation and verification update*
+*Last updated: 2026-05-08 after v1.2 broad verification update*

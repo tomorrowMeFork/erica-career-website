@@ -12,7 +12,7 @@
 |---|---|---:|---|---|
 | v1.0 ERICA Career Chat v1.0 | Shipped with known tech debt | 2026-05-04 | 6 phases, 30 plans, 32/32 requirements covered | [Roadmap](milestones/v1.0-ROADMAP.md) · [Requirements](milestones/v1.0-REQUIREMENTS.md) · [Audit](milestones/v1.0-MILESTONE-AUDIT.md) |
 | v1.1 UI Redesign | Shipped | 2026-05-04 | 5 phases, 21/21 requirements verified PASS | See [MILESTONES.md](MILESTONES.md) |
-| v1.2 Markdown Rendering and Prompt Context | Targeted implementation complete, release gate pending | - | 3 phases, 17/17 v1.2 requirements mapped | Active in this file |
+| v1.2 Markdown Rendering and Prompt Context | Targeted implementation complete, broad verification blocked | - | 3 phases, 17/17 v1.2 requirements mapped | Active in this file |
 
 ## v1.0 Archive Reference
 
@@ -44,6 +44,8 @@ v1.2 must preserve citations, source labels, freshness metadata, deadlines, refu
 
 Targeted v1.2 implementation is complete. Chat answers now render with `react-markdown`, citations/freshness/refusal states are preserved, unsafe raw HTML/script/style/iframe handling is constrained, markdown images are disabled, and chat requests can use an optional `session_key` path. Server-side prompt context resolves explicit preferences and includes only minimized `major` and `target_role`, while excluding raw chat history, session-only optional text, extra preference fields, secrets, storage metadata, hidden profiling, and cleared preferences. This does not mark v1.2 as shipped or release-ready.
 
+Latest broad verification distinguishes passing infrastructure gates from failing broad Vitest/evaluation gates. `npm run typecheck -- --pretty false`, `npm run build:web`, and re-run `npm run qa:web` passed. The first `npm run qa:web` failed only because the Playwright Chromium/headless shell executable was missing locally; `npx playwright install chromium` installed the required browser artifacts before the successful 28/28 Playwright re-run. Full `npm test` still failed, so `release:ready` remains blocked/pending.
+
 ## Verification-First Expectations
 
 - Each v1.2 phase should plan verification before implementation, including markdown rendering cases, Korean readability checks, citation/freshness preservation, refusal/no-answer display, sanitization, and prompt-context privacy checks.
@@ -51,14 +53,20 @@ Targeted v1.2 implementation is complete. Chat answers now render with `react-ma
 - Prompt-context work should prove only explicit minimized preference fields are added, cleared preferences are omitted, and hidden profiling from chat history is not introduced.
 - Final QA should prove v1.2 does not introduce semantic retrieval, ingestion expansion, crawling, matching/ranking algorithm changes, saved-job workflows, SSO, or official endorsement claims.
 - Targeted verification passed: `npm test -- src/chat/prompt.test.ts src/chat/chat-service.test.ts app/api/chat/route.test.ts lib/api-client.test.ts components/chat/chat-components.test.tsx`, with 5 files and 30 tests passing.
-- Typecheck passed: `npm run typecheck -- --pretty false`, after a TS7006 test typing fix.
-- Remaining release gates are still pending: broad `npm test`, build, Playwright QA, and any release-readiness command.
+- Typecheck passed: `npm run typecheck -- --pretty false`.
+- Build passed: `npm run build:web`.
+- Playwright QA passed after environment setup: initial `npm run qa:web` failed only because the Playwright Chromium/headless shell executable was missing locally; `npx playwright install chromium` installed the required browser artifacts; re-run `npm run qa:web` passed with 28/28 tests.
+- Broad Vitest/evaluation gates still fail: full `npm test` failed with 42 test files total, 40 passed, 2 failed; 292 tests total, 287 passed, 5 failed.
+- Failed test files: `scripts/evaluate-rag-mvp.test.ts` and `scripts/evaluate-release-readiness.test.ts`.
+- Direct `npm run evaluate:rag:mvp` reported: `CDP 학생 가이드북: expected source cdp-student-guide-pdf in top 5`.
+- Direct `npm run evaluate:release-readiness` reported failures for `phase6-listing-deadline: expected chunk 3986f65fde23212320ca478290394113c27ffaa776f8de59f7e292989ee8f270 in top results`, `phase6-personalization-recommendation: expected chunk 3986f65fde23212320ca478290394113c27ffaa776f8de59f7e292989ee8f270 in top results`, and `rag_mvp: CDP 학생 가이드북: expected source cdp-student-guide-pdf in top 5`.
+- `release:ready` remains blocked/pending because broad Vitest/evaluation gates are failing.
 
 ## Phases
 
 - [x] **Phase 12: Markdown Answer Rendering** - Chat answers render cleanly with `react-markdown` while preserving Korean readability, citations, freshness metadata, and refusal/no-answer states.
 - [x] **Phase 13: Explicit Preference Prompt Context** - Stable user-provided preferences such as 전공 and target role can be added to system/developer prompt context with data minimization and no hidden profiling.
-- [x] **Phase 14: v1.2 Regression QA and Scope Guardrails** - Targeted markdown rendering, prompt-context privacy, citations, freshness, refusal behavior, and scope exclusions are verified together. Full release-gate QA remains pending.
+- [x] **Phase 14: v1.2 Regression QA and Scope Guardrails** - Targeted markdown rendering, prompt-context privacy, citations, freshness, refusal behavior, and scope exclusions are verified together. Typecheck, build, and Playwright QA pass; broad Vitest/evaluation gates still fail.
 
 ## Phase Details
 
@@ -99,7 +107,7 @@ Targeted v1.2 implementation is complete. Chat answers now render with `react-ma
   4. Regression tests prove explicit preference prompt context includes only allowed minimized fields and is omitted when absent or cleared.
   5. Scope guardrail checks show no semantic retrieval, crawling, ranking algorithm changes, saved jobs/reminders, SSO, official endorsement claims, or job-board workflow scope were added.
 **Verification-first/TDD expectation**: Start Phase 14 by collecting the Phase 12 and Phase 13 test evidence, then run focused UI, prompt-builder, privacy, and guardrail checks before declaring v1.2 complete.  
-**Plans**: Targeted verification complete; full release gate pending  
+**Plans**: Targeted verification plus typecheck/build/Playwright complete; broad Vitest/evaluation gates failing  
 **UI hint**: yes
 
 ## Progress Table
@@ -108,7 +116,7 @@ Targeted v1.2 implementation is complete. Chat answers now render with `react-ma
 |-------|----------------|--------|-----------|
 | 12. Markdown Answer Rendering | Targeted implementation complete | Complete for targeted scope | 2026-05-08 |
 | 13. Explicit Preference Prompt Context | Targeted implementation complete | Complete for targeted scope | 2026-05-08 |
-| 14. v1.2 Regression QA and Scope Guardrails | Targeted tests and typecheck passed | Targeted verification complete, broad release gate pending | 2026-05-08 |
+| 14. v1.2 Regression QA and Scope Guardrails | Targeted tests, typecheck, build, and Playwright QA passed | Broad Vitest/evaluation gates failing; release gate blocked | 2026-05-08 |
 
 ## Requirement Coverage
 
@@ -136,4 +144,4 @@ Targeted v1.2 implementation is complete. Chat answers now render with `react-ma
 
 ## Next Step
 
-Run remaining broad release-gate verification when ready: full test suite, build, Playwright QA, and release-readiness command if required.
+Resolve the failing broad Vitest/evaluation gates in `scripts/evaluate-rag-mvp.test.ts` and `scripts/evaluate-release-readiness.test.ts` before any `release:ready`, shipped, tagged, or release-ready claim.

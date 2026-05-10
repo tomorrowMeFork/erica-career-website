@@ -4,7 +4,7 @@
 
 ERICA Career Chat is a Korean-first, source-grounded career-information consultation assistant for Hanyang University ERICA students. It helps students ask career and recruitment questions, inspect cited ERICA employment information, and verify freshness/deadline/source metadata without treating the product as a general job-board or ranking product.
 
-The shipped v1.0 uses approved fixture-first Hanyang/ERICA source records and a local JSONL knowledge base to answer Korean questions with citations, freshness/deadline metadata, refusal behavior for weak evidence, and transparent safety guidance. v1.1 shipped a four-page UI information architecture for reference review, source/deadline verification, and career consultation. v1.2 targeted implementation is complete for clean markdown answer rendering plus privacy-safe prompt context for explicit core preferences such as 전공 and target role, while broader release gates remain pending.
+The shipped v1.0 uses approved fixture-first Hanyang/ERICA source records and a local JSONL knowledge base to answer Korean questions with citations, freshness/deadline metadata, refusal behavior for weak evidence, and transparent safety guidance. v1.1 shipped a four-page UI information architecture for reference review, source/deadline verification, and career consultation. v1.2 targeted implementation is complete for clean markdown answer rendering plus privacy-safe prompt context for explicit core preferences such as 전공 and target role. Typecheck, build, and Playwright QA pass, while broad Vitest/evaluation gates still block `release:ready`.
 
 ## Core Value
 
@@ -14,11 +14,11 @@ Students can ask career and recruitment questions in Korean and receive current,
 
 - **Shipped versions:** v1.0, ERICA Career Chat v1.0, shipped 2026-05-04; v1.1, UI Redesign, shipped 2026-05-04.
 - **Tech stack:** Next.js, TypeScript, Tailwind, Playwright, Vitest, Zod, local JSONL knowledge base, and an OpenAI-compatible provider boundary.
-- **Release gates:** `npm run release:ready` passed after blocker closure; automated coverage included 41 Vitest files / 247 tests and Playwright 8/8.
+- **v1.0 release gates:** `npm run release:ready` passed after blocker closure for the archived v1.0 milestone; automated coverage included 41 Vitest files / 247 tests and Playwright 8/8.
 - **Provider-backed E2E:** Manual Playwright MCP browser E2E exercised the real `/api/chat` provider path; automated browser QA still mocks `/api/chat`.
 - **Audit status:** `tech_debt`, archived audit reports 32/32 requirements and 5/5 milestone flows covered, with known follow-up items documented in `.planning/MILESTONES.md`.
 - **Current milestone:** v1.2, Markdown Rendering and Prompt Context.
-- **Current focus:** Targeted v1.2 implementation and verification are complete for `react-markdown` chat answer rendering and privacy-safe prompt context; broad release gate, build, full test suite, and Playwright QA remain pending.
+- **Current focus:** Targeted v1.2 implementation and verification are complete for `react-markdown` chat answer rendering and privacy-safe prompt context. `npm run typecheck -- --pretty false`, `npm run build:web`, and re-run `npm run qa:web` passed; broad Vitest/evaluation gates still fail, so `release:ready` remains blocked/pending.
 
 ## Requirements
 
@@ -63,8 +63,12 @@ Students can ask career and recruitment questions in Korean and receive current,
 - `DESIGN.md` was the active independent design standard for v1.1 UI redesign. It continues to guide any v1.2 chat rendering UI adjustments without being framed as another brand style or copied branding.
 - v1.1 addressed the crowded single-screen UI by shipping a four-page source-grounded flow. v1.2 targeted implementation addresses the next chat quality issue: markdown-formatted model answers should look like readable Korean 답변, not raw markdown text.
 - v1.2 prompt-context work reuses the existing explicit preference and privacy posture by sending only minimized stable fields, currently `major` and `target_role`, in system/developer context.
-- Targeted v1.2 verification passed `npm test -- src/chat/prompt.test.ts src/chat/chat-service.test.ts app/api/chat/route.test.ts lib/api-client.test.ts components/chat/chat-components.test.tsx`, with 5 files and 30 tests passing. `npm run typecheck -- --pretty false` passed after a TS7006 test typing fix.
-- v1.2 is not yet claimed as shipped, tagged, release-ready, or fully gated. Broad `npm test`, build, Playwright QA, and release-readiness checks remain pending unless run separately later.
+- Targeted v1.2 verification passed `npm test -- src/chat/prompt.test.ts src/chat/chat-service.test.ts app/api/chat/route.test.ts lib/api-client.test.ts components/chat/chat-components.test.tsx`, with 5 files and 30 tests passing. `npm run typecheck -- --pretty false` passed.
+- `npm run build:web` passed. Initial `npm run qa:web` failed only because the Playwright Chromium/headless shell executable was missing locally; `npx playwright install chromium` installed the required browser artifacts, and re-run `npm run qa:web` passed with 28/28 tests.
+- Full `npm test` failed: 42 test files total, 40 passed, 2 failed; 292 tests total, 287 passed, 5 failed. Failed test files were `scripts/evaluate-rag-mvp.test.ts` and `scripts/evaluate-release-readiness.test.ts`.
+- Direct `npm run evaluate:rag:mvp` reported: `CDP 학생 가이드북: expected source cdp-student-guide-pdf in top 5`.
+- Direct `npm run evaluate:release-readiness` reported failures for `phase6-listing-deadline: expected chunk 3986f65fde23212320ca478290394113c27ffaa776f8de59f7e292989ee8f270 in top results`, `phase6-personalization-recommendation: expected chunk 3986f65fde23212320ca478290394113c27ffaa776f8de59f7e292989ee8f270 in top results`, and `rag_mvp: CDP 학생 가이드북: expected source cdp-student-guide-pdf in top 5`.
+- v1.2 is not yet claimed as shipped, tagged, release-ready, or fully gated. `release:ready` remains blocked/pending because broad Vitest/evaluation gates are failing.
 
 ## Constraints
 
@@ -109,4 +113,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-05-08 after v1.2 targeted implementation and verification update*
+*Last updated: 2026-05-08 after v1.2 broad verification update*
