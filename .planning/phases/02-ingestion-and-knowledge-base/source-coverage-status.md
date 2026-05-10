@@ -20,6 +20,7 @@ Every `sources.txt` source intent now has an approved bounded collection path. T
 
 - Playwright collection uses one ephemeral context per source, same-origin request routing, no `storageState`, no persistent profile, no traces, no screenshots, and no stored cookies.
 - The Playwright source script is fixed to four exact public URLs and inserts a 1200ms delay between source navigations.
+- CDP authenticated recruitment boards are not crawled. When the user manually provides post exports for `채용정보 > 채용상담 및 설명회` or `채용정보 > 일반채용공고`, `npm run ingest:cdp:manual-posts -- --input <manual-export.json>` can convert that local export into citation-ready records under `data/knowledge-base/manual-cdp-posts`, preserving each provided post detail URL as the primary citation anchor.
 - Ibus live collection enforces `COLLECT_MAX_PAGES <= 5`, `COLLECT_DELAY_MS >= 1200`, strict integer parsing, and delay before each detail request.
 - `scheduled_crawling_enabled` remains `false` for every source.
 - Generated JSONL outputs remain under ignored `data/knowledge-base/` paths and are not committed.
@@ -32,6 +33,7 @@ npm test
 npm run validate:sources
 npm run verify:source-governance
 npm run ingest:ibus:sample -- --fixture
+npm run ingest:cdp:manual-posts -- --input fixtures/ingestion/cdp-manual-posts.example.json --output /tmp/manual-cdp-posts
 npm run ingest:cdp-pdf:sample -- --fixture
 npm run ingest:playwright:sources
 npm run verify:knowledge-base -- data/knowledge-base/fixture-ibus

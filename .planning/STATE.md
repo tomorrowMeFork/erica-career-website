@@ -2,7 +2,7 @@
 gsd_state_version: 1.0
 milestone: v1.2
 milestone_name: Markdown Rendering and Prompt Context
-status: targeted_implementation_complete
+status: broad_verification_blocked
 last_updated: "2026-05-08T00:00:00.000Z"
 last_activity: 2026-05-08
 progress:
@@ -10,31 +10,33 @@ progress:
   completed_phases: 3
   total_plans: 0
   completed_plans: 0
-  percent: 75
+  percent: 85
 ---
 
 # State: ERICA Career Chat
 
 **Initialized:** 2026-05-03  
 **Initialization mode:** Manual GSD initialization because `gsd-sdk` was unavailable in the shell.  
-**Current phase:** Targeted implementation and verification complete, v1.2 Markdown Rendering and Prompt Context
+**Current phase:** Targeted implementation complete, broad verification blocked, v1.2 Markdown Rendering and Prompt Context
 
 ## Project Reference
 
 See: `.planning/PROJECT.md` (updated 2026-05-08 for v1.2 Markdown Rendering and Prompt Context)
 
 **Core value:** Students can ask career and recruitment questions in Korean and receive current, source-cited, personally relevant answers from Hanyang ERICA employment information.  
-**Current focus:** v1.2 targeted implementation is complete for clean `react-markdown` answer rendering and privacy-safe explicit preference prompt context; broader release gates remain pending.
+**Current focus:** v1.2 targeted implementation is complete for clean `react-markdown` answer rendering and privacy-safe explicit preference prompt context. Typecheck, build, and Playwright QA now pass; `release:ready` remains blocked/pending because broad Vitest/evaluation gates are failing.
 
 ## Progress
 
 - **Previous milestones:** v1.0 shipped 2026-05-04 with archived roadmap, requirements, and audit; v1.1 UI Redesign shipped 2026-05-04 with all 21 requirements PASS.
 - **Current milestone:** v1.2 Markdown Rendering and Prompt Context started 2026-05-08.
-- **Current status:** Targeted v1.2 implementation and focused verification are complete. This is not a full release gate, tag, or shipped release claim.
+- **Current status:** Targeted v1.2 implementation and focused verification are complete. Broad verification now has typecheck/build/Playwright pass evidence, but broad Vitest/evaluation gates still fail. This is not a full release gate, tag, or shipped release claim.
 - **Phase numbering:** Continued from v1.1; active phases are Phase 12 through Phase 14.
 - **Requirement coverage:** 17/17 active v1.2 requirements mapped exactly once.
-- **Targeted verification:** `npm test -- src/chat/prompt.test.ts src/chat/chat-service.test.ts app/api/chat/route.test.ts lib/api-client.test.ts components/chat/chat-components.test.tsx` passed with 5 files and 30 tests. `npm run typecheck -- --pretty false` passed after a TS7006 test typing fix.
-- **Pending release gates:** Full `npm test`, build, Playwright QA, and `release:ready` remain pending unless run separately later.
+- **Targeted verification:** `npm test -- src/chat/prompt.test.ts src/chat/chat-service.test.ts app/api/chat/route.test.ts lib/api-client.test.ts components/chat/chat-components.test.tsx` passed with 5 files and 30 tests. `npm run typecheck -- --pretty false` passed.
+- **Broad verification passed:** `npm run build:web` passed. Initial `npm run qa:web` failed only because the Playwright Chromium/headless shell executable was missing locally; `npx playwright install chromium` installed the required browser artifacts, and re-run `npm run qa:web` passed with 28/28 tests.
+- **Broad verification blocked:** Full `npm test` failed with 42 test files total, 40 passed, 2 failed; 292 tests total, 287 passed, 5 failed. Failed test files were `scripts/evaluate-rag-mvp.test.ts` and `scripts/evaluate-release-readiness.test.ts`. Direct `npm run evaluate:rag:mvp` reported `CDP 학생 가이드북: expected source cdp-student-guide-pdf in top 5`. Direct `npm run evaluate:release-readiness` reported `phase6-listing-deadline: expected chunk 3986f65fde23212320ca478290394113c27ffaa776f8de59f7e292989ee8f270 in top results`, `phase6-personalization-recommendation: expected chunk 3986f65fde23212320ca478290394113c27ffaa776f8de59f7e292989ee8f270 in top results`, and `rag_mvp: CDP 학생 가이드북: expected source cdp-student-guide-pdf in top 5`.
+- **Release gate:** `release:ready` remains blocked/pending because broad Vitest/evaluation gates are failing.
 - **Phase history:** `.planning/phases/` remains intentionally preserved for continuity and reference; do not clear old phase directories without explicit approval.
 
 ## Artifacts
@@ -165,7 +167,7 @@ See: `.planning/PROJECT.md` (updated 2026-05-08 for v1.2 Markdown Rendering and 
 
 ## Next Action
 
-Run remaining v1.2 release-gate verification when ready: broad test suite, build, Playwright QA, and any release-readiness command required by the active workflow.
+Resolve the broad Vitest/evaluation gate failures before any `release:ready`, tag, shipped, or release-ready claim.
 
 Resume file: None
 
@@ -173,5 +175,5 @@ Resume file: None
 
 Phase: 12, Markdown Answer Rendering
 Plan: Targeted implementation complete across markdown rendering, prompt context, and focused regression coverage
-Status: Targeted v1.2 implementation and focused verification complete; full release gate pending
-Last activity: 2026-05-08, v1.2 targeted implementation and verification recorded
+Status: Targeted v1.2 implementation, typecheck, build, and Playwright QA complete; broad Vitest/evaluation gates failing
+Last activity: 2026-05-08, v1.2 broad verification update recorded

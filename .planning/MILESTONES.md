@@ -55,7 +55,7 @@
 
 ## v1.2 Markdown Rendering and Prompt Context (Active: 2026-05-08)
 
-**Status:** Targeted implementation complete, release gate pending  
+**Status:** Targeted implementation complete, broad verification blocked  
 **Phases planned:** 3 phases (12-14)  
 **Requirements:** 17/17 mapped; targeted implementation and focused verification complete  
 **Tag:** TBD
@@ -68,11 +68,19 @@
 - Optional `session_key` chat request path for resolving server-side explicit preferences.
 - Privacy-safe prompt context that includes only minimized `major` and `target_role`, with no hidden profiling, raw chat history, session-only optional text, extra preference fields, secrets, storage metadata, or cleared preferences.
 
-**Targeted verification:**
+**Verification evidence:**
 
 - `npm test -- src/chat/prompt.test.ts src/chat/chat-service.test.ts app/api/chat/route.test.ts lib/api-client.test.ts components/chat/chat-components.test.tsx` passed with 5 files and 30 tests.
-- `npm run typecheck -- --pretty false` passed after a TS7006 test typing fix.
-- Full release gate, broad `npm test`, build, and Playwright QA remain pending unless run separately later.
+- `npm run typecheck -- --pretty false` passed.
+- `npm run build:web` passed.
+- Initial `npm run qa:web` failed only because the Playwright Chromium/headless shell executable was missing locally.
+- `npx playwright install chromium` installed the required browser artifacts.
+- Re-run `npm run qa:web` passed with 28/28 tests.
+- Full `npm test` failed: 42 test files total, 40 passed, 2 failed; 292 tests total, 287 passed, 5 failed.
+- Failed test files: `scripts/evaluate-rag-mvp.test.ts` and `scripts/evaluate-release-readiness.test.ts`.
+- Direct `npm run evaluate:rag:mvp` reported: `CDP 학생 가이드북: expected source cdp-student-guide-pdf in top 5`.
+- Direct `npm run evaluate:release-readiness` reported failures for `phase6-listing-deadline: expected chunk 3986f65fde23212320ca478290394113c27ffaa776f8de59f7e292989ee8f270 in top results`, `phase6-personalization-recommendation: expected chunk 3986f65fde23212320ca478290394113c27ffaa776f8de59f7e292989ee8f270 in top results`, and `rag_mvp: CDP 학생 가이드북: expected source cdp-student-guide-pdf in top 5`.
+- `release:ready` remains blocked/pending because broad Vitest/evaluation gates are failing. v1.2 is not shipped, tagged, or release-ready.
 
 **Scope guardrails preserved:**
 
