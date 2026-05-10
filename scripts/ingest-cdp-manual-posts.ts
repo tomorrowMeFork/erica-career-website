@@ -4,7 +4,11 @@ import {
 	buildCdpManualPostRecords,
 	CdpManualPostExportSchema,
 } from "../src/ingestion/manual-cdp-posts.js";
-import { writeKnowledgeBaseJsonl } from "../src/ingestion/write-jsonl-kb.js";
+import {
+	mergeKnowledgeBaseJsonl,
+	readKnowledgeBaseJsonl,
+	writeKnowledgeBaseJsonl,
+} from "../src/ingestion/write-jsonl-kb.js";
 
 type CliArgs = {
 	input: string;
@@ -17,9 +21,14 @@ async function runCli(): Promise<void> {
 	const exportData = CdpManualPostExportSchema.parse(rawInput);
 	const records = buildCdpManualPostRecords(exportData);
 	const chunks = records.flatMap((record) => chunkNormalizedRecord(record));
-	const manifest = await writeKnowledgeBaseJsonl({
+	const existingKnowledgeBase = await readKnowledgeBaseJsonl(args.output);
+	const mergedKnowledgeBase = mergeKnowledgeBaseJsonl(existingKnowledgeBase, {
 		records,
 		chunks,
+	});
+	const manifest = await writeKnowledgeBaseJsonl({
+		records: mergedKnowledgeBase.records,
+		chunks: mergedKnowledgeBase.chunks,
 		outputDir: args.output,
 		manifest: {
 			run_id: `manual-cdp-posts-${exportData.exported_at}`,

@@ -1,12 +1,12 @@
-import { mkdir, writeFile } from "node:fs/promises";
+import { mkdir, readFile, writeFile } from "node:fs/promises";
 import { z } from "zod";
 import {
-  IngestionRunManifestSchema,
-  KnowledgeChunkSchema,
-  NormalizedRecordSchema,
   type IngestionRunManifest,
+  IngestionRunManifestSchema,
   type KnowledgeChunk,
+  KnowledgeChunkSchema,
   type NormalizedRecord,
+  NormalizedRecordSchema,
 } from "./normalized-record.js";
 
 export const KnowledgeBaseManifestFileSchema = z.object({
@@ -30,6 +30,11 @@ export type WriteKnowledgeBaseJsonlInput = {
   manifest: Pick<IngestionRunManifest, "run_id" | "generated_at" | "source_ids"> & {
     schema_version?: "phase2-jsonl-kb-v1";
   };
+};
+
+export type KnowledgeBaseJsonlData = {
+  records: NormalizedRecord[];
+  chunks: KnowledgeChunk[];
 };
 
 export async function writeKnowledgeBaseJsonl(input: WriteKnowledgeBaseJsonlInput): Promise<KnowledgeBaseManifestFile> {
@@ -66,6 +71,29 @@ export async function writeKnowledgeBaseJsonl(input: WriteKnowledgeBaseJsonlInpu
   return manifestFile;
 }
 
+export async function readKnowledgeBaseJsonl(outputDir: string): Promise<KnowledgeBaseJsonlData> {
+  const [recordLines, chunkLines] = await Promise.all([
+    readJsonlIfExists(`${outputDir}/records.jsonl`),
+    readJsonlIfExists(`${outputDir}/chunks.jsonl`),
+  ]);
+
+  const records = recordLines.map((record) => NormalizedRecordSchema.parse(record));
+  const chunks = chunkLines.map((chunk) => KnowledgeChunkSchema.parse(chunk));
+  assertChunkRecordLinks(records, chunks);
+
+  return { records, chunks };
+}
+
+export function mergeKnowledgeBaseJsonl(
+  existing: KnowledgeBaseJsonlData,
+  next: KnowledgeBaseJsonlData,
+): KnowledgeBaseJsonlData {
+  return {
+    records: mergeById(existing.records, next.records, (record) => record.record_id),
+    chunks: mergeById(existing.chunks, next.chunks, (chunk) => chunk.chunk_id),
+  };
+}
+
 function assertChunkRecordLinks(records: readonly NormalizedRecord[], chunks: readonly KnowledgeChunk[]): void {
   const recordIds = new Set(records.map((record) => record.record_id));
   for (const chunk of chunks) {
@@ -73,6 +101,42 @@ function assertChunkRecordLinks(records: readonly NormalizedRecord[], chunks: re
       throw new Error(`Chunk ${chunk.chunk_id} references missing record_id ${chunk.record_id}`);
     }
   }
+}
+
+async function readJsonlIfExists(filePath: string): Promise<unknown[]> {
+  let contents: string;
+  try {
+    contents = await readFile(filePath, "utf8");
+  } catch (error) {
+    if (isMissingFileError(error)) {
+      return [];
+    }
+    throw error;
+  }
+
+  return contents
+    .split(/\r?\n/u)
+    .filter((line) => line.trim().length > 0)
+    .map((line) => JSON.parse(line) as unknown);
+}
+
+function mergeById<T>(
+  existing: readonly T[],
+  next: readonly T[],
+  getId: (value: T) => string,
+): T[] {
+  const merged = new Map<string, T>();
+  for (const value of existing) {
+    merged.set(getId(value), value);
+  }
+  for (const value of next) {
+    merged.set(getId(value), value);
+  }
+  return [...merged.values()];
+}
+
+function isMissingFileError(error: unknown): boolean {
+  return error instanceof Error && "code" in error && error.code === "ENOENT";
 }
 
 function sortRecords(records: readonly NormalizedRecord[]): NormalizedRecord[] {
