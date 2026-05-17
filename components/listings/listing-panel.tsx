@@ -1,17 +1,44 @@
 import type { RecommendationItem, RecommendationPrivacyMetadata } from "../../src/recommendations/recommendation-contract.js";
+import { EmptyState } from "../common/empty-state.js";
+import { LoadingState } from "../common/loading-state.js";
+import { StatusBadge } from "../common/status-badge.js";
+import { Badge } from "../ui/badge.js";
+import { Button } from "../ui/button.js";
+import { Card, CardContent, CardHeader, CardTitle } from "../ui/card.js";
 import { ListingCard } from "./listing-card.js";
 import { ListingFilter, ListingFilterPills } from "./listing-filter-pills.js";
 
 export function ListingPanel({ items, activeFilter, onFilterChange, onRefresh, sessionKey, preferenceMode, privacyMetadata, loading = false }: { items: RecommendationItem[]; activeFilter: ListingFilter; onFilterChange: (filter: ListingFilter) => void; onRefresh?: (sessionKey: string) => void; sessionKey: string; preferenceMode: "preference" | "no_preference"; privacyMetadata?: RecommendationPrivacyMetadata; loading?: boolean }) {
   const filtered = filterItems(items, activeFilter);
   return (
-    <section className="listing-panel soft-surface" aria-label="추천 및 최신 공고">
-      <header><h2>추천 공고</h2><span>{preferenceMode === "preference" ? "맞춤 추천" : "기본 추천"}</span></header>
-      <ListingFilterPills activeFilter={activeFilter} onChange={onFilterChange} />
-      <p>{privacyMetadata?.storage_scope === "session" ? "현재 세션에만 저장" : "저장 안 함"}</p>
-      <button type="button" className="pill-control" onClick={() => onRefresh?.(sessionKey)}>새로고침</button>
-      {loading ? <p>추천 공고를 불러오는 중이에요…</p> : null}
-      {filtered.length === 0 ? <div className="card-surface"><h3>아직 표시할 추천 공고가 없어요</h3><p>전공과 희망 직무를 입력하거나 최신 공고 탭에서 출처 기반 정보를 확인해 보세요.</p></div> : filtered.map((item) => <ListingCard key={item.recommendation_id} item={item} />)}
+    <section aria-label="추천 및 최신 공고">
+      <Card className="border-border/80 bg-secondary/60 shadow-sm">
+        <CardHeader className="gap-4">
+          <div className="flex flex-wrap items-start justify-between gap-3">
+            <div className="grid gap-2">
+              <div className="flex flex-wrap items-center gap-2">
+                <Badge variant="secondary">{preferenceMode === "preference" ? "맞춤 추천" : "기본 추천"}</Badge>
+                <StatusBadge kind="privacy" storageScope={privacyMetadata?.storage_scope ?? "none"} rankingEnabled={privacyMetadata?.preference_ranking_enabled} />
+              </div>
+              <CardTitle className="text-2xl tracking-tight text-foreground">
+                <h2>추천 공고</h2>
+              </CardTitle>
+            </div>
+            <Button type="button" variant="outline" onClick={() => onRefresh?.(sessionKey)}>
+              새로고침
+            </Button>
+          </div>
+          <ListingFilterPills activeFilter={activeFilter} onChange={onFilterChange} />
+        </CardHeader>
+        <CardContent className="grid gap-4">
+          {loading ? <LoadingState statusText="추천 공고를 불러오는 중이에요…" /> : null}
+          {filtered.length === 0 ? (
+            <EmptyState title="아직 표시할 추천 공고가 없어요" body="전공과 희망 직무를 입력하거나 최신 공고 탭에서 출처 기반 정보를 확인해 보세요." />
+          ) : (
+            <div className="grid gap-4">{filtered.map((item) => <ListingCard key={item.recommendation_id} item={item} />)}</div>
+          )}
+        </CardContent>
+      </Card>
     </section>
   );
 }

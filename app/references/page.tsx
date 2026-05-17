@@ -3,7 +3,11 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 
+import { EmptyState } from "../../components/common/empty-state.js";
+import { RouteHero } from "../../components/common/route-hero.js";
 import { ReferenceCard } from "../../components/references/reference-card.js";
+import { Button } from "../../components/ui/button.js";
+import { CardTitle } from "../../components/ui/card.js";
 import { readSessionReferences, type SessionReferenceItem } from "../../lib/session-references.js";
 
 export default function ReferencesPage() {
@@ -14,23 +18,41 @@ export default function ReferencesPage() {
   }, []);
 
   return (
-    <div className="references-page">
+    <div className="grid gap-5">
       {references === null ? null : references.length === 0 ? (
-        <section className="references-empty card-surface" aria-label="참고한 정보 없음">
-          <h2>아직 참고한 정보가 없습니다</h2>
-          <p>커리어 상담에서 질문하면 이 탭에서 답변에 참고한 출처와 공고를 확인할 수 있어요.</p>
-          <Link className="primary-button" href="/consultation">커리어 상담 시작하기</Link>
-        </section>
+        <EmptyState
+          aria-label="참고한 정보 없음"
+          className="mx-auto max-w-3xl"
+          title={<h2>아직 참고한 정보가 없습니다</h2>}
+          body="커리어 상담에서 질문하면 이 탭에서 답변에 참고한 출처와 공고를 확인할 수 있어요."
+          action={(
+            <Button asChild>
+              <Link href="/consultation">커리어 상담 시작하기</Link>
+            </Button>
+          )}
+        />
       ) : (
         <>
-          <header className="route-hero card-surface">
-            <p className="eyebrow">상담에서 확인한 출처</p>
-            <h1>참고한 정보</h1>
-            <p>이번 상담에서 답변에 참고된 출처와 공고만 모았어요.</p>
-          </header>
+          <RouteHero
+            eyebrow="상담에서 확인한 출처"
+            title="참고한 정보"
+            description="이번 상담에서 답변에 참고된 출처와 공고만 모았어요."
+            titleId="references-title"
+          />
 
-          <section className="references-list-panel soft-surface" aria-label="참고한 정보 목록">
-            <div className="references-list-grid">
+          <section className="grid gap-5" aria-label="참고한 정보 목록">
+            <div className="flex flex-wrap items-end justify-between gap-3">
+              <div className="grid gap-2">
+                <CardTitle className="text-2xl tracking-tight text-foreground">
+                  <h2>상담 출처 기록</h2>
+                </CardTitle>
+                <p className="text-sm leading-6 text-muted-foreground">최근 상담에서 확인한 순서대로 정리했어요.</p>
+              </div>
+              <p className="rounded-full bg-secondary px-3 py-1 text-sm font-medium text-muted-foreground">
+                {references.length}개 출처
+              </p>
+            </div>
+            <div className="grid gap-4 lg:grid-cols-2">
               {references.map((item) => <ReferenceCard key={item.url} item={item} />)}
             </div>
           </section>

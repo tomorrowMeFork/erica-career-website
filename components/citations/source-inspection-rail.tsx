@@ -1,19 +1,36 @@
 import type { ChatCitation } from "../../src/chat/chat-contract.js";
+import { Button } from "../ui/button.js";
+import { Card, CardContent, CardHeader, CardTitle } from "../ui/card.js";
+import { ScrollArea } from "../ui/scroll-area.js";
+import { Separator } from "../ui/separator.js";
 import { SourceCard } from "./source-card.js";
 
 export function SourceInspectionRail({ citations, selectedCitation, onSelect, onClose }: { citations: ChatCitation[]; selectedCitation?: ChatCitation; onSelect?: (citation: ChatCitation) => void; onClose: () => void }) {
   const selected = selectedCitation ?? citations[0];
   return (
-    <aside className="source-rail" aria-label="답변 출처">
-      <header><h2>답변 출처</h2><button type="button" onClick={onClose}>닫기</button></header>
-      <div className="source-rail__list">
-        {citations.map((citation, index) => (
-          <button key={`${citation.citation_id}-${citation.chunk_id}-${index}`} type="button" data-selected={citation === selected ? "true" : "false"} onClick={() => onSelect?.(citation)}>
-            근거 보기 · {citation.title}
-          </button>
-        ))}
-      </div>
-      {selected !== undefined ? <SourceCard citation={selected} selected /> : <p>선택된 출처가 없어요.</p>}
-    </aside>
+    <Card className="sticky top-24 w-full min-w-0 max-h-[calc(100vh-var(--space-section))] overflow-hidden border-primary/15 bg-muted/70 py-0 shadow-[var(--shadow-soft)]">
+      <aside aria-label="답변 출처">
+        <CardHeader className="gap-3 px-4 pt-4 pb-0">
+          <div className="flex items-center justify-between gap-3">
+            <CardTitle className="text-base tracking-[-0.01em] text-foreground"><h2>답변 출처</h2></CardTitle>
+            <Button type="button" variant="outline" size="sm" className="h-8 rounded-full border-primary/25 bg-background text-primary" onClick={onClose}>닫기</Button>
+          </div>
+          <p className="text-sm break-keep text-muted-foreground">답변에 연결된 근거를 확인하고 원문으로 이동할 수 있어요.</p>
+        </CardHeader>
+        <CardContent className="grid min-w-0 gap-4 px-4 pb-4">
+          <Separator />
+          <ScrollArea className="max-h-36 rounded-lg border border-primary/15 bg-card/80">
+            <div className="grid gap-2 p-2">
+              {citations.map((citation, index) => (
+                <Button key={`${citation.citation_id}-${citation.chunk_id}-${index}`} type="button" variant={citation === selected ? "secondary" : "ghost"} size="sm" data-selected={citation === selected ? "true" : "false"} className="h-auto min-h-11 justify-start rounded-lg px-3 py-2 text-left whitespace-normal data-[selected=true]:border data-[selected=true]:border-primary/20 data-[selected=true]:text-primary" onClick={() => onSelect?.(citation)}>
+                  근거 보기 · {citation.title}
+                </Button>
+              ))}
+            </div>
+          </ScrollArea>
+          {selected !== undefined ? <SourceCard citation={selected} selected /> : <p className="rounded-lg border border-dashed border-primary/25 bg-card px-4 py-5 text-sm text-muted-foreground">선택된 출처가 없어요.</p>}
+        </CardContent>
+      </aside>
+    </Card>
   );
 }

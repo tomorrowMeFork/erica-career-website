@@ -1,7 +1,6 @@
 import type { DeadlineStatus } from "../../src/ingestion/normalized-record.js";
-import { getDeadlineStatusLabel, getDeadlineStatusMeta } from "../../lib/deadline-labels.js";
+import { StatusBadge } from "../common/status-badge.js";
 
 export function DeadlineStatusBadge({ status }: { status: DeadlineStatus }) {
-  const meta = getDeadlineStatusMeta(status);
-  return <span className={`badge badge--${meta.variant}`} aria-label={`마감 상태: ${meta.label}`}>{getDeadlineStatusLabel(status)}</span>;
+  return <StatusBadge kind="deadline" status={status} />;
 }
