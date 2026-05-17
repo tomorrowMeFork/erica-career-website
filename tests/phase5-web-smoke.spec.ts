@@ -67,7 +67,7 @@ test("consultation desktop 1280 centers chat, expands preferences, captures refe
   await expect(page.getByLabel("안전 안내")).toBeVisible();
   await expect(page.getByText("어떤 점이 궁금하신가요?")).toBeVisible();
   await expect(page.getByText("출처 패널", { exact: false })).toHaveCount(0);
-  await expect(page.locator(".source-placeholder")).toHaveCount(0);
+  await expect(page.getByText("출처 확인하기", { exact: true })).toHaveCount(0);
   await expect(page.getByText("상담 조건 설정")).toBeVisible();
   await expect(page.getByRole("button", { name: "상담 조건 열기" })).toBeVisible();
   await expect(page.locator('[aria-label="상담 조건"]')).toHaveCount(0);
@@ -99,7 +99,7 @@ test("consultation mobile 390 opens source sheet and restores focus on Escape", 
   await expect(page.getByLabel("채팅")).toBeVisible();
   await expect(page.getByLabel("안전 안내")).toBeVisible();
   await expect(page.getByText("어떤 점이 궁금하신가요?")).toBeVisible();
-  await expect(page.locator(".source-placeholder")).toHaveCount(0);
+  await expect(page.getByText("출처 확인하기", { exact: true })).toHaveCount(0);
   await expect(page.getByRole("button", { name: "상담 조건 열기" })).toBeVisible();
   await page.getByLabel("질문 입력").fill("채용 공고 알려줘");
   await page.getByRole("button", { name: "질문 보내기" }).click();
@@ -127,8 +127,8 @@ test("clearing consultation chat also clears session references", async ({ page 
   await page.getByRole("button", { name: "질문 보내기" }).click();
   await page.waitForFunction(() => window.sessionStorage.getItem("erica-career-chat:session-references") !== null);
   await page.getByRole("button", { name: "설정" }).click();
-  await page.locator(".settings-menu__popover").getByRole("button", { name: "대화 기록 지우기" }).click();
-  await page.locator(".settings-menu__dialog").getByRole("button", { name: "대화 기록 지우기" }).click();
+  await page.getByRole("button", { name: "대화 기록 지우기" }).click();
+  await page.getByRole("dialog", { name: "대화 기록 지우기" }).getByRole("button", { name: "대화 기록 지우기" }).click();
   await expect(page.getByText("채용 공고입니다")).toHaveCount(0);
   await page.goto("/references");
   await expect(page.getByRole("heading", { name: "아직 참고한 정보가 없습니다" })).toBeVisible();
@@ -216,7 +216,7 @@ test("references populated state sorts and renders only session reference card f
   await expect(page.getByRole("heading", { name: "참고한 정보" })).toBeVisible();
   await expect(page.getByText("이번 상담에서 답변에 참고된 출처와 공고만 모았어요.")).toBeVisible();
 
-  await expect(page.locator(".reference-card h2")).toHaveText(["나노디그리 설명회", "가나다 채용 상담", "ERICA 현장실습 모집"]);
+  await expect(page.getByRole("article", { name: /참고한 정보/u }).getByRole("heading")).toHaveText(["나노디그리 설명회", "가나다 채용 상담", "ERICA 현장실습 모집"]);
   await expect(page.getByText("한양대학교 ERICA 커리어개발센터")).toBeVisible();
   await expect(page.getByText("ERICA 취업게시판")).toBeVisible();
   await expect(page.getByLabel("마감 상태: 마감됨")).toBeVisible();
@@ -237,5 +237,3 @@ test("explore redirects to references without rendering old browsing UI", async 
   await expect(page.getByText("정보 둘러보기", { exact: true })).toHaveCount(0);
   await expect(page.getByText("공고와 프로그램", { exact: true })).toHaveCount(0);
 });
-
-
