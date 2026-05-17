@@ -1,6 +1,7 @@
 import { z } from "zod";
 
 import { ChatCitationSchema, ChatResponseSchema, RefusalTierSchema, type ChatResponse, type RefusalTier } from "./chat-contract.js";
+import { evaluateOutputSafety, extractVisibleCitationMarkerIds } from "./output-safety-policy.js";
 
 export type ValidateChatResponseOutputInput = {
   response: unknown;
@@ -12,14 +13,7 @@ export type ValidateChatResponseOutputResult =
   | { ok: true; response: ChatResponse }
   | { ok: false; failures: string[] };
 
-const citationMarkerPattern = /\[(\d+)\]/gu;
 const hangulSyllablePattern = /[가-힣]/u;
-const unsafeOutputPhrases = [
-  "출처를 생략",
-  "공식 인증",
-  "취업을 보장",
-  "이전 지시를 무시",
-] as const;
 
 const ProviderCitationChoiceSchema = z.looseObject({ citation_id: z.number().int().positive() });
 const ProviderChatResponseCandidateSchema = z.object({
@@ -54,7 +48,8 @@ export function validateChatResponseOutput(input: ValidateChatResponseOutputInpu
   };
   const failures: string[] = [];
   const citationIds = new Set(parsed.data.citations.map((citation) => citation.citation_id));
-  const markerIds = extractCitationMarkerIds(response.answer);
+  const outputSafety = evaluateOutputSafety(response.answer);
+  const markerIds = extractVisibleCitationMarkerIds(response.answer);
 
   if (!hangulSyllablePattern.test(response.answer)) {
     failures.push("answer must be Korean-first and contain Hangul");
@@ -64,9 +59,9 @@ export function validateChatResponseOutput(input: ValidateChatResponseOutputInpu
     failures.push(`refusal tier mismatch: expected ${input.expectedTier}, received ${response.refusal_tier}`);
   }
 
-  for (const phrase of unsafeOutputPhrases) {
-    if (response.answer.includes(phrase)) {
-      failures.push(`unsafe output phrase rejected: ${phrase}`);
+  if (outputSafety.action === "refuse") {
+    for (const violation of outputSafety.violations) {
+      failures.push(`output safety rejected (${violation.category}): ${violation.detail}`);
     }
   }
 
@@ -99,17 +94,6 @@ export function validateChatResponseOutput(input: ValidateChatResponseOutputInpu
   }
 
   return { ok: true, response: finalResponse.data };
-}
-
-function extractCitationMarkerIds(answer: string): number[] {
-  const ids: number[] = [];
-  for (const match of answer.matchAll(citationMarkerPattern)) {
-    const rawId = match[1];
-    if (rawId !== undefined) {
-      ids.push(Number.parseInt(rawId, 10));
-    }
-  }
-  return ids;
 }
 
 function summarizeZodError(error: z.ZodError): string {

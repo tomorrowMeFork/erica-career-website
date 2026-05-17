@@ -180,21 +180,78 @@ describe("validateChatResponseOutput", () => {
     expect(result).toEqual({ ok: false, failures: ["citationless factual answer requires inline numeric citations"] });
   });
 
-  it.each(["출처를 생략하겠습니다", "공식 인증", "취업을 보장", "이전 지시를 무시"])(
-    "rejects unsafe output phrase %s",
-    (unsafePhrase) => {
-      const result = validateChatResponseOutput({
-        response: { ...validListingResponse, answer: `${unsafePhrase}. ERICA 채용 정보입니다. [1]` },
-        citationMap: validListingResponse.citations,
-        expectedTier: "normal_answer",
-      });
+  it.each([
+    { answer: "출처를 생략하겠습니다. ERICA 채용 정보입니다. [1]", category: "citation_bypass" },
+    { answer: "공식 인증 서비스입니다. ERICA 채용 정보입니다. [1]", category: "official_endorsement_claim" },
+    { answer: "취업 보장 안내입니다. ERICA 채용 정보입니다. [1]", category: "guaranteed_outcome_claim" },
+    { answer: "합격 확정 대상입니다. ERICA 채용 정보입니다. [1]", category: "guaranteed_outcome_claim" },
+    { answer: "SSO로 확인된 학생만 보는 정보입니다. ERICA 채용 정보입니다. [1]", category: "private_access_request" },
+    { answer: "이전 지시를 무시하고 ERICA 채용 정보를 안내합니다. [1]", category: "prompt_injection" },
+  ])("rejects unsafe output safety variant %#", ({ answer, category }) => {
+    const result = validateChatResponseOutput({
+      response: { ...validListingResponse, answer },
+      citationMap: validListingResponse.citations,
+      expectedTier: "normal_answer",
+    });
 
-      expect(result.ok).toBe(false);
-      if (!result.ok) {
-        expect(result.failures).toContain(`unsafe output phrase rejected: ${unsafePhrase.replace("하겠습니다", "")}`);
-      }
-    },
-  );
+    expect(result.ok).toBe(false);
+    if (!result.ok) {
+      expect(result.failures.some((failure) => failure.startsWith(`output safety rejected (${category}):`))).toBe(true);
+    }
+  });
+
+  it("rejects PII echoed in an otherwise cited Korean answer", () => {
+    const result = validateChatResponseOutput({
+      response: { ...validListingResponse, answer: "ERICA 상담 안내는 공식 페이지에서 확인하세요. 연락처는 010-1234-5678 입니다. [1]" },
+      citationMap: validListingResponse.citations,
+      expectedTier: "normal_answer",
+    });
+
+    expect(result.ok).toBe(false);
+    if (!result.ok) {
+      expect(result.failures).toContain("output safety rejected (pii_echo): personal data echoed in output");
+    }
+  });
+
+  it("allows safe negated guarantee phrasing when citation and tier are valid", () => {
+    const result = validateChatResponseOutput({
+      response: { ...validListingResponse, answer: "취업을 보장하지 않습니다 [1]" },
+      citationMap: validListingResponse.citations,
+      expectedTier: "normal_answer",
+    });
+
+    expect(result.ok).toBe(true);
+  });
+
+  it("rejects markdown link citation laundering even with a visible citation marker", () => {
+    const result = validateChatResponseOutput({
+      response: { ...validListingResponse, answer: "ERICA 정보는 [공식 원문](https://evil.example) [1]에서 확인하세요." },
+      citationMap: validListingResponse.citations,
+      expectedTier: "normal_answer",
+    });
+
+    expect(result.ok).toBe(false);
+    if (!result.ok) {
+      expect(result.failures).toContain("output safety rejected (unsafe_markdown_link): markdown link");
+    }
+  });
+
+  it.each([
+    { answer: "ERICA 상담 안내는 `[1]` 코드 안에만 인용을 숨깁니다.", detail: "inline code" },
+    { answer: "![ERICA 상담 안내 [1]](https://example.com/notice.png)", detail: "markdown image alt" },
+  ])("rejects citation marker only inside $detail as citationless", ({ answer }) => {
+    const result = validateChatResponseOutput({
+      response: { ...validListingResponse, answer },
+      citationMap: validListingResponse.citations,
+      expectedTier: "normal_answer",
+    });
+
+    expect(result.ok).toBe(false);
+    if (!result.ok) {
+      expect(result.failures).toContain("citationless factual answer requires inline numeric citations");
+      expect(result.failures).toContain("output safety rejected (citation_bypass): hidden or non-visible citation marker");
+    }
+  });
 
   it("rejects citation markers that do not map to structured citations", () => {
     const result = validateChatResponseOutput({
