@@ -72,6 +72,22 @@ describe("chat dashboard components", () => {
     expect(unsafeWindow.__markdownExecuted).toBe(false);
   });
 
+  it("renders model-authored markdown links as inert visible text while citations stay interactive", () => {
+    const onOpenCitation = vi.fn();
+    render(<AssistantAnswer response={{ answer: "[공식 원문](https://evil.example) [1]", citations: [citation], refusal_tier: "normal_answer", confidence: 0.8, trace_id: "trace" }} onOpenCitation={onOpenCitation} />);
+
+    const answerBody = document.querySelector(".assistant-answer__body");
+    expect(answerBody).toBeTruthy();
+    expect(screen.getByText("공식 원문")).toBeTruthy();
+    expect(within(answerBody as HTMLElement).queryByRole("link", { name: "공식 원문" })).toBeNull();
+    expect((answerBody as HTMLElement).querySelector('a[href="https://evil.example"]')).toBeNull();
+
+    const citationMarker = within(answerBody as HTMLElement).getByRole("button", { name: "1번 출처 보기" });
+    expect(citationMarker.textContent).toBe("[1]");
+    fireEvent.click(citationMarker);
+    expect(onOpenCitation).toHaveBeenCalledWith(citation, [citation], expect.any(HTMLButtonElement));
+  });
+
   it("does not render markdown image nodes while rendering normal markdown text", () => {
     render(<AssistantAnswer response={{ answer: "![unsafe](https://example.edu/image.png)\n\n**정상 안내**는 계속 보여야 합니다.", citations: [], refusal_tier: "normal_answer", confidence: 0.8, trace_id: "trace" }} onOpenCitation={vi.fn()} />);
 

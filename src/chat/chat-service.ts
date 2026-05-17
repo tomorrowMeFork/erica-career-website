@@ -14,9 +14,12 @@ import {
   evaluateEvidence,
   type EvidencePolicyConfig,
 } from "./evidence-policy.js";
+import { evaluateInputSafety } from "./input-safety-policy.js";
 import { validateChatResponseOutput } from "./output-validation.js";
 import { buildChatPrompt, PROMPT_VERSION, type ExplicitPreferencePromptContext } from "./prompt.js";
 import type { ChatModelProvider } from "./provider.js";
+import { buildPolicyRefusalAnswer, normalizeSafetyText, redactSensitiveText } from "./safety-policy.js";
+import { sanitizeRetrievedResultsForPrompt } from "./source-safety-policy.js";
 
 export type ChatAuditLogger = (record: ChatAuditRecord) => Promise<void>;
 
@@ -71,12 +74,43 @@ export class ChatService {
     const request = ChatRequestSchema.parse(input);
     const traceId = this.traceIdGenerator();
     const timestamp = this.nowIso();
-    const results = await this.retriever.retrieve({ query: request.query, topK: request.top_k });
-    const evidence = evaluateEvidence(results, { config: this.evidencePolicyConfig });
+    const inputSafety = evaluateInputSafety(request.query);
     const baseGuardrails: ChatAuditRecord["guardrail_results"] = {
-      evidence_policy: evidence.refusal_tier,
       context_isolation: true,
       input_sanitized: true,
+      input_safety_policy_version: inputSafety.policy_version,
+      input_safety_action: inputSafety.action,
+      input_safety_categories: inputSafety.categories,
+    };
+    const queryHashInput = inputSafety.action === "allow" ? request.query : buildRedactedNormalizedQuery(request.query);
+
+    if (inputSafety.action === "refuse") {
+      const response = this.buildPolicyRefusalResponse(traceId);
+      await this.writeAudit({
+        traceId,
+        timestamp,
+        queryHashInput,
+        results: [],
+        refusalTier: response.refusal_tier,
+        citationIds: [],
+        guardrailResults: { ...baseGuardrails, output_validation: "skipped_input_refusal" },
+        responseTimestamp: this.nowIso(),
+        promptSnapshotReason: "refusal",
+      });
+      return response;
+    }
+
+    const safeQuery = inputSafety.action === "redact" ? inputSafety.redacted_query : request.query;
+    const retrievedResults = await this.retriever.retrieve({ query: safeQuery, topK: request.top_k });
+    const sourceSafety = sanitizeRetrievedResultsForPrompt(retrievedResults);
+    const results = sourceSafety.results;
+    const evidence = evaluateEvidence(results, { config: this.evidencePolicyConfig });
+    const safetyGuardrails: ChatAuditRecord["guardrail_results"] = {
+      ...baseGuardrails,
+      evidence_policy: evidence.refusal_tier,
+      source_safety_action: sourceSafety.action,
+      source_safety_categories: sourceSafety.categories,
+      source_safety_unsafe_chunk_ids: sourceSafety.unsafe_chunk_ids,
     };
 
     if (evidence.refusal_tier === "hard_refuse") {
@@ -84,11 +118,11 @@ export class ChatService {
       await this.writeAudit({
         traceId,
         timestamp,
-        query: request.query,
+        queryHashInput,
         results,
         refusalTier: response.refusal_tier,
         citationIds: [],
-        guardrailResults: { ...baseGuardrails, output_validation: "skipped_hard_refusal" },
+        guardrailResults: { ...safetyGuardrails, output_validation: "skipped_hard_refusal" },
         responseTimestamp: this.nowIso(),
         promptSnapshotReason: "refusal",
       });
@@ -97,7 +131,7 @@ export class ChatService {
 
     const explicitPreferences = await this.resolveExplicitPreferences(request.session_key);
     const builtPrompt = buildChatPrompt({
-      query: request.query,
+      query: safeQuery,
       results,
       refusal_tier: evidence.refusal_tier,
       ...(explicitPreferences !== undefined ? { explicit_preferences: explicitPreferences } : {}),
@@ -120,11 +154,11 @@ export class ChatService {
         await this.writeAudit({
           traceId,
           timestamp,
-          query: request.query,
+          queryHashInput,
           results,
           refusalTier: validation.response.refusal_tier,
           citationIds: validation.response.citations.map((citation) => citation.citation_id),
-          guardrailResults: { ...baseGuardrails, ...builtPrompt.guardrails, output_validation: "passed" },
+          guardrailResults: { ...safetyGuardrails, ...builtPrompt.guardrails, output_validation: "passed" },
           responseTimestamp: this.nowIso(),
         });
         return validation.response;
@@ -134,12 +168,12 @@ export class ChatService {
       await this.writeAudit({
         traceId,
         timestamp,
-        query: request.query,
+        queryHashInput,
         results,
         refusalTier: response.refusal_tier,
         citationIds: [],
         guardrailResults: {
-          ...baseGuardrails,
+          ...safetyGuardrails,
           ...builtPrompt.guardrails,
           output_validation: "failed",
           output_validation_failures: validation.failures,
@@ -153,12 +187,12 @@ export class ChatService {
       await this.writeAudit({
         traceId,
         timestamp,
-        query: request.query,
+        queryHashInput,
         results,
         refusalTier: response.refusal_tier,
         citationIds: [],
         guardrailResults: {
-          ...baseGuardrails,
+          ...safetyGuardrails,
           ...builtPrompt.guardrails,
           output_validation: "failed",
           provider_error: summarizeUnknownError(error),
@@ -180,10 +214,20 @@ export class ChatService {
     };
   }
 
+  private buildPolicyRefusalResponse(traceId: string): ChatResponse {
+    return {
+      answer: buildPolicyRefusalAnswer(),
+      citations: [],
+      refusal_tier: "hard_refuse",
+      confidence: 0,
+      trace_id: traceId,
+    };
+  }
+
   private async writeAudit(input: {
     traceId: string;
     timestamp: string;
-    query: string;
+    queryHashInput: string;
     results: Awaited<ReturnType<Retriever["retrieve"]>>;
     refusalTier: ChatAuditRecord["refusal_tier"];
     citationIds: number[];
@@ -195,7 +239,7 @@ export class ChatService {
     await this.auditLogger({
       trace_id: input.traceId,
       timestamp: input.timestamp,
-      query_hash: hashQuery(input.query),
+      query_hash: hashQuery(input.queryHashInput),
       retrieved_chunks: input.results.map((result) => ({
         chunk_id: result.chunk.chunk_id,
         record_id: result.chunk.record_id,
@@ -227,6 +271,10 @@ export class ChatService {
       target_role: state.profile.target_role,
     };
   }
+}
+
+function buildRedactedNormalizedQuery(query: string): string {
+  return redactSensitiveText(normalizeSafetyText(query));
 }
 
 function candidateFromProviderContent(

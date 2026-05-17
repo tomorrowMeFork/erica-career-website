@@ -32,7 +32,7 @@ function stripUnsafeHtml(answer: string): string {
 function createMarkdownComponents(citations: ChatCitation[], onOpenCitation: (citation: ChatCitation, scopedCitations: ChatCitation[], opener?: HTMLElement) => void): Components {
   const renderChildren = (children: ReactNode) => renderCitationText(children, citations, onOpenCitation);
   return {
-    a: ({ children, href }) => <a href={href} target="_blank" rel="noopener noreferrer">{renderChildren(children)}</a>,
+    a: ({ children }) => <span>{renderChildren(children)}</span>,
     em: ({ children }) => <em>{renderChildren(children)}</em>,
     h1: ({ children }) => <h2>{renderChildren(children)}</h2>,
     h2: ({ children }) => <h2>{renderChildren(children)}</h2>,
