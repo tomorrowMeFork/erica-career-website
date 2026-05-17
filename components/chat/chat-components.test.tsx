@@ -38,8 +38,14 @@ describe("chat dashboard components", () => {
   it("renders refusal notices and attached evidence without destructive styling", () => {
     render(<AssistantAnswer response={{ answer: "근거 부족", citations: [], refusal_tier: "hard_refuse", confidence: 0, trace_id: "trace" }} recommendations={[recommendation]} onOpenCitation={vi.fn()} />);
     expect(screen.getByText("확인된 근거가 부족해 답변할 수 없어요. 공식 출처에서 최신 정보를 확인해 주세요.")).toBeTruthy();
-    expect(screen.getByText(/출처: ERICA 취업게시판 · 게시일 2026-05-01 · 확인일 2026-05-03/u)).toBeTruthy();
-    expect(screen.getByText("마감 상태:")).toBeTruthy();
+    const evidenceCard = screen.getByRole("article", { name: "백엔드 인턴 참고 정보" });
+    expect(within(evidenceCard).getByText("출처")).toBeTruthy();
+    expect(within(evidenceCard).getAllByText("ERICA 취업게시판").length).toBeGreaterThan(0);
+    expect(within(evidenceCard).getByText("게시일")).toBeTruthy();
+    expect(within(evidenceCard).getByText("2026-05-01")).toBeTruthy();
+    expect(within(evidenceCard).getByText("확인일")).toBeTruthy();
+    expect(within(evidenceCard).getByText("2026-05-03")).toBeTruthy();
+    expect(within(evidenceCard).getByText("마감 상태")).toBeTruthy();
     expect(screen.getByRole("link", { name: "백엔드 인턴 원문 보기 새 창으로 열기" })).toBeTruthy();
     expect(screen.queryByText("전공 조건과 연결됩니다 [1]")).toBeNull();
   });
@@ -66,8 +72,9 @@ describe("chat dashboard components", () => {
     render(<AssistantAnswer response={{ answer: "안내 <script>window.__markdownExecuted = true</script><img alt=\"unsafe\" src=\"x\" />\n\n**마크다운 강조**", citations: [], refusal_tier: "normal_answer", confidence: 0.8, trace_id: "trace" }} onOpenCitation={vi.fn()} />);
 
     expect(screen.getByText("마크다운 강조")).toBeTruthy();
-    expect(document.querySelector(".assistant-answer__body script")).toBeNull();
-    expect(document.querySelector(".assistant-answer__body img")).toBeNull();
+    const answerArticle = screen.getByRole("article", { name: "출처 기반 답변" });
+    expect(answerArticle.querySelector("script")).toBeNull();
+    expect(answerArticle.querySelector("img")).toBeNull();
     expect(screen.queryByText(/window.__markdownExecuted/u)).toBeNull();
     expect(unsafeWindow.__markdownExecuted).toBe(false);
   });
@@ -76,13 +83,12 @@ describe("chat dashboard components", () => {
     const onOpenCitation = vi.fn();
     render(<AssistantAnswer response={{ answer: "[공식 원문](https://evil.example) [1]", citations: [citation], refusal_tier: "normal_answer", confidence: 0.8, trace_id: "trace" }} onOpenCitation={onOpenCitation} />);
 
-    const answerBody = document.querySelector(".assistant-answer__body");
-    expect(answerBody).toBeTruthy();
+    const answerArticle = screen.getByRole("article", { name: "출처 기반 답변" });
     expect(screen.getByText("공식 원문")).toBeTruthy();
-    expect(within(answerBody as HTMLElement).queryByRole("link", { name: "공식 원문" })).toBeNull();
-    expect((answerBody as HTMLElement).querySelector('a[href="https://evil.example"]')).toBeNull();
+    expect(within(answerArticle).queryByRole("link", { name: "공식 원문" })).toBeNull();
+    expect(answerArticle.querySelector('a[href="https://evil.example"]')).toBeNull();
 
-    const citationMarker = within(answerBody as HTMLElement).getByRole("button", { name: "1번 출처 보기" });
+    const citationMarker = within(answerArticle).getByRole("button", { name: "1번 출처 보기" });
     expect(citationMarker.textContent).toBe("[1]");
     fireEvent.click(citationMarker);
     expect(onOpenCitation).toHaveBeenCalledWith(citation, [citation], expect.any(HTMLButtonElement));
@@ -93,7 +99,7 @@ describe("chat dashboard components", () => {
 
     expect(screen.getByText("정상 안내")).toBeTruthy();
     expect(screen.queryByRole("img", { name: "unsafe" })).toBeNull();
-    expect(document.querySelector(".assistant-answer__body img")).toBeNull();
+    expect(screen.getByRole("article", { name: "출처 기반 답변" }).querySelector("img")).toBeNull();
   });
 
   it("scopes repeated citation IDs to the assistant message that opened them", () => {

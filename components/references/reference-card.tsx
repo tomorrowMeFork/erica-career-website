@@ -1,55 +1,62 @@
 import Link from "next/link";
 
 import type { DeadlineStatus, SessionReferenceItem } from "../../lib/session-references.js";
+import { MetadataList } from "../common/metadata-list.js";
+import { StatusBadge } from "../common/status-badge.js";
+import { Badge } from "../ui/badge.js";
+import { Button } from "../ui/button.js";
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "../ui/card.js";
 
-const deadlineStatusMeta: Record<Exclude<DeadlineStatus, "unknown">, { label: string; variant: "success" | "muted" | "warning" }> = {
-  open: { label: "모집중", variant: "success" },
-  closing_soon: { label: "마감 임박", variant: "warning" },
-  closed: { label: "마감됨", variant: "muted" },
-};
+type StatusBadgeDeadline = "open" | "closing_soon" | "closed" | "unknown";
 
 export function ReferenceCard({ item }: { item: SessionReferenceItem }) {
-  const deadlineMeta = item.deadlineStatus === "unknown" ? null : deadlineStatusMeta[item.deadlineStatus];
-
   return (
-    <article className="reference-card card-surface" data-deadline_status={item.deadlineStatus} aria-label={`${item.title} 참고한 정보`}>
-      <header>
-        <div>
-          <h2>{item.title}</h2>
-          <p>{item.sourceLabel}</p>
-        </div>
-        {deadlineMeta ? <span className={`badge badge--${deadlineMeta.variant}`} aria-label={`마감 상태: ${deadlineMeta.label}`}>{deadlineMeta.label}</span> : null}
-      </header>
-
-      <dl className="reference-card__meta" aria-label="출처와 참고 이력">
-        {item.postedAt ? (
-          <div>
-            <dt>게시일</dt>
-            <dd><time dateTime={item.postedAt}>{formatDate(item.postedAt)}</time></dd>
+    <article data-deadline_status={item.deadlineStatus} aria-label={`${item.title} 참고한 정보`}>
+      <Card className="h-full overflow-hidden border-0 bg-card/90 shadow-none ring-1 ring-primary/15 transition-all hover:-translate-y-0.5 hover:shadow-[var(--shadow-soft)] hover:ring-primary/30">
+        <CardHeader className="gap-4 border-t-4 border-t-[var(--hanyang-orange)] pb-0">
+          <div className="grid gap-3">
+            <div className="flex flex-wrap items-center gap-2">
+              <StatusBadge kind="source" label={item.sourceLabel} />
+              <Badge variant="outline" className="border-[var(--hanyang-orange)]/60 bg-[var(--hanyang-orange)]/15 text-[var(--hanyang-gold)]">마감 정보</Badge>
+            </div>
+            <CardTitle className="text-xl leading-tight tracking-tight text-foreground">
+              <h2>{item.title}</h2>
+            </CardTitle>
+            <CardDescription>이번 상담에서 실제로 참고한 출처와 공고만 모았어요.</CardDescription>
           </div>
-        ) : null}
-        {item.fetchedAt ? (
-          <div>
-            <dt>확인일</dt>
-            <dd><time dateTime={item.fetchedAt}>{formatDate(item.fetchedAt)}</time></dd>
-          </div>
-        ) : null}
-        <div>
-          <dt>답변에서</dt>
-          <dd>{item.referenceCount}회 참고</dd>
-        </div>
-      </dl>
-
-      <div className="reference-card__actions">
-        <a className="primary-button" href={item.url} target="_blank" rel="noopener noreferrer" aria-label={`${item.title} 원문 열기 새 창으로 열기`}>
-          원문 열기
-        </a>
-        <Link className="pill-control" href="/consultation">
-          상담 이어가기
-        </Link>
-      </div>
+        </CardHeader>
+        <CardContent>
+          <MetadataList
+            className="bg-transparent"
+            aria-label="출처와 참고 이력"
+            rows={[
+              { label: "게시일", value: item.postedAt ? formatDate(item.postedAt) : null, dateTime: item.postedAt ?? undefined },
+              { label: "확인일", value: item.fetchedAt ? formatDate(item.fetchedAt) : null, dateTime: item.fetchedAt ?? undefined },
+              { label: "마감 상태", value: <StatusBadge kind="deadline" status={toStatusBadgeDeadline(item.deadlineStatus)} /> },
+              { label: "답변에서", value: `${item.referenceCount}회 참고` },
+            ]}
+          />
+        </CardContent>
+        <CardFooter className="flex-wrap gap-2 pt-0">
+          <Button asChild className="rounded-full shadow-[var(--shadow-soft)]">
+            <a href={item.url} target="_blank" rel="noopener noreferrer" aria-label={`${item.title} 원문 열기 새 창으로 열기`}>
+              원문 열기
+            </a>
+          </Button>
+          <Button asChild variant="ghost" className="text-primary">
+            <Link href="/consultation">상담 이어가기</Link>
+          </Button>
+        </CardFooter>
+      </Card>
     </article>
   );
+}
+
+function toStatusBadgeDeadline(status: DeadlineStatus): StatusBadgeDeadline {
+  if (status === "open") return "open";
+  if (status === "closing_soon") return "closing_soon";
+  if (status === "closed") return "closed";
+  return "unknown";
 }
 
 function formatDate(value: string): string {

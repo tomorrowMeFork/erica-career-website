@@ -17,6 +17,8 @@ import { PreferencePanel } from "../preferences/preference-panel.js";
 import { SettingsMenu } from "../preferences/settings-menu.js";
 import { StorageScopeChip } from "../preferences/storage-scope-chip.js";
 import { DisclaimerNotice } from "../safety/disclaimer-notice.js";
+import { Button } from "../ui/button.js";
+import { Card } from "../ui/card.js";
 
 const emptyPreferenceState: PreferenceState = { preference_ranking_enabled: false, profile: null, storage_scope: "none" };
 
@@ -115,15 +117,15 @@ export function StudentDashboard() {
   const handleSelectCitation = useCallback((citation: ChatCitation) => setSelectedCitation(citation), []);
 
   return (
-    <main className="phase5-shell" onKeyDown={(event) => { if (event.key === "Escape") closeSource(); }}>
-      <div className="phase5-container">
-        <header className="dashboard-header card-surface">
+    <main className="grid gap-5" onKeyDown={(event) => { if (event.key === "Escape") closeSource(); }}>
+      <div className="grid gap-5">
+        <header className="grid gap-4 rounded-xl border border-border bg-card p-5 shadow-sm md:grid-cols-[minmax(0,1fr)_auto] md:items-start">
           <div>
-            <p className="dashboard-kicker">ERICA 커리어 데스크</p>
-            <h1>출처와 마감일을 함께 확인하는 커리어 상담</h1>
-            <p>채용 공고, 마감일, 취업 프로그램을 한국어로 질문하면 확인된 출처와 최신성 정보를 함께 보여드려요.</p>
+            <p className="mb-2 text-xs font-semibold uppercase tracking-[0.18em] text-primary">ERICA 커리어 데스크</p>
+            <h1 className="text-2xl font-semibold tracking-tight text-foreground">출처와 마감일을 함께 확인하는 커리어 상담</h1>
+            <p className="mt-3 max-w-3xl text-sm leading-6 text-muted-foreground">채용 공고, 마감일, 취업 프로그램을 한국어로 질문하면 확인된 출처와 최신성 정보를 함께 보여드려요.</p>
           </div>
-          <div className="dashboard-actions">
+          <div className="flex flex-wrap items-center gap-2 md:justify-end">
             <StorageScopeChip storageScope={preferenceState.storage_scope} rankingEnabled={preferenceState.preference_ranking_enabled} />
             <SettingsMenu onClearPreferences={() => void handleClearPreferences()} onClearChatHistory={clearChatHistory} />
           </div>
@@ -131,30 +133,30 @@ export function StudentDashboard() {
 
         <DisclaimerNotice />
 
-        <nav className="panel-tabs" aria-label="대시보드 패널">
-          <button type="button" className="pill-control" aria-pressed={activePanel === "chat"} onClick={() => setActivePanel("chat")}>채팅</button>
-          <button type="button" className="pill-control" aria-pressed={activePanel === "listings"} onClick={() => setActivePanel("listings")}>공고</button>
-          <button type="button" className="pill-control" aria-pressed={activePanel === "preferences"} onClick={() => setActivePanel("preferences")}>추천 조건</button>
+        <nav className="flex flex-wrap gap-2" aria-label="대시보드 패널">
+          <Button type="button" variant={activePanel === "chat" ? "secondary" : "outline"} aria-pressed={activePanel === "chat"} onClick={() => setActivePanel("chat")}>채팅</Button>
+          <Button type="button" variant={activePanel === "listings" ? "secondary" : "outline"} aria-pressed={activePanel === "listings"} onClick={() => setActivePanel("listings")}>공고</Button>
+          <Button type="button" variant={activePanel === "preferences" ? "secondary" : "outline"} aria-pressed={activePanel === "preferences"} onClick={() => setActivePanel("preferences")}>추천 조건</Button>
         </nav>
 
-        <div className="dashboard-grid">
-          <aside className={`dashboard-left ${activePanel === "preferences" || activePanel === "listings" ? "is-mobile-open" : ""}`}>
-            <div className={`mobile-panel mobile-panel--preferences ${activePanel === "preferences" ? "is-active" : ""}`}>
+        <div className="grid gap-5 lg:grid-cols-[minmax(0,1fr)_minmax(280px,360px)]">
+          <aside className="grid gap-4 lg:order-2">
+            <div className={activePanel === "preferences" ? "grid" : "hidden lg:grid"}>
               <PreferencePanel state={preferenceState} sessionKey={sessionKey} onSet={handleSave} onUpdate={handleUpdate} onClear={handleClearPreferences} onRead={handleRead} />
             </div>
-            <div className={`mobile-panel mobile-panel--listings ${activePanel === "listings" ? "is-active" : ""}`}>
+            <div className={activePanel === "listings" ? "grid" : "hidden lg:grid"}>
               <ListingPanel items={recommendations} activeFilter={activeFilter} onFilterChange={setActiveFilter} onRefresh={(key) => void refreshRecommendations(key)} sessionKey={sessionKey} preferenceMode={recommendationResponse?.preference_mode ?? "no_preference"} privacyMetadata={recommendationResponse?.privacy_metadata} />
             </div>
           </aside>
 
-          <section className="chat-column card-surface" aria-label="채팅">
+          <section className={activePanel === "chat" ? "grid min-h-[72vh] content-between gap-4 overflow-hidden rounded-xl border border-border bg-card p-4 lg:order-1 lg:p-6" : "hidden min-h-[72vh] content-between gap-4 overflow-hidden rounded-xl border border-border bg-card p-4 lg:order-1 lg:grid lg:p-6"} aria-label="채팅">
             <ChatMessageList messages={messages} onOpenCitation={openCitation} />
-            {isLoading ? <div className="card-surface loading-card">관련 출처를 확인하고 답변을 준비하고 있어요…</div> : null}
+            {isLoading ? <Card className="p-5">관련 출처를 확인하고 답변을 준비하고 있어요…</Card> : null}
             <ChatComposer query={query} onQueryChange={setQuery} onSubmit={submitQuestion} isLoading={isLoading} />
           </section>
 
-          <div className="source-column">
-            {sourcePanelOpen ? <SourceInspectionRail citations={sourceCitations} selectedCitation={selectedCitation} onSelect={handleSelectCitation} onClose={closeSource} /> : <div className="soft-surface source-placeholder">출처 확인하기</div>}
+          <div className="lg:order-3">
+            {sourcePanelOpen ? <SourceInspectionRail citations={sourceCitations} selectedCitation={selectedCitation} onSelect={handleSelectCitation} onClose={closeSource} /> : <Card className="grid min-h-56 place-items-center p-5 text-center text-muted-foreground">출처 확인하기</Card>}
           </div>
         </div>
 
