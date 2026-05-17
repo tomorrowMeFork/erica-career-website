@@ -1,0 +1,1444 @@
+import { stdin as input, stdout as output } from "node:process";
+import { createInterface } from "node:readline/promises";
+import { pathToFileURL } from "node:url";
+
+import * as cheerio from "cheerio";
+import type { Element } from "domhandler";
+import type { BrowserContext, Page } from "playwright";
+import { chromium } from "playwright";
+import {
+	buildRecordId,
+	chunkNormalizedRecord,
+	sha256,
+} from "../src/ingestion/chunking.js";
+import type {
+	CitationAnchor,
+	DeadlineStatus,
+	NormalizedRecord,
+} from "../src/ingestion/normalized-record.js";
+import { NormalizedRecordSchema } from "../src/ingestion/normalized-record.js";
+import { extractPdfPages } from "../src/ingestion/pdf/pdf-page-parser.js";
+import { writeKnowledgeBaseJsonl } from "../src/ingestion/write-jsonl-kb.js";
+
+type EwilSource = {
+	source_id: string;
+	source_name: string;
+	canonical_url: string;
+	category: string;
+	title: string;
+	purpose: string;
+};
+
+type CliArgs = {
+	outputDir: string;
+	maxListPages: number;
+	maxDetailPages: number;
+	headless: boolean;
+	sourceIds: readonly string[];
+};
+
+type CollectedPage = {
+	source: EwilSource;
+	url: string;
+	title: string;
+	text: string;
+	posted_at: string | null;
+	deadline_status: DeadlineStatus;
+	deadline_raw_text: string;
+	citation_anchors?: CitationAnchor[];
+};
+
+type AttachmentLink = {
+	url: string;
+	label: string;
+};
+
+type DetailLinkCandidate = {
+	elementIndex: number;
+	key: string;
+	selector: string;
+	url: string;
+};
+
+type ClickedDetailPage = {
+	html: string;
+	url: string;
+	candidate: DetailLinkCandidate;
+};
+
+const ewilOrigin = "https://e-wil.hanyang.ac.kr";
+const defaultOutputDir = "data/knowledge-base/ewil-authenticated-sources";
+const defaultMaxListPages = 5;
+const defaultMaxDetailPages = 30;
+const navigationTimeoutMs = 20_000;
+const renderedContentTimeoutMs = 5_000;
+const requestDelayMs = 1_200;
+const maxPdfAttachmentsPerPage = 5;
+const maxPdfBytes = 25 * 1024 * 1024;
+
+const ewilSources: readonly EwilSource[] = [
+	{
+		source_id: "ewil-notice-board",
+		source_name: "E-WIL 공지사항",
+		canonical_url: `${ewilOrigin}/data/list.do?type=NOTICE`,
+		category: "ERICA 현장실습 지원 시스템 > 공지사항/인턴공고",
+		title: "E-WIL 공지사항/인턴공고",
+		purpose: "공지사항과 인턴/현장실습 공고 목록",
+	},
+	{
+		source_id: "ewil-info-board",
+		source_name: "E-WIL 설명회",
+		canonical_url: `${ewilOrigin}/data/list.do?type=INFO`,
+		category: "ERICA 현장실습 지원 시스템 > 설명회",
+		title: "E-WIL 설명회",
+		purpose: "현장실습 관련 설명회 및 안내 자료",
+	},
+	{
+		source_id: "ewil-internship-reviews",
+		source_name: "E-WIL 실습 후기",
+		canonical_url: `${ewilOrigin}/internphoto/compList.do`,
+		category: "ERICA 현장실습 지원 시스템 > 실습 후기",
+		title: "E-WIL 실습 후기",
+		purpose: "현장실습 참여 기업/실습 후기 목록",
+	},
+] as const;
+
+async function runCli(): Promise<void> {
+	const args = parseArgs(process.argv.slice(2));
+	const fetchedAt = new Date().toISOString();
+	const browser = await chromium.launch({ headless: args.headless });
+	const records: NormalizedRecord[] = [];
+	const selectedSources = ewilSources.filter((source) =>
+		args.sourceIds.includes(source.source_id),
+	);
+
+	try {
+		const context = await browser.newContext({
+			storageState: { cookies: [], origins: [] },
+		});
+		try {
+			await restrictContextToEwil(context);
+			const page = await context.newPage();
+			await promptForManualLogin(page, args.headless);
+
+			for (const source of selectedSources) {
+				const collected = await collectSource(
+					page,
+					source,
+					args.maxListPages,
+					args.maxDetailPages,
+				);
+				records.push(...collected.map((item) => buildRecord(item, fetchedAt)));
+				await delay(requestDelayMs);
+			}
+		} finally {
+			await context.clearCookies();
+			await context.close();
+		}
+	} finally {
+		await browser.close();
+	}
+
+	const chunks = records.flatMap((record) => chunkNormalizedRecord(record));
+	const manifest = await writeKnowledgeBaseJsonl({
+		records,
+		chunks,
+		outputDir: args.outputDir,
+		manifest: {
+			run_id: `ewil-authenticated-sources-${fetchedAt}`,
+			generated_at: fetchedAt,
+			source_ids: selectedSources.map((source) => source.source_id),
+		},
+	});
+
+	console.log(
+		`ewil authenticated source ingestion wrote ${manifest.record_count} records and ${manifest.chunk_count} chunks to ${args.outputDir}`,
+	);
+}
+
+async function promptForManualLogin(
+	page: Page,
+	headless: boolean,
+): Promise<void> {
+	if (headless) {
+		throw new Error(
+			"Manual E-WIL login requires a headed browser. Remove --headless and run again.",
+		);
+	}
+
+	await page.goto(`${ewilOrigin}/index.do`, {
+		waitUntil: "domcontentloaded",
+		timeout: navigationTimeoutMs,
+	});
+	console.log("Opened E-WIL in a non-persistent browser context.");
+	console.log(
+		"Log in manually in the opened browser window. No cookies, storage state, screenshots, traces, IDs, or passwords will be written by this script.",
+	);
+	const readline = createInterface({ input, output });
+	try {
+		await readline.question(
+			"After login completes, press Enter here to collect only the three approved E-WIL URLs...",
+		);
+	} finally {
+		readline.close();
+	}
+}
+
+async function restrictContextToEwil(context: BrowserContext): Promise<void> {
+	await context.route("**/*", async (route) => {
+		const url = new URL(route.request().url());
+		if (
+			url.origin === ewilOrigin ||
+			url.origin === "https://api.hanyang.ac.kr"
+		) {
+			await route.continue();
+			return;
+		}
+		await route.abort();
+	});
+}
+
+async function collectSource(
+	page: Page,
+	source: EwilSource,
+	maxListPages: number,
+	maxDetailPages: number,
+): Promise<CollectedPage[]> {
+	const listPages = await collectListPages(page, source, maxListPages);
+	const pages: CollectedPage[] = [];
+	const detailCandidatesByListUrl = new Map<string, DetailLinkCandidate[]>();
+	const seenDetailKeys = new Set<string>();
+	let collectedDetailPageCount = 0;
+
+	if (source.source_id === "ewil-internship-reviews") {
+		return collectInternshipReviewPages(
+			page,
+			source,
+			listPages,
+			maxDetailPages,
+		);
+	}
+
+	for (const listPage of listPages) {
+		const { html: listHtml, url: listUrl } = listPage;
+		pages.push(
+			...(await collectPageAndPdfAttachments(
+				page,
+				source,
+				listUrl,
+				listHtml,
+				source.title,
+			)),
+		);
+
+		const candidates: DetailLinkCandidate[] = [];
+		for (const candidate of extractDetailLinkCandidates(listHtml, listUrl)) {
+			if (!seenDetailKeys.has(candidate.key)) {
+				seenDetailKeys.add(candidate.key);
+				candidates.push(candidate);
+			}
+		}
+		detailCandidatesByListUrl.set(listUrl, candidates);
+	}
+
+	for (const [listUrl, candidates] of detailCandidatesByListUrl) {
+		for (const candidate of candidates) {
+			if (collectedDetailPageCount >= maxDetailPages) {
+				return pages;
+			}
+
+			await delay(requestDelayMs);
+			const detailPages = await collectClickedDetailPages(
+				page,
+				listUrl,
+				candidate,
+				maxDetailPages - collectedDetailPageCount,
+			);
+			for (const detailPage of detailPages) {
+				pages.push(
+					...(await collectPageAndPdfAttachments(
+						page,
+						source,
+						buildDetailCitationUrl(
+							detailPage.url,
+							listUrl,
+							detailPage.candidate,
+						),
+						detailPage.html,
+						source.title,
+					)),
+				);
+				collectedDetailPageCount += 1;
+			}
+		}
+	}
+
+	return pages;
+}
+
+type ListPage = {
+	url: string;
+	html: string;
+};
+
+async function collectListPages(
+	page: Page,
+	source: EwilSource,
+	maxListPages: number,
+): Promise<ListPage[]> {
+	const visited = new Set<string>();
+	const pages: ListPage[] = [];
+	const queue = [source.canonical_url];
+
+	while (queue.length > 0 && visited.size < maxListPages) {
+		const listUrl = queue.shift();
+		if (listUrl === undefined || visited.has(listUrl)) {
+			continue;
+		}
+		visited.add(listUrl);
+
+		const html = await collectHtml(page, listUrl);
+		pages.push({ url: listUrl, html });
+		for (const nextListUrl of extractListPageUrls(html, listUrl, source)) {
+			if (
+				!visited.has(nextListUrl) &&
+				queue.length + visited.size < maxListPages
+			) {
+				queue.push(nextListUrl);
+			}
+		}
+	}
+
+	return pages;
+}
+
+async function collectInternshipReviewPages(
+	page: Page,
+	source: EwilSource,
+	listPages: readonly ListPage[],
+	maxDetailPages: number,
+): Promise<CollectedPage[]> {
+	const pages: CollectedPage[] = [];
+	const seenCompanyKeys = new Set<string>();
+	const seenReviewKeys = new Set<string>();
+
+	for (const listPage of listPages) {
+		const companyCandidates = extractInternshipCompanyCandidates(
+			listPage.html,
+			listPage.url,
+		).filter((candidate) => {
+			if (seenCompanyKeys.has(candidate.key)) {
+				return false;
+			}
+			seenCompanyKeys.add(candidate.key);
+			return true;
+		});
+		console.log(
+			`E-WIL reviews: ${listPage.url} yielded ${companyCandidates.length} company candidates`,
+		);
+
+		for (const companyCandidate of companyCandidates) {
+			if (pages.length >= maxDetailPages) {
+				return pages;
+			}
+
+			await delay(requestDelayMs);
+			const companyPage = await clickCandidateFromPage(
+				page,
+				listPage.url,
+				companyCandidate,
+			);
+			const reviewCandidates = extractInternshipReviewCandidates(
+				companyPage.html,
+				companyCandidate.url,
+				companyCandidate.key,
+			).filter((candidate) => {
+				if (seenReviewKeys.has(candidate.key)) {
+					return false;
+				}
+				seenReviewKeys.add(candidate.key);
+				return true;
+			});
+			console.log(
+				`E-WIL reviews: company ${companyCandidate.key} yielded ${reviewCandidates.length} review candidates`,
+			);
+
+			for (const reviewCandidate of reviewCandidates) {
+				if (pages.length >= maxDetailPages) {
+					return pages;
+				}
+
+				await delay(requestDelayMs);
+				const reviewHtml = await collectHtml(page, reviewCandidate.url);
+				const recordability = classifyInternshipReviewRecordability(reviewHtml);
+				if (!recordability.recordable) {
+					console.log(
+						`E-WIL reviews: skipped ${reviewCandidate.key}; ${recordability.reason}`,
+					);
+					continue;
+				}
+				const collectedPages = await collectPageAndPdfAttachments(
+						page,
+						source,
+						reviewCandidate.url,
+						reviewHtml,
+						source.title,
+				);
+				pages.push(...collectedPages);
+				console.log(
+					`E-WIL reviews: collected ${reviewCandidate.key} (${summarizeCollectedPageForLog(collectedPages[0])})`,
+				);
+			}
+		}
+	}
+
+	return pages;
+}
+
+async function collectHtml(page: Page, url: string): Promise<string> {
+	const response = await page.goto(url, {
+		waitUntil: "domcontentloaded",
+		timeout: navigationTimeoutMs,
+	});
+	if (!response) {
+		throw new Error(`E-WIL navigation returned no response for ${url}`);
+	}
+	if (response.status() >= 400) {
+		throw new Error(
+			`E-WIL navigation stopped on HTTP ${response.status()} for ${url}. Make sure the headed browser is logged in and authorized for this page.`,
+		);
+	}
+
+	return collectCurrentHtml(page, url);
+}
+
+async function collectClickedDetailPages(
+	page: Page,
+	listUrl: string,
+	candidate: DetailLinkCandidate,
+	remainingDetailPages: number,
+): Promise<ClickedDetailPage[]> {
+	const firstPage = await clickCandidateFromPage(page, listUrl, candidate);
+	if (!looksLikeNestedEwilList(firstPage.html) || remainingDetailPages <= 1) {
+		return [firstPage];
+	}
+
+	const nestedCandidates = extractDetailLinkCandidates(firstPage.html, firstPage.url)
+		.filter((nestedCandidate) => nestedCandidate.key !== candidate.key)
+		.slice(0, remainingDetailPages);
+	if (nestedCandidates.length === 0) {
+		return [firstPage];
+	}
+
+	const nestedPages: ClickedDetailPage[] = [];
+	for (const nestedCandidate of nestedCandidates) {
+		await delay(requestDelayMs);
+		await clickCandidateFromPage(page, listUrl, candidate);
+		nestedPages.push(
+			await clickCandidateOnCurrentPage(page, firstPage.url, nestedCandidate),
+		);
+	}
+	return nestedPages;
+}
+
+async function clickCandidateFromPage(
+	page: Page,
+	url: string,
+	candidate: DetailLinkCandidate,
+): Promise<ClickedDetailPage> {
+	await collectHtml(page, url);
+	return clickCandidateOnCurrentPage(page, url, candidate);
+}
+
+async function clickCandidateOnCurrentPage(
+	page: Page,
+	baseUrl: string,
+	candidate: DetailLinkCandidate,
+): Promise<ClickedDetailPage> {
+	const elements = page.locator(candidate.selector);
+	const elementCount = await elements.count();
+	if (candidate.elementIndex >= elementCount) {
+		throw new Error(
+			`E-WIL detail link moved before click for ${baseUrl} at ${candidate.selector} index ${candidate.elementIndex}`,
+		);
+	}
+
+	const beforeClickText = await readableBodyText(page);
+	await Promise.all([
+		page
+			.waitForLoadState("domcontentloaded", { timeout: navigationTimeoutMs })
+			.catch(() => undefined),
+		elements.nth(candidate.elementIndex).click({ timeout: navigationTimeoutMs }),
+	]);
+	await waitForReadableTextChange(page, beforeClickText);
+	return {
+		html: await collectCurrentHtml(page, candidate.url),
+		url: page.url(),
+		candidate,
+	};
+}
+
+async function collectCurrentHtml(page: Page, url: string): Promise<string> {
+	await waitForRenderedReadableText(page);
+	const html = await page.content();
+	if (looksLikeLoginOrError(html)) {
+		throw new Error(
+			`E-WIL page did not expose collectable content for ${url}. It appears to be a login/error boundary.`,
+		);
+	}
+	return html;
+}
+
+async function waitForRenderedReadableText(page: Page): Promise<void> {
+	await page
+		.waitForLoadState("networkidle", { timeout: renderedContentTimeoutMs })
+		.catch(() => undefined);
+	await page
+		.waitForFunction(
+			() => {
+				const body = document.body;
+				if (body === null) {
+					return false;
+				}
+				const clone = body.cloneNode(true) as HTMLElement;
+				clone
+					.querySelectorAll(
+						"script, style, noscript, svg, iframe, input[type=password]",
+					)
+					.forEach((node) => {
+						node.remove();
+					});
+				return (clone.textContent ?? "").replace(/\s+/gu, " ").trim().length > 0;
+			},
+			undefined,
+			{ timeout: renderedContentTimeoutMs },
+		)
+		.catch(() => undefined);
+}
+
+async function waitForReadableTextChange(
+	page: Page,
+	previousText: string,
+): Promise<void> {
+	await page
+		.waitForFunction(
+			(previous) => {
+				const body = document.body;
+				if (body === null) {
+					return false;
+				}
+				const clone = body.cloneNode(true) as HTMLElement;
+				clone
+					.querySelectorAll(
+						"script, style, noscript, svg, iframe, input[type=password]",
+					)
+					.forEach((node) => {
+						node.remove();
+					});
+				return (
+					(clone.textContent ?? "").replace(/\s+/gu, " ").trim() !== previous
+				);
+			},
+			previousText,
+			{ timeout: renderedContentTimeoutMs },
+		)
+		.catch(() => undefined);
+}
+
+async function readableBodyText(page: Page): Promise<string> {
+	return page.evaluate(() => {
+		const body = document.body;
+		if (body === null) {
+			return "";
+		}
+		const clone = body.cloneNode(true) as HTMLElement;
+		clone
+			.querySelectorAll("script, style, noscript, svg, iframe, input[type=password]")
+			.forEach((node) => {
+				node.remove();
+			});
+		return (clone.textContent ?? "").replace(/\s+/gu, " ").trim();
+	});
+}
+
+function pageFromHtml(
+	source: EwilSource,
+	url: string,
+	html: string,
+	fallbackTitle: string,
+): CollectedPage {
+	const $ = cheerio.load(html);
+	$("script, style, noscript, svg, iframe, input[type=password]").remove();
+	const title = cleanInlineText($("title").first().text()) || fallbackTitle;
+	const bodyText = cleanCollectedBodyText($("body").text());
+	if (bodyText.length === 0) {
+		throw new Error(`E-WIL page had no readable text: ${url}`);
+	}
+
+	return {
+		source,
+		url,
+		title,
+		text: bodyText,
+		posted_at: extractPostedAt(bodyText),
+		deadline_status: classifyDeadline(bodyText),
+		deadline_raw_text: extractDeadlineRawText(bodyText),
+		citation_anchors: [
+			{ url, label: `원문: ${title}` },
+			...extractAttachmentLinks(html, url).map((attachment) => ({
+				url: attachment.url,
+				label: `첨부: ${attachment.label}`,
+			})),
+		],
+	};
+}
+
+async function collectPageAndPdfAttachments(
+	page: Page,
+	source: EwilSource,
+	url: string,
+	html: string,
+	fallbackTitle: string,
+): Promise<CollectedPage[]> {
+	const parent = pageFromHtml(source, url, html, fallbackTitle);
+	const pdfPages = await collectPdfAttachmentPages(page, source, parent, html, url);
+	return [parent, ...pdfPages];
+}
+
+async function collectPdfAttachmentPages(
+	page: Page,
+	source: EwilSource,
+	parent: CollectedPage,
+	html: string,
+	baseUrl: string,
+): Promise<CollectedPage[]> {
+	const attachments = extractAttachmentLinks(html, baseUrl)
+		.filter((attachment) => looksLikePdfAttachment(attachment))
+		.slice(0, maxPdfAttachmentsPerPage);
+	const records: CollectedPage[] = [];
+
+	for (const attachment of attachments) {
+		await delay(requestDelayMs);
+		const bytes = await fetchAuthenticatedPdfBytes(page, attachment.url);
+		if (bytes === undefined) {
+			continue;
+		}
+		const pages = await extractPdfPages(bytes);
+		for (const pdfPage of pages) {
+			if (pdfPage.cleaned_text.trim().length === 0) {
+				continue;
+			}
+			const pageUrl = `${attachment.url}#page=${pdfPage.page_number}`;
+			records.push({
+				source,
+				url: pageUrl,
+				title: `${parent.title} 첨부 ${attachment.label} ${pdfPage.page_number}쪽`,
+				text: [
+					`상위 문서: ${parent.title}`,
+					`상위 URL: ${parent.url}`,
+					`첨부파일: ${attachment.label}`,
+					`쪽: ${pdfPage.page_number}`,
+					pdfPage.cleaned_text,
+				].join("\n"),
+				posted_at: parent.posted_at,
+				deadline_status: parent.deadline_status,
+				deadline_raw_text: parent.deadline_raw_text,
+				citation_anchors: [
+					{
+						url: pageUrl,
+						label: `${attachment.label} ${pdfPage.page_number}쪽`,
+						page_number: pdfPage.page_number,
+					},
+					{ url: parent.url, label: `상위 문서: ${parent.title}` },
+				],
+			});
+		}
+	}
+
+	return records;
+}
+
+function buildRecord(page: CollectedPage, fetchedAt: string): NormalizedRecord {
+	const rawText = [
+		`출처: ${page.source.source_name}`,
+		`분류: ${page.source.category}`,
+		`수집 범위: ${page.source.purpose}`,
+		`제목: ${page.title}`,
+		page.posted_at ? `게시일: ${page.posted_at}` : undefined,
+		page.deadline_raw_text ? `마감 정보: ${page.deadline_raw_text}` : undefined,
+		"본문:",
+		page.text,
+		`공식 URL: ${page.url}`,
+	]
+		.filter((part): part is string => part !== undefined && part.length > 0)
+		.join("\n");
+	const contentHash = sha256([rawText, page.url].join("\u001f"));
+
+	return NormalizedRecordSchema.parse({
+		record_id: buildRecordId({
+			source_id: page.source.source_id,
+			canonical_url: page.url,
+			title: page.title,
+			posted_at: page.posted_at,
+			content_hash: contentHash,
+		}),
+		source_id: page.source.source_id,
+		source_name: page.source.source_name,
+		source_url: page.url,
+		canonical_url: page.url,
+		title: page.title,
+		category: page.source.category,
+		fetched_at: fetchedAt,
+		posted_at: page.posted_at,
+		deadline_status: page.deadline_status,
+		deadline_raw_text: page.deadline_raw_text,
+		raw_text: rawText,
+		cleaned_text: rawText,
+		content_hash: contentHash,
+		citation_anchors: page.citation_anchors ?? [
+			{ url: page.url, label: `원문: ${page.title}` },
+		],
+		source_text_trust: "untrusted_source_text",
+	});
+}
+
+function summarizeCollectedPageForLog(page: CollectedPage | undefined): string {
+	if (page === undefined) {
+		return "no parsed page summary";
+	}
+	const title = cleanInlineText(page.text.match(/(?:제목|기관명)\n([^\n]+)/u)?.[1] ?? page.title);
+	const postedAt = page.posted_at?.slice(0, 10) ?? "no-date";
+	return `title=${truncateForLog(title, 80)}; posted=${postedAt}; chars=${page.text.length}`;
+}
+
+function truncateForLog(value: string, maxLength: number): string {
+	if (value.length <= maxLength) {
+		return value;
+	}
+	return `${value.slice(0, maxLength - 1)}…`;
+}
+
+function extractDetailLinkCandidates(
+	html: string,
+	baseUrl: string,
+): DetailLinkCandidate[] {
+	const $ = cheerio.load(html);
+	const candidates: DetailLinkCandidate[] = [];
+	for (const selector of detailCandidateSelectors) {
+		$(selector).each((elementIndex, element) => {
+			const candidateUrl = extractCandidateUrl($(element), baseUrl);
+			const normalized = normalizeDetailUrl(candidateUrl, baseUrl);
+			if (candidateUrl !== undefined && normalized !== undefined) {
+				candidates.push({
+					elementIndex,
+					key: buildDetailCandidateKey(candidateUrl, normalized),
+					selector,
+					url: normalized,
+				});
+			}
+		});
+	}
+	const seenKeys = new Set<string>();
+	return candidates
+		.filter((candidate) => {
+			if (seenKeys.has(candidate.key)) {
+				return false;
+			}
+			seenKeys.add(candidate.key);
+			return true;
+		});
+}
+
+const detailCandidateSelectors = ["a", "button", "tr", "td", "span", "li"] as const;
+
+function extractInternshipCompanyCandidates(
+	html: string,
+	baseUrl: string,
+): DetailLinkCandidate[] {
+	return extractDetailLinkCandidates(html, baseUrl).filter((candidate) => {
+		try {
+			const url = new URL(candidate.url);
+			return url.pathname === "/internphoto/read.do";
+		} catch (_error) {
+			return false;
+		}
+	});
+}
+
+function extractInternshipReviewCandidates(
+	html: string,
+	baseUrl: string,
+	companyKey: string,
+): DetailLinkCandidate[] {
+	const $ = cheerio.load(html);
+	const candidates: DetailLinkCandidate[] = [];
+	for (const selector of detailCandidateSelectors) {
+		$(selector).each((elementIndex, element) => {
+			const node = $(element);
+			const candidateUrl = extractInternshipReviewCandidateUrl(
+				node,
+				baseUrl,
+				companyKey,
+			);
+			const normalized = normalizeDetailUrl(candidateUrl, baseUrl);
+			if (candidateUrl === undefined || normalized === undefined) {
+				return;
+			}
+			try {
+				if (new URL(normalized).pathname !== "/internphoto/view.do") {
+					return;
+				}
+			} catch (_error) {
+				return;
+			}
+			candidates.push({
+				elementIndex,
+				key: buildDetailCandidateKey(candidateUrl, normalized),
+				selector,
+				url: normalized,
+			});
+		});
+	}
+
+	const seenKeys = new Set<string>();
+	return candidates.filter((candidate) => {
+		if (seenKeys.has(candidate.key)) {
+			return false;
+		}
+		seenKeys.add(candidate.key);
+		return true;
+	});
+}
+
+function extractInternshipReviewCandidateUrl(
+	element: cheerio.Cheerio<Element>,
+	baseUrl: string,
+	companyKey: string,
+): string | undefined {
+	const candidateUrl = extractCandidateUrl(element, baseUrl);
+	const normalized = normalizeDetailUrl(candidateUrl, baseUrl);
+	if (normalized !== undefined) {
+		try {
+			if (new URL(normalized).pathname === "/internphoto/view.do") {
+				return candidateUrl;
+			}
+		} catch (_error) {
+			return undefined;
+		}
+	}
+
+	const script = [element.attr("href"), element.attr("onclick")]
+		.filter((value): value is string => value !== undefined)
+		.join("\n");
+	return internphotoReviewUrlFromScript(script, baseUrl, companyKey);
+}
+
+export function internphotoReviewUrlFromScript(
+	script: string,
+	baseUrl: string,
+	companyKey: string,
+): string | undefined {
+	if (script.trim().length === 0 || !looksLikeInternphotoViewScript(script)) {
+		return undefined;
+	}
+	const base = new URL(baseUrl);
+	if (base.pathname !== "/internphoto/read.do") {
+		return undefined;
+	}
+	const companyId = companyKey.match(/^\d{1,10}$/u)?.[0] ?? base.searchParams.get("idx");
+	if (companyId === null) {
+		return undefined;
+	}
+	const numericArgs = [...script.matchAll(/\d{1,10}/gu)].map((match) => match[0]);
+	const reviewId = numericArgs.find((value) => value !== companyId);
+	if (reviewId === undefined) {
+		return undefined;
+	}
+	const next = new URL("/internphoto/view.do", ewilOrigin);
+	next.searchParams.set("jid_seq", reviewId);
+	next.searchParams.set("jim_seq", companyId);
+	return next.toString();
+}
+
+function extractAttachmentLinks(html: string, baseUrl: string): AttachmentLink[] {
+	const $ = cheerio.load(html);
+	const links: AttachmentLink[] = [];
+	for (const selector of ["a", "button", "span", "td"] as const) {
+		$(selector).each((_index, element) => {
+			const node = $(element);
+			const candidateUrl = extractCandidateUrl(node, baseUrl);
+			const normalized = normalizeAttachmentUrl(candidateUrl, baseUrl);
+			if (normalized === undefined) {
+				return;
+			}
+			const label =
+				cleanInlineText(node.text()) ||
+				decodeURIComponent(new URL(normalized).pathname.split("/").pop() ?? "첨부파일");
+			links.push({ url: normalized, label });
+		});
+	}
+
+	const seen = new Set<string>();
+	return links.filter((link) => {
+		if (seen.has(link.url)) {
+			return false;
+		}
+		seen.add(link.url);
+		return true;
+	});
+}
+
+function normalizeAttachmentUrl(
+	href: string | undefined,
+	baseUrl: string,
+): string | undefined {
+	if (
+		href === undefined ||
+		href.trim().length === 0 ||
+		href.startsWith("#") ||
+		/^javascript:/iu.test(href)
+	) {
+		return undefined;
+	}
+	try {
+		const url = new URL(href, baseUrl);
+		if (url.origin !== ewilOrigin || hasCredentialLikeSearchParam(url)) {
+			return undefined;
+		}
+		if (!looksLikeAttachmentUrl(url)) {
+			return undefined;
+		}
+		url.hash = "";
+		return url.toString();
+	} catch (_error) {
+		return undefined;
+	}
+}
+
+function looksLikeAttachmentUrl(url: URL): boolean {
+	return /(?:\.pdf$|\.hwp$|\.hwpx$|\.docx?$|\.xlsx?$|\.pptx?$|\.zip$|file|attach|download|down|bbsFile)/iu.test(
+		`${url.pathname}?${url.searchParams.toString()}`,
+	);
+}
+
+function looksLikePdfAttachment(attachment: AttachmentLink): boolean {
+	return /\.pdf(?:$|[?#])|pdf|PDF/u.test(`${attachment.url} ${attachment.label}`);
+}
+
+function hasCredentialLikeSearchParam(url: URL): boolean {
+	for (const key of url.searchParams.keys()) {
+		if (/token|password|passwd|session|jsessionid|authorization|auth/iu.test(key)) {
+			return true;
+		}
+	}
+	return false;
+}
+
+async function fetchAuthenticatedPdfBytes(
+	page: Page,
+	url: string,
+): Promise<Uint8Array | undefined> {
+	const parsed = new URL(url);
+	if (parsed.origin !== ewilOrigin || hasCredentialLikeSearchParam(parsed)) {
+		return undefined;
+	}
+	const response = await page.context().request.get(url, {
+		timeout: navigationTimeoutMs,
+	});
+	if (!response.ok()) {
+		return undefined;
+	}
+	const contentType = response.headers()["content-type"] ?? "";
+	if (!/application\/pdf|application\/octet-stream/iu.test(contentType)) {
+		return undefined;
+	}
+	const body = await response.body();
+	if (body.byteLength > maxPdfBytes || !startsWithPdfHeader(body)) {
+		return undefined;
+	}
+	return new Uint8Array(body);
+}
+
+function startsWithPdfHeader(bytes: Uint8Array): boolean {
+	return (
+		bytes.length >= 4 &&
+		bytes[0] === 0x25 &&
+		bytes[1] === 0x50 &&
+		bytes[2] === 0x44 &&
+		bytes[3] === 0x46
+	);
+}
+
+function buildDetailCandidateKey(candidateUrl: string, normalized: string): string {
+	try {
+		const url = new URL(normalized);
+		const jidSeq = url.searchParams.get("jid_seq");
+		const jimSeq = url.searchParams.get("jim_seq");
+		if (jidSeq !== null && jimSeq !== null) {
+			return `internphoto-view:${jidSeq}:${jimSeq}`;
+		}
+	} catch (_error) {
+		// Fall through to script/id-based key extraction.
+	}
+	const numericId =
+		candidateUrl.match(/(?:idx|seq|no|id)=?(\d{1,10})/iu)?.[1] ??
+		candidateUrl.match(/(?:^|[^\d])(\d{1,10})(?:[^\d]|$)/u)?.[1];
+	if (numericId !== undefined) {
+		return numericId;
+	}
+	return sha256(`${candidateUrl}\u001f${normalized}`).slice(0, 16);
+}
+
+function buildDetailCitationUrl(
+	currentUrl: string,
+	listUrl: string,
+	candidate: DetailLinkCandidate,
+): string {
+	try {
+		const candidateUrl = new URL(candidate.url);
+		if (candidateUrl.pathname === "/internphoto/view.do") {
+			return candidateUrl.toString();
+		}
+	} catch (_error) {
+		// Fall through to stateful current URL citation.
+	}
+
+	const url = new URL(currentUrl);
+	url.hash = `ewil-detail-${candidate.key}-from-${sha256(listUrl).slice(0, 8)}`;
+	return url.toString();
+}
+
+function extractListPageUrls(
+	html: string,
+	baseUrl: string,
+	source: EwilSource,
+): string[] {
+	const $ = cheerio.load(html);
+	const urls = new Set<string>();
+	$("a").each((_index, element) => {
+		const normalized = normalizeListUrl(
+			extractCandidateUrl($(element), baseUrl),
+			baseUrl,
+			source,
+		);
+		if (normalized !== undefined) {
+			urls.add(normalized);
+		}
+	});
+	return [...urls].sort((left, right) => left.localeCompare(right, "en"));
+}
+
+function extractCandidateUrl(
+	element: cheerio.Cheerio<Element>,
+	baseUrl: string,
+): string | undefined {
+	const href = element.attr("href");
+	if (href !== undefined && /^javascript:/iu.test(href.trim())) {
+		const hrefUrl = urlFromScript(href, baseUrl);
+		if (hrefUrl !== undefined) {
+			return hrefUrl;
+		}
+	}
+	if (
+		href !== undefined &&
+		href.trim().length > 0 &&
+		!href.startsWith("#") &&
+		!/^javascript:/iu.test(href)
+	) {
+		return href;
+	}
+
+	const onclick = element.attr("onclick") ?? "";
+	return urlFromScript(onclick, baseUrl);
+}
+
+function urlFromScript(script: string, baseUrl: string): string | undefined {
+	if (looksLikePaginationScript(script)) {
+		return undefined;
+	}
+
+	const directUrl =
+		script.match(/["']([^"']+\.do\?[^"']*)["']/u)?.[1] ??
+		script.match(/["']([^"']+\.do)["']/u)?.[1];
+	if (directUrl !== undefined) {
+		return directUrl;
+	}
+
+	const currentUrl = new URL(baseUrl);
+	const numericArgs = [...script.matchAll(/\d{1,10}/gu)].map((match) => match[0]);
+	if (
+		currentUrl.pathname === "/internphoto/read.do" &&
+		numericArgs.length >= 2 &&
+		looksLikeInternphotoViewScript(script)
+	) {
+		const next = new URL("/internphoto/view.do", ewilOrigin);
+		next.searchParams.set("jid_seq", numericArgs[0] ?? "");
+		next.searchParams.set("jim_seq", numericArgs[1] ?? "");
+		return next.toString();
+	}
+
+	const id = script.match(/["']?(\d{1,10})["']?/u)?.[1];
+	if (id === undefined) {
+		return undefined;
+	}
+
+	if (currentUrl.pathname === "/data/list.do") {
+		const next = new URL("/data/view.do", ewilOrigin);
+		next.searchParams.set("idx", id);
+		const type = currentUrl.searchParams.get("type");
+		if (type !== null) next.searchParams.set("type", type);
+		return next.toString();
+	}
+
+	if (
+		currentUrl.pathname === "/internphoto/compList.do" ||
+		currentUrl.pathname === "/internphoto/list.do" ||
+		currentUrl.pathname === "/internphoto/read.do"
+	) {
+		if (
+			currentUrl.pathname !== "/internphoto/read.do" &&
+			!looksLikeInternphotoListScript(script)
+		) {
+			return undefined;
+		}
+		const next = new URL("/internphoto/read.do", ewilOrigin);
+		next.searchParams.set("idx", id);
+		return next.toString();
+	}
+
+	return undefined;
+}
+
+function looksLikePaginationScript(script: string): boolean {
+	return /page|paging|paginate|goPage|fn_?page/iu.test(script);
+}
+
+function looksLikeInternphotoViewScript(script: string): boolean {
+	return /goView|review|view/iu.test(script);
+}
+
+function looksLikeInternphotoListScript(script: string): boolean {
+	return /goList|compView|read|view|internphoto/iu.test(script);
+}
+
+function normalizeListUrl(
+	href: string | undefined,
+	baseUrl: string,
+	source: EwilSource,
+): string | undefined {
+	if (href === undefined || href.trim().length === 0) {
+		return undefined;
+	}
+	try {
+		const url = new URL(href, baseUrl);
+		const canonical = new URL(source.canonical_url);
+		if (url.origin !== ewilOrigin || url.pathname !== canonical.pathname) {
+			return undefined;
+		}
+		if (
+			canonical.searchParams.get("type") !== null &&
+			url.searchParams.get("type") !== canonical.searchParams.get("type")
+		) {
+			return undefined;
+		}
+		url.hash = "";
+		return url.toString();
+	} catch (_error) {
+		return undefined;
+	}
+}
+
+function normalizeDetailUrl(
+	href: string | undefined,
+	baseUrl: string,
+): string | undefined {
+	if (
+		href === undefined ||
+		href.trim().length === 0 ||
+		href.startsWith("#") ||
+		/^javascript:/iu.test(href)
+	) {
+		return undefined;
+	}
+	try {
+		const url = new URL(href, baseUrl);
+		if (url.origin !== ewilOrigin) {
+			return undefined;
+		}
+		if (url.pathname === "/internphoto/view.do") {
+			if (
+				url.searchParams.get("jid_seq") === null ||
+				url.searchParams.get("jim_seq") === null
+			) {
+				return undefined;
+			}
+			url.hash = "";
+			return url.toString();
+		}
+		if (url.pathname === "/index.do" || url.pathname === "/privacy.pdf") {
+			return undefined;
+		}
+		if (
+			ewilSources.some(
+				(source) =>
+					source.canonical_url === url.toString() ||
+					new URL(source.canonical_url).pathname === url.pathname,
+			)
+		) {
+			return undefined;
+		}
+		if (!/(view|detail|read|photo|internphoto)/iu.test(url.pathname)) {
+			return undefined;
+		}
+		url.hash = "";
+		return url.toString();
+	} catch (_error) {
+		return undefined;
+	}
+}
+
+function looksLikeLoginOrError(html: string): boolean {
+	const text = cleanBlockText(cheerio.load(html)("body").text());
+	return /HTTP 상태 500|내부 서버 오류|sendRedirect|로그인 후, 확인하실 수 있습니다/u.test(
+		text,
+	);
+}
+
+function looksLikeNestedEwilList(html: string): boolean {
+	const text = cleanCollectedBodyText(cheerio.load(html)("body").text());
+	return (
+		/번호\n실습기간\n학과\n이름/u.test(text) ||
+		/번호\n기관명\n후기\n국가/u.test(text) ||
+		/년도\n2027\n2026\n2025/u.test(text) ||
+		/국가\n전체\n대한민국/u.test(text)
+	);
+}
+
+export function classifyInternshipReviewRecordability(html: string): {
+	recordable: boolean;
+	reason: string;
+} {
+	const text = cleanCollectedBodyText(cheerio.load(html)("body").text());
+	if (text.length < 80) {
+		return {
+			recordable: false,
+			reason: `opened page had too little readable text (${text.length} chars)`,
+		};
+	}
+	const matchedHeadingCount = countMatchingMarkers(text, internshipReviewSectionHeadings);
+	const matchedDetailMarkerCount = countMatchingMarkers(text, internshipReviewDetailMarkers);
+	const listLike = looksLikeNestedEwilList(html);
+	if (matchedHeadingCount > 0) {
+		return { recordable: true, reason: "matched known review headings" };
+	}
+	if (matchedDetailMarkerCount >= 2 && !listLike) {
+		return { recordable: true, reason: "matched review detail field markers" };
+	}
+	if (matchedDetailMarkerCount >= 3) {
+		return {
+			recordable: true,
+			reason: "matched review detail markers despite retained list chrome",
+		};
+	}
+	if (listLike) {
+		return { recordable: false, reason: "opened page still looks like a nested list" };
+	}
+	return { recordable: false, reason: "opened page lacked review detail markers" };
+}
+
+function countMatchingMarkers(text: string, markers: readonly string[]): number {
+	return markers.filter((marker) => text.includes(marker)).length;
+}
+
+const internshipReviewSectionHeadings = [
+	"실습내용",
+	"기타 실습기관 소개",
+	"출퇴근방법",
+	"기업문화",
+	"공유하고 싶은 내용",
+	"면접 관련 정보",
+	"면접 관련 정보 및 노하우",
+] as const;
+
+const internshipReviewDetailMarkers = [
+	"실습기관",
+	"실습기간",
+	"전공",
+	"학과",
+	"학년",
+	"이름",
+	"후기",
+	"직무",
+	"업무",
+	"근무",
+	"장점",
+	"단점",
+	"느낀점",
+	"도움",
+] as const;
+
+function extractPostedAt(text: string): string | null {
+	const match = text.match(/20\d{2}[./-]\d{1,2}[./-]\d{1,2}/u);
+	if (match === null) {
+		return null;
+	}
+	const [year, month, day] = match[0].split(/[./-]/u);
+	if (year === undefined || month === undefined || day === undefined) {
+		return null;
+	}
+	return `${year}-${month.padStart(2, "0")}-${day.padStart(2, "0")}T00:00:00.000Z`;
+}
+
+function classifyDeadline(text: string): DeadlineStatus {
+	if (/모집\s*없음|마감|종료|closed|expired/iu.test(text)) {
+		return "expired";
+	}
+	if (
+		/모집기간연장|모집중|신청\s*가능|~\s*\d{1,2}\/\d{1,2}|채용시까지/u.test(
+			text,
+		)
+	) {
+		return "active";
+	}
+	return "unknown";
+}
+
+function extractDeadlineRawText(text: string): string {
+	const match = text.match(
+		/(?:~\s*\d{1,2}\/\d{1,2}|~\s*20\d{2}[./-]\d{1,2}[./-]\d{1,2}|모집기간연장|모집없음|채용시까지|마감[^\n]*)/u,
+	);
+	return match?.[0]?.trim() ?? "";
+}
+
+function cleanInlineText(value: string): string {
+	return value.replace(/\s+/gu, " ").trim();
+}
+
+function cleanCollectedBodyText(value: string): string {
+	return cleanBlockText(value)
+		.split("\n")
+		.filter((line) => !isEwilChromeLine(line))
+		.join("\n");
+}
+
+function isEwilChromeLine(line: string): boolean {
+	return (
+		/^.+님, 환영합니다\.$/u.test(line) ||
+		line === "현장실습업무지원 시스템" ||
+		line === "MY PAGE" ||
+		line === "실습기관 조회/실습 신청" ||
+		line === "보고서 작성" ||
+		line === "주간보고서 작성" ||
+		line === "종합소감문 작성" ||
+		line === "실습후기/사진" ||
+		line === "설문조사" ||
+		line === "증명서 발급" ||
+		line === "설명회/OT자료실" ||
+		line === "사용방법/메뉴얼" ||
+		line === "홍보자료실" ||
+		line === "양식자료실" ||
+		line === "커뮤니티" ||
+		line === "공지사항" ||
+		line === "Q&A" ||
+		line === "목록" ||
+		/^\[426-791\]/u.test(line) ||
+		/^COPYRIGHT \(c\) 2015 by Hanyang University/u.test(line)
+	);
+}
+
+function cleanBlockText(value: string): string {
+	return value
+		.replace(/\r\n?/gu, "\n")
+		.split("\n")
+		.map((line) => cleanInlineText(line))
+		.filter((line) => line.length > 0)
+		.join("\n");
+}
+
+async function delay(ms: number): Promise<void> {
+	return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+export function parseArgs(argv: readonly string[]): CliArgs {
+	let outputDir = defaultOutputDir;
+	let maxListPages = defaultMaxListPages;
+	let maxDetailPages = defaultMaxDetailPages;
+	let headless = false;
+	let sourceIds: readonly string[] = ewilSources.map((source) => source.source_id);
+
+	for (let index = 0; index < argv.length; index += 1) {
+		const arg = argv[index];
+		if (arg === "--output") {
+			const value = argv[index + 1];
+			if (!value) throw new Error("--output requires a directory path");
+			outputDir = value;
+			index += 1;
+			continue;
+		}
+		if (arg === "--max-detail-pages") {
+			const value = argv[index + 1];
+			if (!value)
+				throw new Error("--max-detail-pages requires a nonnegative integer");
+			maxDetailPages = parseBoundedInteger(value, "--max-detail-pages", 0, 200);
+			index += 1;
+			continue;
+		}
+		if (arg === "--max-list-pages") {
+			const value = argv[index + 1];
+			if (!value)
+				throw new Error("--max-list-pages requires a positive integer");
+			maxListPages = parseBoundedInteger(value, "--max-list-pages", 1, 20);
+			index += 1;
+			continue;
+		}
+		if (arg === "--headless") {
+			headless = true;
+			continue;
+		}
+		if (arg === "--source") {
+			const value = argv[index + 1];
+			if (!value) throw new Error("--source requires all, notice, info, or reviews");
+			sourceIds = parseSourceFilter(value);
+			index += 1;
+			continue;
+		}
+		throw new Error(`Unknown argument: ${arg}`);
+	}
+
+	return { outputDir, maxListPages, maxDetailPages, headless, sourceIds };
+}
+
+function parseSourceFilter(value: string): readonly string[] {
+	if (value === "all") return ewilSources.map((source) => source.source_id);
+	if (value === "notice") return ["ewil-notice-board"];
+	if (value === "info") return ["ewil-info-board"];
+	if (value === "reviews") return ["ewil-internship-reviews"];
+	throw new Error("--source must be all, notice, info, or reviews");
+}
+
+function parseBoundedInteger(
+	value: string,
+	label: string,
+	min: number,
+	max: number,
+): number {
+	if (!/^\d+$/u.test(value)) {
+		throw new Error(`${label} must be an integer`);
+	}
+	const parsed = Number.parseInt(value, 10);
+	if (parsed < min || parsed > max) {
+		throw new Error(`${label} must be between ${min} and ${max}`);
+	}
+	return parsed;
+}
+
+if (
+	process.argv[1] !== undefined &&
+	import.meta.url === pathToFileURL(process.argv[1]).href
+) {
+	runCli().catch((error: unknown) => {
+		const message = error instanceof Error ? error.message : String(error);
+		console.error(`ingest_ewil_authenticated_sources_failed: ${message}`);
+		process.exitCode = 1;
+	});
+}
