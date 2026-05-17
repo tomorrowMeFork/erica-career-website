@@ -4,8 +4,12 @@ import type { z } from "zod";
 
 import { type KnowledgeChunk, KnowledgeChunkSchema } from "../ingestion/normalized-record.js";
 
-export const DEFAULT_KNOWLEDGE_BASE_DIRS = ["data/knowledge-base/fixture-ibus", "data/knowledge-base/fixture-cdp-pdf", "data/knowledge-base/playwright-sources"] as const;
-export const OPTIONAL_KNOWLEDGE_BASE_DIRS = ["data/knowledge-base/manual-cdp-posts"] as const;
+export const DEFAULT_KNOWLEDGE_BASE_DIRS = ["data/knowledge-base/fixture-ibus", "data/knowledge-base/fixture-cdp-pdf", "data/knowledge-base/playwright-sources", "data/knowledge-base/ewil-homepage"] as const;
+export const OPTIONAL_KNOWLEDGE_BASE_DIRS = [
+  "data/knowledge-base/manual-cdp-posts",
+  "data/knowledge-base/ewil-authenticated-sources/공지사항",
+  "data/knowledge-base/ewil-authenticated-sources/현장실습후기",
+] as const;
 
 export type LoadKnowledgeBaseChunksInput = {
   directories?: readonly string[];

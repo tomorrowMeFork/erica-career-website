@@ -1,233 +1,331 @@
-import { KnowledgeChunkSchema, type KnowledgeChunk } from "../ingestion/normalized-record.js";
-import { classifyBoilerplate, type BoilerplateClassification } from "./boilerplate-filter.js";
+import {
+	type KnowledgeChunk,
+	KnowledgeChunkSchema,
+} from "../ingestion/normalized-record.js";
+import {
+	type BoilerplateClassification,
+	classifyBoilerplate,
+} from "./boilerplate-filter.js";
 import { expandDomainSynonyms } from "./domain-synonyms.js";
 import { extractSearchTerms, normalizeKoreanText } from "./normalize-korean.js";
-import type { RetrieveInput, RetrievedChunk, Retriever } from "./retriever.js";
+import type { RetrievedChunk, RetrieveInput, Retriever } from "./retriever.js";
 
 type IndexedChunk = {
-  chunk: KnowledgeChunk;
-  terms: Map<string, number>;
-  titleTerms: Set<string>;
-  categoryTerms: Set<string>;
-  classification: BoilerplateClassification;
-  tokenCount: number;
-  ordinal: number;
+	chunk: KnowledgeChunk;
+	terms: Map<string, number>;
+	titleTerms: Set<string>;
+	categoryTerms: Set<string>;
+	classification: BoilerplateClassification;
+	tokenCount: number;
+	ordinal: number;
 };
 
 const K1 = 1.2;
 const B = 0.75;
 const DEFAULT_REFERENCE_DATE = new Date("2026-05-03T00:00:00.000Z");
-const listingTerms = new Set(["채용", "모집", "공고", "인턴", "intern", "인턴십", "현장실습", "아르바이트"]);
+const listingTerms = new Set([
+	"채용",
+	"모집",
+	"공고",
+	"인턴",
+	"intern",
+	"인턴십",
+	"현장실습",
+	"아르바이트",
+]);
+const queryFillerTerms = new Set(["려줘", "알려", "알려줘"]);
 
 export class Bm25Retriever implements Retriever {
-  private readonly indexedChunks: IndexedChunk[];
-  private readonly documentFrequency: Map<string, number>;
-  private readonly averageDocumentLength: number;
-  private readonly referenceDate: Date;
+	private readonly indexedChunks: IndexedChunk[];
+	private readonly documentFrequency: Map<string, number>;
+	private readonly averageDocumentLength: number;
+	private readonly referenceDate: Date;
 
-  constructor(chunks: readonly KnowledgeChunk[], options: { referenceDate?: Date } = {}) {
-    this.referenceDate = options.referenceDate ?? DEFAULT_REFERENCE_DATE;
-    this.indexedChunks = chunks.map((chunk, ordinal) => indexChunk(KnowledgeChunkSchema.parse(chunk), ordinal));
-    this.documentFrequency = computeDocumentFrequency(this.indexedChunks);
-    this.averageDocumentLength = computeAverageDocumentLength(this.indexedChunks);
-  }
+	constructor(
+		chunks: readonly KnowledgeChunk[],
+		options: { referenceDate?: Date } = {},
+	) {
+		this.referenceDate = options.referenceDate ?? DEFAULT_REFERENCE_DATE;
+		this.indexedChunks = chunks.map((chunk, ordinal) =>
+			indexChunk(KnowledgeChunkSchema.parse(chunk), ordinal),
+		);
+		this.documentFrequency = computeDocumentFrequency(this.indexedChunks);
+		this.averageDocumentLength = computeAverageDocumentLength(
+			this.indexedChunks,
+		);
+	}
 
-  async retrieve(input: RetrieveInput): Promise<RetrievedChunk[]> {
-    const topK = input.topK ?? 5;
-    const boundedTopK = Math.max(0, Math.min(topK, 25));
-    if (boundedTopK === 0) {
-      return [];
-    }
+	async retrieve(input: RetrieveInput): Promise<RetrievedChunk[]> {
+		const topK = input.topK ?? 5;
+		const boundedTopK = Math.max(0, Math.min(topK, 25));
+		if (boundedTopK === 0) {
+			return [];
+		}
 
-    const queryTerms = buildQueryTerms(input.query);
-    if (queryTerms.length === 0 || this.indexedChunks.length === 0) {
-      return [];
-    }
+		const queryTerms = buildQueryTerms(input.query);
+		if (queryTerms.length === 0 || this.indexedChunks.length === 0) {
+			return [];
+		}
 
-    const scored = this.indexedChunks
-      .map((indexedChunk) => this.scoreChunk(indexedChunk, queryTerms))
-      .filter((result) => result.score > 0);
+		const scored = this.indexedChunks
+			.map((indexedChunk) => this.scoreChunk(indexedChunk, queryTerms))
+			.filter((result) => result.score > 0);
 
-    const answerableResults = scored.filter((result) => result.ranking_features.boilerplate_penalty < 2);
-    const candidateResults = answerableResults.length > 0 ? answerableResults : scored;
-    const maxScore = Math.max(...candidateResults.map((result) => result.score), 0);
+		const answerableResults = scored.filter(
+			(result) => result.ranking_features.boilerplate_penalty < 2,
+		);
+		const candidateResults =
+			answerableResults.length > 0 ? answerableResults : scored;
+		const maxScore = Math.max(
+			...candidateResults.map((result) => result.score),
+			0,
+		);
 
-    return candidateResults
-      .map((result) => ({
-        ...result,
-        normalized_score: maxScore > 0 ? roundScore(result.score / maxScore) : 0,
-      }))
-      .sort(compareRetrievedChunks)
-      .slice(0, boundedTopK);
-  }
+		return candidateResults
+			.map((result) => ({
+				...result,
+				normalized_score:
+					maxScore > 0 ? roundScore(result.score / maxScore) : 0,
+			}))
+			.sort(compareRetrievedChunks)
+			.slice(0, boundedTopK);
+	}
 
-  private scoreChunk(indexedChunk: IndexedChunk, queryTerms: readonly string[]): RetrievedChunk {
-    const matchedTerms = queryTerms.filter((term) => indexedChunk.terms.has(term));
-    const lexicalScore = roundScore(computeBm25Score(indexedChunk, matchedTerms, this.documentFrequency, this.indexedChunks.length, this.averageDocumentLength));
-    const titleBoost = roundScore(matchedTerms.filter((term) => indexedChunk.titleTerms.has(term)).length * 0.25);
-    const categoryBoost = roundScore(matchedTerms.filter((term) => indexedChunk.categoryTerms.has(term)).length * 0.15);
-    const freshnessBoost = roundScore(computeFreshnessBoost(indexedChunk.chunk, this.referenceDate));
-    const deadlinePenalty = roundScore(computeDeadlinePenalty(indexedChunk.chunk, queryTerms));
-    const boilerplatePenalty = roundScore(computeBoilerplatePenalty(indexedChunk.classification));
-    const score = roundScore(Math.max(0, lexicalScore + titleBoost + categoryBoost + freshnessBoost - deadlinePenalty - boilerplatePenalty));
+	private scoreChunk(
+		indexedChunk: IndexedChunk,
+		queryTerms: readonly string[],
+	): RetrievedChunk {
+		const matchedTerms = queryTerms.filter((term) =>
+			indexedChunk.terms.has(term),
+		);
+		const lexicalScore = roundScore(
+			computeBm25Score(
+				indexedChunk,
+				matchedTerms,
+				this.documentFrequency,
+				this.indexedChunks.length,
+				this.averageDocumentLength,
+			),
+		);
+		const titleBoost = roundScore(
+			matchedTerms.filter((term) => indexedChunk.titleTerms.has(term)).length *
+				0.25,
+		);
+		const categoryBoost = roundScore(
+			matchedTerms.filter((term) => indexedChunk.categoryTerms.has(term))
+				.length * 0.15,
+		);
+		const freshnessBoost = roundScore(
+			computeFreshnessBoost(indexedChunk.chunk, this.referenceDate),
+		);
+		const deadlinePenalty = roundScore(
+			computeDeadlinePenalty(indexedChunk.chunk, queryTerms),
+		);
+		const boilerplatePenalty = roundScore(
+			computeBoilerplatePenalty(indexedChunk.classification),
+		);
+		const score = roundScore(
+			Math.max(
+				0,
+				lexicalScore +
+					titleBoost +
+					categoryBoost +
+					freshnessBoost -
+					deadlinePenalty -
+					boilerplatePenalty,
+			),
+		);
 
-    return {
-      chunk: indexedChunk.chunk,
-      score,
-      normalized_score: 0,
-      matched_terms: matchedTerms.sort(compareStrings),
-      ranking_features: {
-        lexical_score: lexicalScore,
-        title_boost: titleBoost,
-        category_boost: categoryBoost,
-        freshness_boost: freshnessBoost,
-        deadline_penalty: deadlinePenalty,
-        boilerplate_penalty: boilerplatePenalty,
-      },
-    };
-  }
+		return {
+			chunk: indexedChunk.chunk,
+			score,
+			normalized_score: 0,
+			matched_terms: matchedTerms.sort(compareStrings),
+			ranking_features: {
+				lexical_score: lexicalScore,
+				title_boost: titleBoost,
+				category_boost: categoryBoost,
+				freshness_boost: freshnessBoost,
+				deadline_penalty: deadlinePenalty,
+				boilerplate_penalty: boilerplatePenalty,
+			},
+		};
+	}
 }
 
 function buildQueryTerms(query: string): string[] {
-  const baseTerms = extractSearchTerms(query);
-  const expandedTerms = expandDomainSynonyms(baseTerms);
-  const allTerms = new Set<string>();
+	const baseTerms = extractSearchTerms(query);
+	const expandedTerms = expandDomainSynonyms(baseTerms);
+	const allTerms = new Set<string>();
 
-  for (const term of [...baseTerms, ...expandedTerms]) {
-    for (const extractedTerm of extractSearchTerms(term)) {
-      allTerms.add(extractedTerm);
-    }
-    const normalizedTerm = normalizeKoreanText(term);
-    if (normalizedTerm.length > 0) {
-      allTerms.add(normalizedTerm);
-    }
-  }
+	for (const term of [...baseTerms, ...expandedTerms]) {
+		for (const extractedTerm of extractSearchTerms(term)) {
+			allTerms.add(extractedTerm);
+		}
+		const normalizedTerm = normalizeKoreanText(term);
+		if (normalizedTerm.length > 0) {
+			allTerms.add(normalizedTerm);
+		}
+	}
 
-  return [...allTerms].sort(compareStrings);
+	return [...allTerms]
+		.filter((term) => !queryFillerTerms.has(term))
+		.sort(compareStrings);
 }
 
 function indexChunk(chunk: KnowledgeChunk, ordinal: number): IndexedChunk {
-  const titleTerms = new Set(extractSearchTerms(chunk.title));
-  const categoryTerms = new Set(extractSearchTerms(chunk.category));
-  const sourceNameTerms = extractSearchTerms(chunk.source_name);
-  const textTerms = extractSearchTerms(chunk.text);
-  const weightedTerms = [
-    ...textTerms,
-    ...sourceNameTerms,
-    ...repeatTerms([...titleTerms], 3),
-    ...repeatTerms([...categoryTerms], 2),
-  ];
-  const terms = termFrequency(weightedTerms);
+	const titleTerms = new Set(extractSearchTerms(chunk.title));
+	const categoryTerms = new Set(extractSearchTerms(chunk.category));
+	const sourceNameTerms = extractSearchTerms(chunk.source_name);
+	const textTerms = extractSearchTerms(chunk.text);
+	const weightedTerms = [
+		...textTerms,
+		...sourceNameTerms,
+		...repeatTerms([...titleTerms], 3),
+		...repeatTerms([...categoryTerms], 2),
+	];
+	const terms = termFrequency(weightedTerms);
 
-  return {
-    chunk,
-    terms,
-    titleTerms,
-    categoryTerms,
-    classification: classifyBoilerplate(`${chunk.title}\n${chunk.category}\n${chunk.text}`),
-    tokenCount: weightedTerms.length || 1,
-    ordinal,
-  };
+	return {
+		chunk,
+		terms,
+		titleTerms,
+		categoryTerms,
+		classification: classifyBoilerplate(
+			`${chunk.title}\n${chunk.category}\n${chunk.text}`,
+		),
+		tokenCount: weightedTerms.length || 1,
+		ordinal,
+	};
 }
 
-function computeBm25Score(indexedChunk: IndexedChunk, matchedTerms: readonly string[], documentFrequency: Map<string, number>, totalDocuments: number, averageDocumentLength: number): number {
-  let score = 0;
-  for (const term of matchedTerms) {
-    const frequency = indexedChunk.terms.get(term) ?? 0;
-    if (frequency === 0) {
-      continue;
-    }
-    const documentCount = documentFrequency.get(term) ?? 0;
-    const idf = Math.log(1 + (totalDocuments - documentCount + 0.5) / (documentCount + 0.5));
-    const denominator = frequency + K1 * (1 - B + B * (indexedChunk.tokenCount / averageDocumentLength));
-    score += idf * ((frequency * (K1 + 1)) / denominator);
-  }
-  return score;
+function computeBm25Score(
+	indexedChunk: IndexedChunk,
+	matchedTerms: readonly string[],
+	documentFrequency: Map<string, number>,
+	totalDocuments: number,
+	averageDocumentLength: number,
+): number {
+	let score = 0;
+	for (const term of matchedTerms) {
+		const frequency = indexedChunk.terms.get(term) ?? 0;
+		if (frequency === 0) {
+			continue;
+		}
+		const documentCount = documentFrequency.get(term) ?? 0;
+		const idf = Math.log(
+			1 + (totalDocuments - documentCount + 0.5) / (documentCount + 0.5),
+		);
+		const denominator =
+			frequency +
+			K1 * (1 - B + B * (indexedChunk.tokenCount / averageDocumentLength));
+		score += idf * ((frequency * (K1 + 1)) / denominator);
+	}
+	return score;
 }
 
-function computeDocumentFrequency(chunks: readonly IndexedChunk[]): Map<string, number> {
-  const frequencies = new Map<string, number>();
-  for (const chunk of chunks) {
-    for (const term of chunk.terms.keys()) {
-      frequencies.set(term, (frequencies.get(term) ?? 0) + 1);
-    }
-  }
-  return frequencies;
+function computeDocumentFrequency(
+	chunks: readonly IndexedChunk[],
+): Map<string, number> {
+	const frequencies = new Map<string, number>();
+	for (const chunk of chunks) {
+		for (const term of chunk.terms.keys()) {
+			frequencies.set(term, (frequencies.get(term) ?? 0) + 1);
+		}
+	}
+	return frequencies;
 }
 
 function computeAverageDocumentLength(chunks: readonly IndexedChunk[]): number {
-  if (chunks.length === 0) {
-    return 1;
-  }
-  return Math.max(1, chunks.reduce((sum, chunk) => sum + chunk.tokenCount, 0) / chunks.length);
+	if (chunks.length === 0) {
+		return 1;
+	}
+	return Math.max(
+		1,
+		chunks.reduce((sum, chunk) => sum + chunk.tokenCount, 0) / chunks.length,
+	);
 }
 
-function computeFreshnessBoost(chunk: KnowledgeChunk, referenceDate: Date): number {
-  if (chunk.deadline_status === "active") {
-    return 0.35;
-  }
-  const dateText = chunk.posted_at ?? chunk.fetched_at;
-  const date = new Date(dateText);
-  if (Number.isNaN(date.getTime())) {
-    return 0;
-  }
-  const ageDays = Math.max(0, (referenceDate.getTime() - date.getTime()) / 86_400_000);
-  if (ageDays <= 30) {
-    return 0.2;
-  }
-  if (ageDays <= 180) {
-    return 0.1;
-  }
-  return 0;
+function computeFreshnessBoost(
+	chunk: KnowledgeChunk,
+	referenceDate: Date,
+): number {
+	if (chunk.deadline_status === "active") {
+		return 0.35;
+	}
+	const dateText = chunk.posted_at ?? chunk.fetched_at;
+	const date = new Date(dateText);
+	if (Number.isNaN(date.getTime())) {
+		return 0;
+	}
+	const ageDays = Math.max(
+		0,
+		(referenceDate.getTime() - date.getTime()) / 86_400_000,
+	);
+	if (ageDays <= 30) {
+		return 0.2;
+	}
+	if (ageDays <= 180) {
+		return 0.1;
+	}
+	return 0;
 }
 
-function computeDeadlinePenalty(chunk: KnowledgeChunk, queryTerms: readonly string[]): number {
-  if (chunk.deadline_status !== "expired") {
-    return 0;
-  }
-  return queryTerms.some((term) => listingTerms.has(term)) ? 0.5 : 0.15;
+function computeDeadlinePenalty(
+	chunk: KnowledgeChunk,
+	queryTerms: readonly string[],
+): number {
+	if (chunk.deadline_status !== "expired") {
+		return 0;
+	}
+	return queryTerms.some((term) => listingTerms.has(term)) ? 0.5 : 0.15;
 }
 
-function computeBoilerplatePenalty(classification: BoilerplateClassification): number {
-  if (classification.label === "boilerplate_only") {
-    return 2;
-  }
-  if (classification.label === "mixed") {
-    return 0.2;
-  }
-  return 0;
+function computeBoilerplatePenalty(
+	classification: BoilerplateClassification,
+): number {
+	if (classification.label === "boilerplate_only") {
+		return 2;
+	}
+	if (classification.label === "mixed") {
+		return 0.2;
+	}
+	return 0;
 }
 
 function termFrequency(terms: readonly string[]): Map<string, number> {
-  const frequencies = new Map<string, number>();
-  for (const term of terms) {
-    frequencies.set(term, (frequencies.get(term) ?? 0) + 1);
-  }
-  return frequencies;
+	const frequencies = new Map<string, number>();
+	for (const term of terms) {
+		frequencies.set(term, (frequencies.get(term) ?? 0) + 1);
+	}
+	return frequencies;
 }
 
 function repeatTerms(terms: readonly string[], count: number): string[] {
-  const repeated: string[] = [];
-  for (let index = 0; index < count; index += 1) {
-    repeated.push(...terms);
-  }
-  return repeated;
+	const repeated: string[] = [];
+	for (let index = 0; index < count; index += 1) {
+		repeated.push(...terms);
+	}
+	return repeated;
 }
 
-function compareRetrievedChunks(left: RetrievedChunk, right: RetrievedChunk): number {
-  if (right.normalized_score !== left.normalized_score) {
-    return right.normalized_score - left.normalized_score;
-  }
-  if (right.score !== left.score) {
-    return right.score - left.score;
-  }
-  return left.chunk.chunk_id.localeCompare(right.chunk.chunk_id);
+function compareRetrievedChunks(
+	left: RetrievedChunk,
+	right: RetrievedChunk,
+): number {
+	if (right.normalized_score !== left.normalized_score) {
+		return right.normalized_score - left.normalized_score;
+	}
+	if (right.score !== left.score) {
+		return right.score - left.score;
+	}
+	return left.chunk.chunk_id.localeCompare(right.chunk.chunk_id);
 }
 
 function roundScore(value: number): number {
-  return Number(value.toFixed(6));
+	return Number(value.toFixed(6));
 }
 
 function compareStrings(left: string, right: string): number {
-  return left.localeCompare(right, "ko");
+	return left.localeCompare(right, "ko");
 }

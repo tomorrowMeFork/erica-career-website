@@ -44,7 +44,9 @@ async function mergeAndWriteManualCdpRun(
 		manifest: {
 			run_id: `manual-cdp-posts-${exportedAt}`,
 			generated_at: exportedAt,
-			source_ids: ["cdp-recruit-category-discovery"],
+			source_ids: [
+				...new Set(mergedKnowledgeBase.records.map((record) => record.source_id)),
+			],
 		},
 	});
 }
@@ -70,6 +72,8 @@ describe("buildCdpManualPostRecords", () => {
 		expect(record.source_url).toBe(
 			"https://cdp.hanyang.ac.kr/Career/Job/RecruitView.aspx?idx=12345",
 		);
+		expect(record.source_id).toBe("cdp-recruit-general-board");
+		expect(record.source_name).toBe("CDP 일반채용공고");
 		expect(record.canonical_url).toBe(record.source_url);
 		expect(record.citation_anchors[0]?.url).toBe(record.source_url);
 		expect(record.category).toBe("CDP 채용정보 > 일반채용공고");
@@ -152,6 +156,8 @@ describe("buildCdpManualPostRecords", () => {
 		expect(record.title).toBe(
 			"[에프엔에스] 26년도 하반기 인턴 채용 온라인 기업설명회",
 		);
+		expect(record.source_id).toBe("cdp-recruit-event-board");
+		expect(record.source_name).toBe("CDP 채용상담 및 설명회");
 		expect(record.cleaned_text).toContain(
 			"제목: [에프엔에스] 26년도 하반기 인턴 채용 온라인 기업설명회",
 		);
@@ -165,6 +171,9 @@ describe("buildCdpManualPostRecords", () => {
 			"https://example.com/Career/Job/RecruitView.aspx?idx=12345",
 			"http://cdp.hanyang.ac.kr/Career/Job/RecruitView.aspx?idx=12345",
 			"https://user:pass@cdp.hanyang.ac.kr/Career/Job/RecruitView.aspx?idx=12345",
+			"https://cdp.hanyang.ac.kr/Career/Job/RecruitList.aspx?rp=2",
+			"https://cdp.hanyang.ac.kr/Career/Job/RecruitView.aspx?idx=12345&token=secret",
+			"https://cdp.hanyang.ac.kr/Office/SiteMgr/Notice/FuncScheView.aspx?funcidx=4430&session=abc",
 		]) {
 			expect(() =>
 				buildCdpManualPostRecords({
@@ -235,7 +244,7 @@ describe("buildCdpManualPostRecords", () => {
 			.map((line) => JSON.parse(line) as { category: string });
 
 		expect(secondManifest).toMatchObject({
-			source_ids: ["cdp-recruit-category-discovery"],
+			source_ids: ["cdp-recruit-event-board", "cdp-recruit-general-board"],
 			record_count: 2,
 			chunk_count: 2,
 		});

@@ -7,6 +7,8 @@ import {
 } from "./normalized-record.js";
 
 const cdpHost = "cdp.hanyang.ac.kr";
+const cdpDetailPathPattern =
+	/(?:\/Career\/Job\/[A-Za-z0-9]*View\d*\.aspx|\/Office\/SiteMgr\/Notice\/FuncScheView\.aspx)$/u;
 
 export const CdpManualBoardSchema = z.enum([
 	"채용상담 및 설명회",
@@ -59,6 +61,8 @@ function buildRecord(
 ): NormalizedRecord {
 	const detailUrl = normalizeUrl(post.detail_url);
 	const title = normalizeCdpManualPostTitle(post);
+	const sourceId = sourceIdForBoard(post.board);
+	const sourceName = sourceNameForBoard(post.board);
 	const rawText = [
 		`게시판: ${post.board}`,
 		`제목: ${title}`,
@@ -74,14 +78,14 @@ function buildRecord(
 
 	return NormalizedRecordSchema.parse({
 		record_id: buildRecordId({
-			source_id: "cdp-recruit-category-discovery",
+			source_id: sourceId,
 			canonical_url: detailUrl,
 			title: title,
 			posted_at: post.posted_at ?? null,
 			content_hash: contentHash,
 		}),
-		source_id: "cdp-recruit-category-discovery",
-		source_name: "CDP 채용정보",
+		source_id: sourceId,
+		source_name: sourceName,
 		source_url: detailUrl,
 		canonical_url: detailUrl,
 		title: title,
@@ -96,6 +100,16 @@ function buildRecord(
 		citation_anchors: [{ url: detailUrl, label: `원문: ${title}` }],
 		source_text_trust: "untrusted_source_text",
 	});
+}
+
+function sourceIdForBoard(board: z.infer<typeof CdpManualBoardSchema>): string {
+	return board === "일반채용공고"
+		? "cdp-recruit-general-board"
+		: "cdp-recruit-event-board";
+}
+
+function sourceNameForBoard(board: z.infer<typeof CdpManualBoardSchema>): string {
+	return board === "일반채용공고" ? "CDP 일반채용공고" : "CDP 채용상담 및 설명회";
 }
 
 function normalizeCdpManualPostTitle(
@@ -160,11 +174,22 @@ function isAllowedCdpDetailUrl(value: string): boolean {
 			url.protocol === "https:" &&
 			url.hostname === cdpHost &&
 			url.username === "" &&
-			url.password === ""
+			url.password === "" &&
+			cdpDetailPathPattern.test(url.pathname) &&
+			!hasCredentialLikeSearchParam(url)
 		);
 	} catch (_error) {
 		return false;
 	}
+}
+
+function hasCredentialLikeSearchParam(url: URL): boolean {
+	for (const key of url.searchParams.keys()) {
+		if (/token|password|passwd|session|jsessionid|authorization|auth/iu.test(key)) {
+			return true;
+		}
+	}
+	return false;
 }
 
 function getExpectedBoardForDetailUrl(

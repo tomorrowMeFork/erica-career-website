@@ -18,6 +18,7 @@ const approvedMethodMarkers: Readonly<
 > = {
 	public_html: "approved_bounded_browser_discovery",
 	manual_pdf_download: "approved_manual_download",
+	manual_login_session: "approved_user_manual_login_session",
 	structure_observation_only: "manual_discovery_only",
 };
 

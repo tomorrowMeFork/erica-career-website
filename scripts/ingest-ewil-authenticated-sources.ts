@@ -7,6 +7,10 @@ import type { Element } from "domhandler";
 import type { BrowserContext, Page } from "playwright";
 import { chromium } from "playwright";
 import {
+	assertCanIngestSource,
+	loadSourceRegistryForIngestion,
+} from "../src/ingestion/access-gate.js";
+import {
 	buildRecordId,
 	chunkNormalizedRecord,
 	sha256,
@@ -27,6 +31,12 @@ type EwilSource = {
 	category: string;
 	title: string;
 	purpose: string;
+};
+
+type EwilOutputGroup = {
+	key: "notice-materials" | "internship-reviews";
+	directoryName: string;
+	sourceIds: readonly string[];
 };
 
 type CliArgs = {
@@ -75,6 +85,7 @@ const renderedContentTimeoutMs = 5_000;
 const requestDelayMs = 1_200;
 const maxPdfAttachmentsPerPage = 5;
 const maxPdfBytes = 25 * 1024 * 1024;
+const sourceRegistryPath = ".planning/phases/01-source-discovery-and-governance/source-registry.yaml";
 
 const ewilSources: readonly EwilSource[] = [
 	{
@@ -103,6 +114,19 @@ const ewilSources: readonly EwilSource[] = [
 	},
 ] as const;
 
+const ewilOutputGroups: readonly EwilOutputGroup[] = [
+	{
+		key: "notice-materials",
+		directoryName: "공지사항",
+		sourceIds: ["ewil-notice-board", "ewil-info-board"],
+	},
+	{
+		key: "internship-reviews",
+		directoryName: "현장실습후기",
+		sourceIds: ["ewil-internship-reviews"],
+	},
+] as const;
+
 async function runCli(): Promise<void> {
 	const args = parseArgs(process.argv.slice(2));
 	const fetchedAt = new Date().toISOString();
@@ -111,6 +135,10 @@ async function runCli(): Promise<void> {
 	const selectedSources = ewilSources.filter((source) =>
 		args.sourceIds.includes(source.source_id),
 	);
+	const registry = loadSourceRegistryForIngestion(sourceRegistryPath);
+	for (const source of selectedSources) {
+		assertCanIngestSource(registry, source.source_id, "manual_login_session");
+	}
 
 	try {
 		const context = await browser.newContext({
@@ -139,21 +167,44 @@ async function runCli(): Promise<void> {
 		await browser.close();
 	}
 
-	const chunks = records.flatMap((record) => chunkNormalizedRecord(record));
-	const manifest = await writeKnowledgeBaseJsonl({
-		records,
-		chunks,
-		outputDir: args.outputDir,
-		manifest: {
-			run_id: `ewil-authenticated-sources-${fetchedAt}`,
-			generated_at: fetchedAt,
-			source_ids: selectedSources.map((source) => source.source_id),
-		},
-	});
+	const groupedRecords = groupEwilRecordsByOutputCategory(records);
+	let totalRecordCount = 0;
+	let totalChunkCount = 0;
+	for (const group of groupedRecords) {
+		const chunks = group.records.flatMap((record) => chunkNormalizedRecord(record));
+		const outputDir = `${args.outputDir}/${group.directoryName}`;
+		const manifest = await writeKnowledgeBaseJsonl({
+			records: group.records,
+			chunks,
+			outputDir,
+			manifest: {
+				run_id: `ewil-authenticated-sources-${group.key}-${fetchedAt}`,
+				generated_at: fetchedAt,
+				source_ids: [...new Set(group.records.map((record) => record.source_id))],
+			},
+		});
+		totalRecordCount += manifest.record_count;
+		totalChunkCount += manifest.chunk_count;
+		console.log(
+			`ewil authenticated source ingestion wrote ${manifest.record_count} records and ${manifest.chunk_count} chunks to ${outputDir}`,
+		);
+	}
 
 	console.log(
-		`ewil authenticated source ingestion wrote ${manifest.record_count} records and ${manifest.chunk_count} chunks to ${args.outputDir}`,
+		`ewil authenticated source ingestion wrote ${totalRecordCount} records and ${totalChunkCount} chunks across ${groupedRecords.length} category directories under ${args.outputDir}`,
 	);
+}
+
+export function groupEwilRecordsByOutputCategory(
+	records: readonly NormalizedRecord[],
+): { key: EwilOutputGroup["key"]; directoryName: string; records: NormalizedRecord[] }[] {
+	return ewilOutputGroups
+		.map((group) => ({
+			key: group.key,
+			directoryName: group.directoryName,
+			records: records.filter((record) => group.sourceIds.includes(record.source_id)),
+		}))
+		.filter((group) => group.records.length > 0);
 }
 
 async function promptForManualLogin(
@@ -206,7 +257,10 @@ async function collectSource(
 ): Promise<CollectedPage[]> {
 	const listPages = await collectListPages(page, source, maxListPages);
 	const pages: CollectedPage[] = [];
-	const detailCandidatesByListUrl = new Map<string, DetailLinkCandidate[]>();
+	const detailCandidateGroups: {
+		listPage: ListPage;
+		candidates: DetailLinkCandidate[];
+	}[] = [];
 	const seenDetailKeys = new Set<string>();
 	let collectedDetailPageCount = 0;
 
@@ -238,10 +292,10 @@ async function collectSource(
 				candidates.push(candidate);
 			}
 		}
-		detailCandidatesByListUrl.set(listUrl, candidates);
+		detailCandidateGroups.push({ listPage, candidates });
 	}
 
-	for (const [listUrl, candidates] of detailCandidatesByListUrl) {
+	for (const { listPage, candidates } of detailCandidateGroups) {
 		for (const candidate of candidates) {
 			if (collectedDetailPageCount >= maxDetailPages) {
 				return pages;
@@ -250,7 +304,7 @@ async function collectSource(
 			await delay(requestDelayMs);
 			const detailPages = await collectClickedDetailPages(
 				page,
-				listUrl,
+				listPage,
 				candidate,
 				maxDetailPages - collectedDetailPageCount,
 			);
@@ -261,7 +315,7 @@ async function collectSource(
 						source,
 						buildDetailCitationUrl(
 							detailPage.url,
-							listUrl,
+							listPage.url,
 							detailPage.candidate,
 						),
 						detailPage.html,
@@ -279,6 +333,7 @@ async function collectSource(
 type ListPage = {
 	url: string;
 	html: string;
+	pagingTarget?: string;
 };
 
 async function collectListPages(
@@ -299,6 +354,24 @@ async function collectListPages(
 
 		const html = await collectHtml(page, listUrl);
 		pages.push({ url: listUrl, html });
+		const seenPageContent = new Set<string>([fingerprintListPage(html)]);
+		for (const target of extractClickablePagingTargets(html)) {
+			if (pages.length >= maxListPages) {
+				break;
+			}
+			await delay(requestDelayMs);
+			const clickedHtml = await collectClickedListPage(page, listUrl, target);
+			const fingerprint = fingerprintListPage(clickedHtml);
+			if (seenPageContent.has(fingerprint)) {
+				continue;
+			}
+			seenPageContent.add(fingerprint);
+			pages.push({
+				url: listUrl,
+				html: clickedHtml,
+				pagingTarget: target,
+			});
+		}
 		for (const nextListUrl of extractListPageUrls(html, listUrl, source)) {
 			if (
 				!visited.has(nextListUrl) &&
@@ -312,6 +385,52 @@ async function collectListPages(
 	return pages;
 }
 
+async function collectClickedListPage(
+	page: Page,
+	listUrl: string,
+	target: string,
+): Promise<string> {
+	await clickPagingTargetOnCurrentPage(page, target);
+	return collectCurrentHtml(page, listUrl);
+}
+
+async function openListPage(
+	page: Page,
+	listUrl: string,
+	pagingTarget: string | undefined,
+): Promise<void> {
+	await collectHtml(page, listUrl);
+	if (pagingTarget === undefined) {
+		return;
+	}
+	await clickPagingTargetOnCurrentPage(page, pagingTarget);
+}
+
+async function clickPagingTargetOnCurrentPage(
+	page: Page,
+	pagingTarget: string,
+): Promise<void> {
+	const beforeClickText = await readableBodyText(page);
+	const clicked = await page.evaluate((target) => {
+		const anchors = Array.from(document.querySelectorAll<HTMLAnchorElement>("a[href]"));
+		const targetAnchor = anchors.find((anchor) => {
+			const href = anchor.getAttribute("href") ?? "";
+			return new RegExp(`^javascript\\s*:\\s*Paging\\s*\\(\\s*${target}\\s*\\)`, "iu").test(
+				href,
+			);
+		});
+		if (targetAnchor === undefined) {
+			return false;
+		}
+		targetAnchor.click();
+		return true;
+	}, pagingTarget);
+	if (!clicked) {
+		throw new Error(`E-WIL pagination link moved before click: Paging(${pagingTarget})`);
+	}
+	await waitForReadableTextChange(page, beforeClickText);
+}
+
 async function collectInternshipReviewPages(
 	page: Page,
 	source: EwilSource,
@@ -321,6 +440,9 @@ async function collectInternshipReviewPages(
 	const pages: CollectedPage[] = [];
 	const seenCompanyKeys = new Set<string>();
 	const seenReviewKeys = new Set<string>();
+	let discoveredReviewCandidateCount = 0;
+	let collectedReviewPageCount = 0;
+	let skippedReviewCandidateCount = 0;
 
 	for (const listPage of listPages) {
 		const companyCandidates = extractInternshipCompanyCandidates(
@@ -338,14 +460,22 @@ async function collectInternshipReviewPages(
 		);
 
 		for (const companyCandidate of companyCandidates) {
-			if (pages.length >= maxDetailPages) {
+			if (collectedReviewPageCount >= maxDetailPages) {
+				logInternshipReviewCollectionSummary({
+					status: "stopped after reaching --max-detail-pages",
+					discoveredReviewCandidateCount,
+					collectedReviewPageCount,
+					skippedReviewCandidateCount,
+					maxDetailPages,
+				});
 				return pages;
 			}
 
 			await delay(requestDelayMs);
+			await openListPage(page, listPage.url, listPage.pagingTarget);
 			const companyPage = await clickCandidateFromPage(
 				page,
-				listPage.url,
+				undefined,
 				companyCandidate,
 			);
 			const reviewCandidates = extractInternshipReviewCandidates(
@@ -362,9 +492,17 @@ async function collectInternshipReviewPages(
 			console.log(
 				`E-WIL reviews: company ${companyCandidate.key} yielded ${reviewCandidates.length} review candidates`,
 			);
+			discoveredReviewCandidateCount += reviewCandidates.length;
 
 			for (const reviewCandidate of reviewCandidates) {
-				if (pages.length >= maxDetailPages) {
+				if (collectedReviewPageCount >= maxDetailPages) {
+					logInternshipReviewCollectionSummary({
+						status: "stopped after reaching --max-detail-pages",
+						discoveredReviewCandidateCount,
+						collectedReviewPageCount,
+						skippedReviewCandidateCount,
+						maxDetailPages,
+					});
 					return pages;
 				}
 
@@ -375,16 +513,18 @@ async function collectInternshipReviewPages(
 					console.log(
 						`E-WIL reviews: skipped ${reviewCandidate.key}; ${recordability.reason}`,
 					);
+					skippedReviewCandidateCount += 1;
 					continue;
 				}
 				const collectedPages = await collectPageAndPdfAttachments(
-						page,
-						source,
-						reviewCandidate.url,
-						reviewHtml,
-						source.title,
+					page,
+					source,
+					reviewCandidate.url,
+					reviewHtml,
+					source.title,
 				);
 				pages.push(...collectedPages);
+				collectedReviewPageCount += 1;
 				console.log(
 					`E-WIL reviews: collected ${reviewCandidate.key} (${summarizeCollectedPageForLog(collectedPages[0])})`,
 				);
@@ -392,7 +532,44 @@ async function collectInternshipReviewPages(
 		}
 	}
 
+	logInternshipReviewCollectionSummary({
+		status: "completed",
+		discoveredReviewCandidateCount,
+		collectedReviewPageCount,
+		skippedReviewCandidateCount,
+		maxDetailPages,
+	});
 	return pages;
+}
+
+type InternshipReviewCollectionSummary = {
+	status: "completed" | "stopped after reaching --max-detail-pages";
+	discoveredReviewCandidateCount: number;
+	collectedReviewPageCount: number;
+	skippedReviewCandidateCount: number;
+	maxDetailPages: number;
+};
+
+function logInternshipReviewCollectionSummary(
+	summary: InternshipReviewCollectionSummary,
+): void {
+	console.log(formatInternshipReviewCollectionSummary(summary));
+}
+
+export function formatInternshipReviewCollectionSummary(
+	summary: InternshipReviewCollectionSummary,
+): string {
+	const capHint =
+		summary.status === "stopped after reaching --max-detail-pages"
+			? "; pass a higher --max-detail-pages value to collect more discovered reviews"
+			: "";
+	return [
+		`E-WIL reviews: ${summary.status}`,
+		`discovered=${summary.discoveredReviewCandidateCount}`,
+		`collected=${summary.collectedReviewPageCount}`,
+		`skipped=${summary.skippedReviewCandidateCount}`,
+		`max-detail-pages=${summary.maxDetailPages}${capHint}`,
+	].join("; ");
 }
 
 async function collectHtml(page: Page, url: string): Promise<string> {
@@ -414,11 +591,12 @@ async function collectHtml(page: Page, url: string): Promise<string> {
 
 async function collectClickedDetailPages(
 	page: Page,
-	listUrl: string,
+	listPage: ListPage,
 	candidate: DetailLinkCandidate,
 	remainingDetailPages: number,
 ): Promise<ClickedDetailPage[]> {
-	const firstPage = await clickCandidateFromPage(page, listUrl, candidate);
+	await openListPage(page, listPage.url, listPage.pagingTarget);
+	const firstPage = await clickCandidateFromPage(page, undefined, candidate);
 	if (!looksLikeNestedEwilList(firstPage.html) || remainingDetailPages <= 1) {
 		return [firstPage];
 	}
@@ -433,7 +611,8 @@ async function collectClickedDetailPages(
 	const nestedPages: ClickedDetailPage[] = [];
 	for (const nestedCandidate of nestedCandidates) {
 		await delay(requestDelayMs);
-		await clickCandidateFromPage(page, listUrl, candidate);
+		await openListPage(page, listPage.url, listPage.pagingTarget);
+		await clickCandidateFromPage(page, undefined, candidate);
 		nestedPages.push(
 			await clickCandidateOnCurrentPage(page, firstPage.url, nestedCandidate),
 		);
@@ -443,11 +622,13 @@ async function collectClickedDetailPages(
 
 async function clickCandidateFromPage(
 	page: Page,
-	url: string,
+	url: string | undefined,
 	candidate: DetailLinkCandidate,
 ): Promise<ClickedDetailPage> {
-	await collectHtml(page, url);
-	return clickCandidateOnCurrentPage(page, url, candidate);
+	if (url !== undefined) {
+		await collectHtml(page, url);
+	}
+	return clickCandidateOnCurrentPage(page, url ?? page.url(), candidate);
 }
 
 async function clickCandidateOnCurrentPage(
@@ -1008,24 +1189,212 @@ function buildDetailCitationUrl(
 	return url.toString();
 }
 
-function extractListPageUrls(
+export function extractListPageUrls(
 	html: string,
 	baseUrl: string,
 	source: EwilSource,
 ): string[] {
 	const $ = cheerio.load(html);
 	const urls = new Set<string>();
-	$("a").each((_index, element) => {
-		const normalized = normalizeListUrl(
-			extractCandidateUrl($(element), baseUrl),
-			baseUrl,
-			source,
-		);
+	const addUrl = (href: string | undefined): void => {
+		const normalized = normalizeListUrl(href, baseUrl, source);
 		if (normalized !== undefined) {
 			urls.add(normalized);
 		}
+	};
+
+	$("a, button, input").each((_index, element) => {
+		addUrl(extractListCandidateUrl($(element), baseUrl));
+	});
+	$("form").each((_index, element) => {
+		addUrl(extractSimpleGetFormListUrl($(element), baseUrl, $));
 	});
 	return [...urls].sort((left, right) => left.localeCompare(right, "en"));
+}
+
+export function extractClickablePagingTargets(html: string): string[] {
+	const $ = cheerio.load(html);
+	const targets: string[] = [];
+	$("a[href]").each((_index, element) => {
+		const anchor = $(element);
+		if (cleanInlineText(anchor.text()) === "1") {
+			return;
+		}
+		const href = anchor.attr("href") ?? "";
+		const match = href.match(
+			/^javascript\s*:\s*Paging\s*\(\s*['"]?(\d{1,10})['"]?\s*\)/iu,
+		);
+		if (match?.[1] !== undefined) {
+			targets.push(match[1]);
+		}
+	});
+	return [...new Set(targets)];
+}
+
+function fingerprintListPage(html: string): string {
+	const $ = cheerio.load(html);
+	$("script, style, noscript, svg, iframe, input[type=password]").remove();
+	return sha256(cleanInlineText($("body").text()));
+}
+
+function extractListCandidateUrl(
+	element: cheerio.Cheerio<Element>,
+	baseUrl: string,
+): string | undefined {
+	for (const attr of ["href", "formaction"] as const) {
+		const value = element.attr(attr);
+		if (value === undefined) {
+			continue;
+		}
+		if (/^javascript:/iu.test(value.trim())) {
+			const scriptedUrl = listUrlFromScript(value, baseUrl);
+			if (scriptedUrl !== undefined) {
+				return scriptedUrl;
+			}
+			continue;
+		}
+		if (value.trim().length > 0 && !value.startsWith("#")) {
+			return value;
+		}
+	}
+
+	return listUrlFromScript(element.attr("onclick") ?? "", baseUrl);
+}
+
+function listUrlFromScript(script: string, baseUrl: string): string | undefined {
+	if (script.trim().length === 0) {
+		return undefined;
+	}
+
+	const directUrl =
+		script.match(/["']([^"']+\.do\?[^"']*)["']/u)?.[1] ??
+		script.match(/["']([^"']+\.do)["']/u)?.[1] ??
+		script.match(/["'](\?[^"']+)["']/u)?.[1];
+	if (directUrl !== undefined) {
+		return directUrl;
+	}
+
+	if (!looksLikePaginationScript(script)) {
+		return undefined;
+	}
+	if (isFixedUrlPagingScript(script)) {
+		return undefined;
+	}
+
+	const pageNumber = extractPaginationPageNumber(script);
+	if (pageNumber === undefined) {
+		return undefined;
+	}
+
+	return buildListUrlWithPageNumber(baseUrl, pageNumber);
+}
+
+function isFixedUrlPagingScript(script: string): boolean {
+	return /(?:^|javascript\s*:)\s*Paging\s*\(/iu.test(script.trim());
+}
+
+const listPageQueryParamCandidates = [
+	"pageIndex",
+	"pageNo",
+	"page",
+	"currentPage",
+	"cPage",
+] as const;
+
+function extractPaginationPageNumber(script: string): string | undefined {
+	for (const paramName of listPageQueryParamCandidates) {
+		const escapedParamName = paramName.replace(/[.*+?^${}()|[\]\\]/gu, "\\$&");
+		const match = script.match(
+			new RegExp(`${escapedParamName}\\s*[:=]\\s*["']?(\\d{1,10})`, "iu"),
+		);
+		if (match?.[1] !== undefined) {
+			return match[1];
+		}
+	}
+
+	return script.match(/\(\s*["']?(\d{1,10})["']?/u)?.[1] ??
+		script.match(/["'](\d{1,10})["']/u)?.[1];
+}
+
+function buildListUrlWithPageNumber(baseUrl: string, pageNumber: string): string {
+	const url = new URL(baseUrl);
+	const existingPageParam = listPageQueryParamCandidates.find((paramName) =>
+		url.searchParams.has(paramName),
+	);
+	url.searchParams.set(existingPageParam ?? "pageIndex", pageNumber);
+	url.hash = "";
+	return url.toString();
+}
+
+function extractSimpleGetFormListUrl(
+	form: cheerio.Cheerio<Element>,
+	baseUrl: string,
+	$: cheerio.CheerioAPI,
+): string | undefined {
+	const method = (form.attr("method") ?? "get").trim().toLowerCase();
+	if (method !== "" && method !== "get") {
+		return undefined;
+	}
+	if (!looksLikeListPaginationForm(form)) {
+		return undefined;
+	}
+
+	const action = form.attr("action")?.trim();
+	if (action !== undefined && /^javascript:/iu.test(action)) {
+		return undefined;
+	}
+
+	try {
+		const url = new URL(action && action.length > 0 ? action : baseUrl, baseUrl);
+		form.find("input, select, textarea").each((_index, element) => {
+			const control = $(element);
+			const name = control.attr("name");
+			const value = formControlValue(control);
+			if (name !== undefined && name.length > 0 && value !== undefined) {
+				url.searchParams.set(name, value);
+			}
+		});
+		url.hash = "";
+		return url.toString();
+	} catch (_error) {
+		return undefined;
+	}
+}
+
+function looksLikeListPaginationForm(form: cheerio.Cheerio<Element>): boolean {
+	const formText = [
+		form.attr("id"),
+		form.attr("class"),
+		form.attr("name"),
+		form.attr("action"),
+		form.html(),
+	]
+		.filter((value): value is string => value !== undefined)
+		.join(" ");
+	return looksLikePaginationScript(formText);
+}
+
+function formControlValue(control: cheerio.Cheerio<Element>): string | undefined {
+	const tagName = control.get(0)?.tagName.toLowerCase();
+	if (tagName === "select") {
+		const selected = control.find("option[selected]").first();
+		const option = selected.length > 0 ? selected : control.find("option").first();
+		return option.attr("value") ?? cleanInlineText(option.text());
+	}
+	if (tagName === "textarea") {
+		return control.text();
+	}
+	const inputType = (control.attr("type") ?? "text").toLowerCase();
+	if (["button", "file", "image", "reset", "submit"].includes(inputType)) {
+		return undefined;
+	}
+	if (
+		["checkbox", "radio"].includes(inputType) &&
+		control.attr("checked") === undefined
+	) {
+		return undefined;
+	}
+	return control.attr("value") ?? "";
 }
 
 function extractCandidateUrl(
@@ -1132,6 +1501,9 @@ function normalizeListUrl(
 	try {
 		const url = new URL(href, baseUrl);
 		const canonical = new URL(source.canonical_url);
+		if (!isApprovedEwilListCanonical(canonical)) {
+			return undefined;
+		}
 		if (url.origin !== ewilOrigin || url.pathname !== canonical.pathname) {
 			return undefined;
 		}
@@ -1141,12 +1513,38 @@ function normalizeListUrl(
 		) {
 			return undefined;
 		}
+		if (hasCredentialLikeQueryParams(url)) {
+			return undefined;
+		}
 		url.hash = "";
 		return url.toString();
 	} catch (_error) {
 		return undefined;
 	}
 }
+
+function isApprovedEwilListCanonical(url: URL): boolean {
+	if (url.origin !== ewilOrigin) {
+		return false;
+	}
+	if (url.pathname === "/data/list.do") {
+		const type = url.searchParams.get("type");
+		return type === "NOTICE" || type === "INFO";
+	}
+	return url.pathname === "/internphoto/compList.do";
+}
+
+function hasCredentialLikeQueryParams(url: URL): boolean {
+	for (const name of url.searchParams.keys()) {
+		if (credentialLikeQueryParamPattern.test(name)) {
+			return true;
+		}
+	}
+	return false;
+}
+
+const credentialLikeQueryParamPattern =
+	/(?:password|passwd|pwd|token|auth|session|cookie|credential|secret|api[_-]?key|access[_-]?token|refresh[_-]?token|login|user(?:name|id)?|student(?:id|no)|hakbun)/iu;
 
 function normalizeDetailUrl(
 	href: string | undefined,

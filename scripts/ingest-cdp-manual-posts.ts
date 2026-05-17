@@ -33,7 +33,7 @@ async function runCli(): Promise<void> {
 		manifest: {
 			run_id: `manual-cdp-posts-${exportData.exported_at}`,
 			generated_at: exportData.exported_at,
-			source_ids: ["cdp-recruit-category-discovery"],
+			source_ids: [...new Set(mergedKnowledgeBase.records.map((record) => record.source_id))],
 		},
 	});
 

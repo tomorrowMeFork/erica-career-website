@@ -4,7 +4,7 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { afterEach, describe, expect, it } from "vitest";
 
-import { DEFAULT_KNOWLEDGE_BASE_DIRS, loadKnowledgeBaseChunks } from "./jsonl-loader.js";
+import { DEFAULT_KNOWLEDGE_BASE_DIRS, loadKnowledgeBaseChunks, OPTIONAL_KNOWLEDGE_BASE_DIRS } from "./jsonl-loader.js";
 
 const tempDirs: string[] = [];
 
@@ -27,6 +27,7 @@ describe("loadKnowledgeBaseChunks", () => {
       "data/knowledge-base/fixture-ibus",
       "data/knowledge-base/fixture-cdp-pdf",
       "data/knowledge-base/playwright-sources",
+      "data/knowledge-base/ewil-homepage",
     ]);
     expect(chunks.length).toBeGreaterThanOrEqual(11);
     expect(sourceIds).toContain("ibus-employment-board");
@@ -35,6 +36,15 @@ describe("loadKnowledgeBaseChunks", () => {
     expect(sourceIds).toContain("cdp-career-category-discovery");
     expect(sourceIds).toContain("cdp-recruit-category-discovery");
     expect(sourceIds).toContain("book-success-story-viewer");
+    expect(sourceIds).toContain("ewil-internship-system");
+  });
+
+  it("looks for split authenticated E-WIL category directories when present", () => {
+    expect(OPTIONAL_KNOWLEDGE_BASE_DIRS).toEqual([
+      "data/knowledge-base/manual-cdp-posts",
+      "data/knowledge-base/ewil-authenticated-sources/공지사항",
+      "data/knowledge-base/ewil-authenticated-sources/현장실습후기",
+    ]);
   });
 
   it("requires citation anchors and untrusted source text markers on every chunk", () => {

@@ -131,6 +131,71 @@ describe("CDP manual browser exporter pagination", () => {
 			"https://cdp.hanyang.ac.kr/Community/Notice/RecruitEvent.aspx?rp=2",
 		);
 	});
+
+	it("rejects non-approved CDP start pages", async () => {
+		await expect(
+			runExporterFixture({
+				board: "일반채용공고",
+				startUrl: "https://cdp.hanyang.ac.kr/Main/default.aspx",
+				initialHtml: listPageHtml({
+					detailHref: "/Career/Job/RecruitView.aspx?idx=1111",
+				}),
+				fetchedHtmlByUrl: new Map(),
+			}),
+		).rejects.toThrow(/approved CDP board list URL/u);
+	});
+
+	it("skips external absolute and credential-like detail URLs", async () => {
+		const result = await runExporterFixture({
+			board: "일반채용공고",
+			startUrl: "https://cdp.hanyang.ac.kr/Career/Job/RecruitList.aspx",
+			initialHtml: `
+				<html>
+					<body>
+						<a href="/Career/Job/RecruitView.aspx?idx=1111">정상</a>
+						<a href="/Career/Job/RecruitView.aspx?idx=2222&token=secret">토큰</a>
+						<button onclick="open('https://example.com/Career/Job/RecruitView.aspx?idx=3333')">외부</button>
+						<button data-url="https://example.com/Office/SiteMgr/Notice/FuncScheView.aspx?funcidx=4444">외부</button>
+					</body>
+				</html>
+			`,
+			fetchedHtmlByUrl: new Map([
+				[
+					"https://cdp.hanyang.ac.kr/Career/Job/RecruitView.aspx?idx=1111",
+					detailPageHtml("정상 공고", "정상 본문입니다."),
+				],
+			]),
+		});
+
+		expect(result.output.posts.map((post) => post.detail_url)).toEqual([
+			"https://cdp.hanyang.ac.kr/Career/Job/RecruitView.aspx?idx=1111",
+		]);
+		expect(result.fetchedUrls).toEqual([
+			"https://cdp.hanyang.ac.kr/Career/Job/RecruitView.aspx?idx=1111",
+		]);
+	});
+
+	it("skips external absolute pagination scripts", async () => {
+		const result = await runExporterFixture({
+			board: "일반채용공고",
+			startUrl: "https://cdp.hanyang.ac.kr/Career/Job/RecruitList.aspx",
+			initialHtml: listPageHtml({
+				detailHref: "/Career/Job/RecruitView.aspx?idx=1111",
+				nextHref:
+					"javascript:hcSubmit('https://example.com/Career/Job/RecruitList.aspx?rp=2', 'Widget1_List','form1')",
+			}),
+			fetchedHtmlByUrl: new Map([
+				[
+					"https://cdp.hanyang.ac.kr/Career/Job/RecruitView.aspx?idx=1111",
+					detailPageHtml("정상 공고", "정상 본문입니다."),
+				],
+			]),
+		});
+
+		expect(result.fetchedUrls).toEqual([
+			"https://cdp.hanyang.ac.kr/Career/Job/RecruitView.aspx?idx=1111",
+		]);
+	});
 });
 
 async function runExporterFixture(input: {
