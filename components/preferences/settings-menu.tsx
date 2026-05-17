@@ -31,10 +31,10 @@ export function SettingsMenu({ onClearPreferences, onClearChatHistory }: { onCle
           <DropdownMenuLabel>개인정보 관리</DropdownMenuLabel>
           <DropdownMenuSeparator />
           <DropdownMenuItem variant="destructive" className="p-0" onSelect={(event) => { event.preventDefault(); requestConfirmation("preferences"); }}>
-            <Button type="button" variant="ghost" className="h-8 w-full justify-start px-2 text-destructive hover:text-destructive" onClick={() => requestConfirmation("preferences")}>추천 조건 지우기</Button>
+            <Button type="button" variant="ghost" className="h-8 w-full justify-start px-2 text-destructive hover:text-destructive">추천 조건 지우기</Button>
           </DropdownMenuItem>
           <DropdownMenuItem variant="destructive" className="p-0" onSelect={(event) => { event.preventDefault(); requestConfirmation("chat"); }}>
-            <Button type="button" variant="ghost" className="h-8 w-full justify-start px-2 text-destructive hover:text-destructive" onClick={() => requestConfirmation("chat")}>대화 기록 지우기</Button>
+            <Button type="button" variant="ghost" className="h-8 w-full justify-start px-2 text-destructive hover:text-destructive">대화 기록 지우기</Button>
           </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
