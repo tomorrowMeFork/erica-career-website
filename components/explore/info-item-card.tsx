@@ -1,36 +1,40 @@
 import type { RecommendationItem } from "../../src/recommendations/recommendation-contract.js";
+import { MetadataList } from "../common/metadata-list.js";
+import { Button } from "../ui/button.js";
+import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "../ui/card.js";
 import { getSourceDisplayLabel } from "../citations/source-card.js";
 import { DeadlineStatusBadge } from "../listings/deadline-status-badge.js";
 
 export function InfoItemCard({ item }: { item: RecommendationItem }) {
   return (
-    <article className="info-item-card card-surface" data-deadline_status={item.deadline_status}>
-      <header>
-        <div>
-          <h3>{item.title}</h3>
-          <p>{getOneLineSummary()}</p>
-        </div>
-        <DeadlineStatusBadge status={item.deadline_status} />
-      </header>
-
-      <div className="listing-meta" aria-label="출처 및 날짜 정보">
-        <p>출처: {getSourceDisplayLabel("", item.url)}</p>
-        <p>
-          확인일: <time dateTime={item.fetched_at}>{formatDate(item.fetched_at)}</time>
-        </p>
-        <p>
-          게시일: {item.posted_at !== null ? <time dateTime={item.posted_at}>{formatDate(item.posted_at)}</time> : "확인 필요"}
-        </p>
-      </div>
-
-      <div className="info-item-card__actions">
-        <a className="primary-button" href={`/source/${encodeURIComponent(item.recommendation_id)}`} aria-label={`${item.title} 출처 상세 열기`}>
-          출처 상세
-        </a>
-        <a className="pill-control" href={item.url} target="_blank" rel="noopener noreferrer" aria-label={`${item.title} 원문 보기 새 창으로 열기`}>
-          원문 보기
-        </a>
-      </div>
+    <article data-deadline_status={item.deadline_status} aria-label={`${item.title} 정보 카드`}>
+      <Card className="gap-4 border-border/80 bg-card shadow-sm">
+        <CardHeader className="gap-3 sm:grid-cols-[minmax(0,1fr)_auto]">
+          <div className="grid gap-2">
+            <CardTitle className="text-xl tracking-tight text-foreground"><h3>{item.title}</h3></CardTitle>
+            <p className="text-sm leading-6 text-muted-foreground">{getOneLineSummary()}</p>
+          </div>
+          <DeadlineStatusBadge status={item.deadline_status} />
+        </CardHeader>
+        <CardContent>
+          <MetadataList
+            aria-label="출처 및 날짜 정보"
+            rows={[
+              { label: "출처", value: getSourceDisplayLabel("", item.url) },
+              { label: "확인일", value: formatDate(item.fetched_at), dateTime: item.fetched_at },
+              { label: "게시일", value: item.posted_at !== null ? formatDate(item.posted_at) : "확인 필요", dateTime: item.posted_at ?? undefined },
+            ]}
+          />
+        </CardContent>
+        <CardFooter className="flex-wrap gap-2">
+          <Button asChild>
+            <a href={`/source/${encodeURIComponent(item.recommendation_id)}`} aria-label={`${item.title} 출처 상세 열기`}>출처 상세</a>
+          </Button>
+          <Button asChild variant="outline">
+            <a href={item.url} target="_blank" rel="noopener noreferrer" aria-label={`${item.title} 원문 보기 새 창으로 열기`}>원문 보기</a>
+          </Button>
+        </CardFooter>
+      </Card>
     </article>
   );
 }
