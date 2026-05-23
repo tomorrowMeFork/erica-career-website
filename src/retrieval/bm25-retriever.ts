@@ -1,3 +1,4 @@
+import { resolveEffectiveDeadlineStatus } from "../ingestion/deadline-status.js";
 import {
 	type KnowledgeChunk,
 	KnowledgeChunkSchema,
@@ -8,7 +9,7 @@ import {
 } from "./boilerplate-filter.js";
 import { expandDomainSynonyms } from "./domain-synonyms.js";
 import { extractSearchTerms, normalizeKoreanText } from "./normalize-korean.js";
-import type { RetrievedChunk, RetrieveInput, Retriever } from "./retriever.js";
+import { MAX_RETRIEVE_TOP_K, type RetrievedChunk, type RetrieveFilters, type RetrieveInput, type Retriever } from "./retriever.js";
 
 type IndexedChunk = {
 	chunk: KnowledgeChunk;
@@ -22,7 +23,6 @@ type IndexedChunk = {
 
 const K1 = 1.2;
 const B = 0.75;
-const DEFAULT_REFERENCE_DATE = new Date("2026-05-03T00:00:00.000Z");
 const listingTerms = new Set([
 	"채용",
 	"모집",
@@ -33,19 +33,37 @@ const listingTerms = new Set([
 	"현장실습",
 	"아르바이트",
 ]);
-const queryFillerTerms = new Set(["려줘", "알려", "알려줘"]);
+const queryFillerTerms = new Set([
+	"난",
+	"내",
+	"뭔",
+	"지금",
+	"위해",
+	"하면",
+	"좋을",
+	"좋을까",
+	"하려고",
+	"하려고해",
+	"쪽으",
+	"쪽으로",
+	"으로",
+	"못",
+	"려줘",
+	"알려",
+	"알려줘",
+]);
 
 export class Bm25Retriever implements Retriever {
 	private readonly indexedChunks: IndexedChunk[];
 	private readonly documentFrequency: Map<string, number>;
 	private readonly averageDocumentLength: number;
-	private readonly referenceDate: Date;
+	private readonly clock: () => Date;
 
 	constructor(
 		chunks: readonly KnowledgeChunk[],
-		options: { referenceDate?: Date } = {},
+		options: { referenceDate?: Date; clock?: () => Date } = {},
 	) {
-		this.referenceDate = options.referenceDate ?? DEFAULT_REFERENCE_DATE;
+		this.clock = options.clock ?? (() => options.referenceDate ?? new Date());
 		this.indexedChunks = chunks.map((chunk, ordinal) =>
 			indexChunk(KnowledgeChunkSchema.parse(chunk), ordinal),
 		);
@@ -57,18 +75,24 @@ export class Bm25Retriever implements Retriever {
 
 	async retrieve(input: RetrieveInput): Promise<RetrievedChunk[]> {
 		const topK = input.topK ?? 5;
-		const boundedTopK = Math.max(0, Math.min(topK, 25));
+		const boundedTopK = Math.max(0, Math.min(topK, MAX_RETRIEVE_TOP_K));
 		if (boundedTopK === 0) {
 			return [];
 		}
 
 		const queryTerms = buildQueryTerms(input.query);
-		if (queryTerms.length === 0 || this.indexedChunks.length === 0) {
+		const referenceDate = this.clock();
+		const effectiveChunks = this.indexedChunks.map((indexedChunk) => ({
+			...indexedChunk,
+			chunk: withEffectiveDeadlineStatus(indexedChunk.chunk, referenceDate),
+		}));
+		const filteredChunks = effectiveChunks.filter((indexedChunk) => matchesRetrieveFilters(indexedChunk.chunk, input.filters));
+		if (queryTerms.length === 0 || filteredChunks.length === 0) {
 			return [];
 		}
 
-		const scored = this.indexedChunks
-			.map((indexedChunk) => this.scoreChunk(indexedChunk, queryTerms))
+		const scored = filteredChunks
+			.map((indexedChunk) => this.scoreChunk(indexedChunk, queryTerms, referenceDate))
 			.filter((result) => result.score > 0);
 
 		const answerableResults = scored.filter(
@@ -94,6 +118,7 @@ export class Bm25Retriever implements Retriever {
 	private scoreChunk(
 		indexedChunk: IndexedChunk,
 		queryTerms: readonly string[],
+		referenceDate: Date,
 	): RetrievedChunk {
 		const matchedTerms = queryTerms.filter((term) =>
 			indexedChunk.terms.has(term),
@@ -116,7 +141,7 @@ export class Bm25Retriever implements Retriever {
 				.length * 0.15,
 		);
 		const freshnessBoost = roundScore(
-			computeFreshnessBoost(indexedChunk.chunk, this.referenceDate),
+			computeFreshnessBoost(indexedChunk.chunk, referenceDate),
 		);
 		const deadlinePenalty = roundScore(
 			computeDeadlinePenalty(indexedChunk.chunk, queryTerms),
@@ -151,6 +176,28 @@ export class Bm25Retriever implements Retriever {
 			},
 		};
 	}
+}
+
+function matchesRetrieveFilters(chunk: KnowledgeChunk, filters: RetrieveFilters | undefined): boolean {
+	return (
+		matchesFilterValues(filters?.collection_categories, chunk.collection_category) &&
+		matchesFilterValues(filters?.source_families, chunk.source_family) &&
+		matchesFilterValues(filters?.source_ids, chunk.source_id) &&
+		matchesFilterValues(filters?.deadline_statuses, chunk.deadline_status)
+	);
+}
+
+function withEffectiveDeadlineStatus(chunk: KnowledgeChunk, referenceDate: Date): KnowledgeChunk {
+	const deadlineStatus = resolveEffectiveDeadlineStatus({
+		deadline_raw_text: chunk.deadline_raw_text,
+		deadline_status: chunk.deadline_status,
+		referenceDate,
+	});
+	return deadlineStatus === chunk.deadline_status ? chunk : { ...chunk, deadline_status: deadlineStatus };
+}
+
+function matchesFilterValues<T extends string>(values: readonly T[] | undefined, candidate: T): boolean {
+	return values === undefined || values.length === 0 || values.includes(candidate);
 }
 
 function buildQueryTerms(query: string): string[] {
