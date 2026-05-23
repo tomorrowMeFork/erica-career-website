@@ -1,11 +1,12 @@
 import { ChatCitationSchema } from "../chat/chat-contract.js";
+import { resolveEffectiveDeadlineStatus } from "../ingestion/deadline-status.js";
 import type { PreferenceProfile } from "../personalization/preference-contract.js";
 import type { RetrievedChunk } from "../retrieval/retriever.js";
 import {
   type MatchStrength,
   type RecommendationItem,
-  type RecommendationScoreBreakdown,
   RecommendationItemSchema,
+  type RecommendationScoreBreakdown,
 } from "./recommendation-contract.js";
 import { scoreSourceQuality } from "./source-quality.js";
 
@@ -24,6 +25,7 @@ export type RankRecommendationCandidatesInput = {
 
 export type ScoredRecommendationCandidate = {
   candidate: RetrievedChunk;
+  deadline_status: RetrievedChunk["chunk"]["deadline_status"];
   score_breakdown: RecommendationScoreBreakdown;
   match_strength: MatchStrength;
 };
@@ -86,7 +88,11 @@ function matchTextScore(preference: string, evidence: string): number {
   return roundScore(matchedTokens / preferenceTokens.length);
 }
 
-function scoreOptionalPreferences(profile: PreferenceProfile | undefined, candidate: RetrievedChunk, evidence: string): number {
+function scoreOptionalPreferences(
+  profile: PreferenceProfile | undefined,
+  deadlineStatus: RetrievedChunk["chunk"]["deadline_status"],
+  evidence: string,
+): number {
   if (profile === undefined) {
     return 0;
   }
@@ -98,14 +104,14 @@ function scoreOptionalPreferences(profile: PreferenceProfile | undefined, candid
     optionalScores.length === 0 ? 0 : optionalScores.reduce((total, score) => total + score, 0) / optionalScores.length;
   const deadlineScore =
     profile.deadline_sensitivity === "include_unknown"
-      ? candidate.chunk.deadline_status === "expired"
+      ? deadlineStatus === "expired"
         ? 0
         : 1
       : profile.deadline_sensitivity === "urgent_first"
-        ? candidate.chunk.deadline_status === "active"
+        ? deadlineStatus === "active"
           ? 1
           : 0
-        : candidate.chunk.deadline_status === "expired"
+        : deadlineStatus === "expired"
           ? 0.25
           : 0.75;
 
@@ -124,7 +130,7 @@ function selectMatchStrength(profile: PreferenceProfile | undefined, scoreBreakd
   return "partial_match";
 }
 
-function buildCitation(candidate: RetrievedChunk, citationId: number) {
+function buildCitation(candidate: RetrievedChunk, citationId: number, deadlineStatus: RetrievedChunk["chunk"]["deadline_status"]) {
   const primaryAnchor = candidate.chunk.citation_anchors[0];
   if (primaryAnchor === undefined) {
     return undefined;
@@ -139,13 +145,16 @@ function buildCitation(candidate: RetrievedChunk, citationId: number) {
     url: primaryAnchor.url,
     fetched_at: candidate.chunk.fetched_at,
     posted_at: candidate.chunk.posted_at,
-    deadline_status: candidate.chunk.deadline_status,
+    deadline_status: deadlineStatus,
+    collection_category: candidate.chunk.collection_category,
+    source_family: candidate.chunk.source_family,
+    category_label_ko: candidate.chunk.category_label_ko,
     page_number: primaryAnchor.page_number,
   });
 }
 
 function toRecommendationItem(scored: ScoredRecommendationCandidate, recommendationIndex: number): RecommendationItem | undefined {
-  const citationResult = buildCitation(scored.candidate, recommendationIndex + 1);
+  const citationResult = buildCitation(scored.candidate, recommendationIndex + 1, scored.deadline_status);
   if (citationResult === undefined || !citationResult.success) {
     return undefined;
   }
@@ -157,10 +166,13 @@ function toRecommendationItem(scored: ScoredRecommendationCandidate, recommendat
     source_id: scored.candidate.chunk.source_id,
     title: scored.candidate.chunk.title,
     category: scored.candidate.chunk.category,
+    collection_category: scored.candidate.chunk.collection_category,
+    source_family: scored.candidate.chunk.source_family,
+    category_label_ko: scored.candidate.chunk.category_label_ko,
     url: scored.candidate.chunk.source_url,
     fetched_at: scored.candidate.chunk.fetched_at,
     posted_at: scored.candidate.chunk.posted_at,
-    deadline_status: scored.candidate.chunk.deadline_status,
+    deadline_status: scored.deadline_status,
     score: scored.score_breakdown.final_score,
     match_strength: scored.match_strength,
     score_breakdown: scored.score_breakdown,
@@ -171,12 +183,14 @@ function toRecommendationItem(scored: ScoredRecommendationCandidate, recommendat
 }
 
 export function scoreRecommendationCandidate(input: ScoreRecommendationCandidateInput): ScoredRecommendationCandidate {
-  const sourceQuality = scoreSourceQuality(input.candidate, input.referenceDate);
+  const referenceDate = input.referenceDate ?? new Date();
+  const deadline_status = effectiveDeadlineStatus(input.candidate, referenceDate);
+  const sourceQuality = scoreSourceQuality(input.candidate, referenceDate);
   const evidence = candidateEvidence(input.candidate);
   const base_retrieval_score = roundScore(input.candidate.normalized_score);
   const major_match_score = input.profile === undefined ? 0 : matchTextScore(input.profile.major, evidence);
   const target_role_match_score = input.profile === undefined ? 0 : matchTextScore(input.profile.target_role, evidence);
-  const optional_preference_score = scoreOptionalPreferences(input.profile, input.candidate, evidence);
+  const optional_preference_score = scoreOptionalPreferences(input.profile, deadline_status, evidence);
   const source_quality_score = sourceQuality.final_score;
   const freshness_score = sourceQuality.freshness_score;
   const final_score = roundScore(
@@ -199,9 +213,18 @@ export function scoreRecommendationCandidate(input: ScoreRecommendationCandidate
 
   return {
     candidate: input.candidate,
+    deadline_status,
     score_breakdown,
     match_strength: selectMatchStrength(input.profile, score_breakdown),
   };
+}
+
+function effectiveDeadlineStatus(candidate: RetrievedChunk, referenceDate: Date): RetrievedChunk["chunk"]["deadline_status"] {
+  return resolveEffectiveDeadlineStatus({
+    deadline_raw_text: candidate.chunk.deadline_raw_text,
+    deadline_status: candidate.chunk.deadline_status,
+    referenceDate,
+  });
 }
 
 export function rankRecommendationCandidates(input: RankRecommendationCandidatesInput): RecommendationItem[] {

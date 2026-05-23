@@ -1,3 +1,4 @@
+import { resolveEffectiveDeadlineStatus } from "../ingestion/deadline-status.js";
 import type { RetrievedChunk } from "../retrieval/retriever.js";
 
 export type SourceQualityBreakdown = {
@@ -71,7 +72,12 @@ function scoreCitationDetail(candidate: RetrievedChunk): number {
 
 export function scoreSourceQuality(candidate: RetrievedChunk, referenceDate: Date = new Date()): SourceQualityBreakdown {
   const { chunk } = candidate;
-  const deadline_score = chunk.deadline_status === "active" ? 1 : chunk.deadline_status === "unknown" ? 0.45 : 0;
+  const deadlineStatus = resolveEffectiveDeadlineStatus({
+    deadline_raw_text: chunk.deadline_raw_text,
+    deadline_status: chunk.deadline_status,
+    referenceDate,
+  });
+  const deadline_score = deadlineStatus === "active" ? 1 : deadlineStatus === "unknown" ? 0.45 : 0;
   const posted_recency_score = recencyScore(chunk.posted_at, referenceDate, 120);
   const fetched_recency_score = recencyScore(chunk.fetched_at, referenceDate, 180);
   const citation_detail_score = scoreCitationDetail(candidate);

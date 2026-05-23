@@ -13,6 +13,7 @@ function candidate(overrides: {
   posted_at: string | null;
   fetched_at: string;
   deadline_status: "active" | "expired" | "unknown";
+  deadline_raw_text?: string;
   text: string;
   boilerplate_penalty: number;
   page_number?: number;
@@ -27,10 +28,13 @@ function candidate(overrides: {
       canonical_url: overrides.source_url,
       title: overrides.title,
       category: "채용",
+      collection_category: "job_posting",
+      source_family: "cdp",
+      category_label_ko: "채용공고",
       fetched_at: overrides.fetched_at,
       posted_at: overrides.posted_at,
       deadline_status: overrides.deadline_status,
-      deadline_raw_text: overrides.deadline_status === "active" ? "2026-06-01 마감" : "마감",
+      deadline_raw_text: overrides.deadline_raw_text ?? (overrides.deadline_status === "active" ? "2026-06-01 마감" : "마감"),
       content_hash: "a".repeat(64),
       citation_anchors: [
         {
@@ -128,5 +132,21 @@ describe("scoreSourceQuality", () => {
     });
 
     expect(scoreSourceQuality(pageCited, referenceDate).citation_detail_score).toBe(1);
+  });
+
+  it("scores stored-active listings as expired when the raw deadline has passed", () => {
+    const staleActive = candidate({
+      chunk_id: "stale-active",
+      title: "데이터 인턴 모집",
+      source_url: "https://cdp.hanyang.ac.kr/recruit/view.do?seq=789",
+      posted_at: "2026-05-01T00:00:00.000Z",
+      fetched_at: "2026-05-03T00:00:00.000Z",
+      deadline_status: "active",
+      deadline_raw_text: "~5/14",
+      text: "데이터 인턴 모집 상세 내용",
+      boilerplate_penalty: 0,
+    });
+
+    expect(scoreSourceQuality(staleActive, new Date("2026-05-22T00:00:00.000Z")).deadline_score).toBe(0);
   });
 });
