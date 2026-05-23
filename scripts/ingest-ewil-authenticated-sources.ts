@@ -23,12 +23,14 @@ import type {
 import { NormalizedRecordSchema } from "../src/ingestion/normalized-record.js";
 import { extractPdfPages } from "../src/ingestion/pdf/pdf-page-parser.js";
 import { writeKnowledgeBaseJsonl } from "../src/ingestion/write-jsonl-kb.js";
+import type { KBTaxonomyMetadata } from "../src/knowledge-base/taxonomy.js";
 
 type EwilSource = {
 	source_id: string;
 	source_name: string;
 	canonical_url: string;
 	category: string;
+	taxonomy: KBTaxonomyMetadata;
 	title: string;
 	purpose: string;
 };
@@ -80,6 +82,7 @@ const ewilOrigin = "https://e-wil.hanyang.ac.kr";
 const defaultOutputDir = "data/knowledge-base/ewil-authenticated-sources";
 const defaultMaxListPages = 5;
 const defaultMaxDetailPages = 30;
+const maxAllowedDetailPages = 10_000;
 const navigationTimeoutMs = 20_000;
 const renderedContentTimeoutMs = 5_000;
 const requestDelayMs = 1_200;
@@ -93,6 +96,11 @@ const ewilSources: readonly EwilSource[] = [
 		source_name: "E-WIL 공지사항",
 		canonical_url: `${ewilOrigin}/data/list.do?type=NOTICE`,
 		category: "ERICA 현장실습 지원 시스템 > 공지사항/인턴공고",
+		taxonomy: {
+			collection_category: "internship_notice",
+			source_family: "ewil",
+			category_label_ko: "현장실습/인턴십 안내",
+		},
 		title: "E-WIL 공지사항/인턴공고",
 		purpose: "공지사항과 인턴/현장실습 공고 목록",
 	},
@@ -101,6 +109,11 @@ const ewilSources: readonly EwilSource[] = [
 		source_name: "E-WIL 설명회",
 		canonical_url: `${ewilOrigin}/data/list.do?type=INFO`,
 		category: "ERICA 현장실습 지원 시스템 > 설명회",
+		taxonomy: {
+			collection_category: "career_program",
+			source_family: "ewil",
+			category_label_ko: "취업 프로그램",
+		},
 		title: "E-WIL 설명회",
 		purpose: "현장실습 관련 설명회 및 안내 자료",
 	},
@@ -109,6 +122,11 @@ const ewilSources: readonly EwilSource[] = [
 		source_name: "E-WIL 실습 후기",
 		canonical_url: `${ewilOrigin}/internphoto/compList.do`,
 		category: "ERICA 현장실습 지원 시스템 > 실습 후기",
+		taxonomy: {
+			collection_category: "internship_review",
+			source_family: "ewil",
+			category_label_ko: "현장실습 후기",
+		},
 		title: "E-WIL 실습 후기",
 		purpose: "현장실습 참여 기업/실습 후기 목록",
 	},
@@ -472,12 +490,21 @@ async function collectInternshipReviewPages(
 			}
 
 			await delay(requestDelayMs);
-			await openListPage(page, listPage.url, listPage.pagingTarget);
-			const companyPage = await clickCandidateFromPage(
-				page,
-				undefined,
-				companyCandidate,
-			);
+			let companyPage: ClickedDetailPage;
+			try {
+				await openListPage(page, listPage.url, listPage.pagingTarget);
+				companyPage = await clickCandidateFromPage(
+					page,
+					undefined,
+					companyCandidate,
+				);
+			} catch (error) {
+				console.log(
+					formatInternshipReviewCompanyCandidateSkip(companyCandidate.key, error),
+				);
+				skippedReviewCandidateCount += 1;
+				continue;
+			}
 			const reviewCandidates = extractInternshipReviewCandidates(
 				companyPage.html,
 				companyCandidate.url,
@@ -507,7 +534,16 @@ async function collectInternshipReviewPages(
 				}
 
 				await delay(requestDelayMs);
-				const reviewHtml = await collectHtml(page, reviewCandidate.url);
+				let reviewHtml: string;
+				try {
+					reviewHtml = await collectHtml(page, reviewCandidate.url);
+				} catch (error) {
+					console.log(
+						`E-WIL reviews: skipped ${reviewCandidate.key}; ${formatInternshipReviewSkipReason(error)}`,
+					);
+					skippedReviewCandidateCount += 1;
+					continue;
+				}
 				const recordability = classifyInternshipReviewRecordability(reviewHtml);
 				if (!recordability.recordable) {
 					console.log(
@@ -516,13 +552,22 @@ async function collectInternshipReviewPages(
 					skippedReviewCandidateCount += 1;
 					continue;
 				}
-				const collectedPages = await collectPageAndPdfAttachments(
-					page,
-					source,
-					reviewCandidate.url,
-					reviewHtml,
-					source.title,
-				);
+				let collectedPages: CollectedPage[];
+				try {
+					collectedPages = await collectPageAndPdfAttachments(
+						page,
+						source,
+						reviewCandidate.url,
+						reviewHtml,
+						source.title,
+					);
+				} catch (error) {
+					console.log(
+						`E-WIL reviews: skipped ${reviewCandidate.key}; ${formatInternshipReviewSkipReason(error)}`,
+					);
+					skippedReviewCandidateCount += 1;
+					continue;
+				}
 				pages.push(...collectedPages);
 				collectedReviewPageCount += 1;
 				console.log(
@@ -570,6 +615,28 @@ export function formatInternshipReviewCollectionSummary(
 		`skipped=${summary.skippedReviewCandidateCount}`,
 		`max-detail-pages=${summary.maxDetailPages}${capHint}`,
 	].join("; ");
+}
+
+export function formatInternshipReviewCompanyCandidateSkip(
+	companyKey: string,
+	error: unknown,
+): string {
+	return `E-WIL reviews: skipped company candidate ${companyKey}; ${formatInternshipReviewSkipReason(error)}`;
+}
+
+export function formatInternshipReviewSkipReason(error: unknown): string {
+	if (error instanceof Error) {
+		return sanitizeErrorMessageForLog(error.message);
+	}
+	return "unknown collection error";
+}
+
+function sanitizeErrorMessageForLog(message: string): string {
+	const firstLine = cleanInlineText(message.split("\n")[0] ?? "");
+	if (firstLine.length === 0) {
+		return "unknown collection error";
+	}
+	return truncateForLog(firstLine, 180);
 }
 
 async function collectHtml(page: Page, url: string): Promise<string> {
@@ -869,6 +936,7 @@ function buildRecord(page: CollectedPage, fetchedAt: string): NormalizedRecord {
 		canonical_url: page.url,
 		title: page.title,
 		category: page.source.category,
+		...page.source.taxonomy,
 		fetched_at: fetchedAt,
 		posted_at: page.posted_at,
 		deadline_status: page.deadline_status,
@@ -1617,31 +1685,28 @@ export function classifyInternshipReviewRecordability(html: string): {
 	reason: string;
 } {
 	const text = cleanCollectedBodyText(cheerio.load(html)("body").text());
-	if (text.length < 80) {
+	if (looksLikeLoginOrError(html)) {
 		return {
 			recordable: false,
-			reason: `opened page had too little readable text (${text.length} chars)`,
+			reason: "opened page looks like a login/error boundary",
 		};
 	}
 	const matchedHeadingCount = countMatchingMarkers(text, internshipReviewSectionHeadings);
 	const matchedDetailMarkerCount = countMatchingMarkers(text, internshipReviewDetailMarkers);
 	const listLike = looksLikeNestedEwilList(html);
+	if (listLike) {
+		return { recordable: false, reason: "opened page still looks like a nested list" };
+	}
+	if (text.length === 0) {
+		return { recordable: false, reason: "opened page had no readable text" };
+	}
 	if (matchedHeadingCount > 0) {
 		return { recordable: true, reason: "matched known review headings" };
 	}
 	if (matchedDetailMarkerCount >= 2 && !listLike) {
 		return { recordable: true, reason: "matched review detail field markers" };
 	}
-	if (matchedDetailMarkerCount >= 3) {
-		return {
-			recordable: true,
-			reason: "matched review detail markers despite retained list chrome",
-		};
-	}
-	if (listLike) {
-		return { recordable: false, reason: "opened page still looks like a nested list" };
-	}
-	return { recordable: false, reason: "opened page lacked review detail markers" };
+	return { recordable: true, reason: "accepted internship review detail page" };
 }
 
 function countMatchingMarkers(text: string, markers: readonly string[]): number {
@@ -1777,7 +1842,7 @@ export function parseArgs(argv: readonly string[]): CliArgs {
 			const value = argv[index + 1];
 			if (!value)
 				throw new Error("--max-detail-pages requires a nonnegative integer");
-			maxDetailPages = parseBoundedInteger(value, "--max-detail-pages", 0, 200);
+			maxDetailPages = parseBoundedInteger(value, "--max-detail-pages", 0, maxAllowedDetailPages);
 			index += 1;
 			continue;
 		}

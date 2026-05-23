@@ -6,6 +6,7 @@ import {
 	extractClickablePagingTargets,
 	extractListPageUrls,
 	formatInternshipReviewCollectionSummary,
+	formatInternshipReviewCompanyCandidateSkip,
 	groupEwilRecordsByOutputCategory,
 	internphotoReviewUrlFromScript,
 	parseArgs,
@@ -16,27 +17,42 @@ const noticeSource = {
 	source_name: "E-WIL 공지사항",
 	canonical_url: "https://e-wil.hanyang.ac.kr/data/list.do?type=NOTICE",
 	category: "ERICA 현장실습 지원 시스템 > 공지사항/인턴공고",
+	taxonomy: {
+		collection_category: "internship_notice",
+		source_family: "ewil",
+		category_label_ko: "현장실습/인턴십 안내",
+	},
 	title: "E-WIL 공지사항/인턴공고",
 	purpose: "공지사항과 인턴/현장실습 공고 목록",
-};
+} as const;
 
 const infoSource = {
 	source_id: "ewil-info-board",
 	source_name: "E-WIL 설명회",
 	canonical_url: "https://e-wil.hanyang.ac.kr/data/list.do?type=INFO",
 	category: "ERICA 현장실습 지원 시스템 > 설명회",
+	taxonomy: {
+		collection_category: "career_program",
+		source_family: "ewil",
+		category_label_ko: "취업 프로그램",
+	},
 	title: "E-WIL 설명회",
 	purpose: "현장실습 관련 설명회 및 안내 자료",
-};
+} as const;
 
 const reviewSource = {
 	source_id: "ewil-internship-reviews",
 	source_name: "E-WIL 실습 후기",
 	canonical_url: "https://e-wil.hanyang.ac.kr/internphoto/compList.do",
 	category: "ERICA 현장실습 지원 시스템 > 실습 후기",
+	taxonomy: {
+		collection_category: "internship_review",
+		source_family: "ewil",
+		category_label_ko: "현장실습 후기",
+	},
 	title: "E-WIL 실습 후기",
 	purpose: "현장실습 참여 기업/실습 후기 목록",
-};
+} as const;
 
 describe("E-WIL authenticated source helper behavior", () => {
 	it("extracts NOTICE pagination from anchors and pagination scripts only within the NOTICE list", () => {
@@ -239,6 +255,46 @@ describe("E-WIL authenticated source helper behavior", () => {
 		});
 	});
 
+	it("accepts short review detail pages without known review markers", () => {
+		const html = `
+			<body>
+				<h1>현장실습 후기</h1>
+				<p>짧지만 실제 후기 본문입니다.</p>
+			</body>
+		`;
+
+		expect(classifyInternshipReviewRecordability(html)).toEqual({
+			recordable: true,
+			reason: "accepted internship review detail page",
+		});
+	});
+
+	it("rejects login or error pages as review detail records", () => {
+		const html = `
+			<body>
+				로그인 후, 확인하실 수 있습니다.
+			</body>
+		`;
+
+		expect(classifyInternshipReviewRecordability(html)).toEqual({
+			recordable: false,
+			reason: "opened page looks like a login/error boundary",
+		});
+	});
+
+	it("formats company candidate click failures as concise skips", () => {
+		expect(
+			formatInternshipReviewCompanyCandidateSkip(
+				"24457",
+				new Error(
+					"E-WIL detail link moved before click for https://e-wil.hanyang.ac.kr/internphoto/compList.do at a index 62\nfull stack omitted",
+				),
+			),
+		).toBe(
+			"E-WIL reviews: skipped company candidate 24457; E-WIL detail link moved before click for https://e-wil.hanyang.ac.kr/internphoto/compList.do at a index 62",
+		);
+	});
+
 	it("limits --source reviews to the internship review source id", () => {
 		expect(parseArgs(["--source", "reviews"]).sourceIds).toEqual([
 			"ewil-internship-reviews",
@@ -247,6 +303,15 @@ describe("E-WIL authenticated source helper behavior", () => {
 
 	it("keeps the default detail page cap explicit", () => {
 		expect(parseArgs([]).maxDetailPages).toBe(30);
+	});
+
+	it("allows up to 10000 E-WIL detail pages per authenticated run", () => {
+		expect(parseArgs(["--max-detail-pages", "10000"]).maxDetailPages).toBe(
+			10000,
+		);
+		expect(() => parseArgs(["--max-detail-pages", "10001"])).toThrow(
+			"--max-detail-pages must be between 0 and 10000",
+		);
 	});
 
 	it("formats review collection cap summaries with a rerun hint", () => {
@@ -293,6 +358,9 @@ function buildRecord(recordId: string, sourceId: string): NormalizedRecord {
 		canonical_url: "https://e-wil.hanyang.ac.kr/data/list.do?type=NOTICE",
 		title: recordId,
 		category: "test",
+		collection_category: "unknown_legacy",
+		source_family: "ewil",
+		category_label_ko: "기존 분류 미확인",
 		fetched_at: "2026-05-17T00:00:00.000Z",
 		posted_at: null,
 		deadline_status: "unknown",
