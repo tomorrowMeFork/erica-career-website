@@ -20,6 +20,7 @@
     "ingest:playwright:sources": "tsx scripts/ingest-playwright-sources.ts",
     "verify:knowledge-base": "tsx scripts/verify-knowledge-base.ts",
     "status:freshness": "tsx scripts/operator-freshness-status.ts",
+    "benchmark:kb:100k": "tsx scripts/benchmark-kb-100k.ts",
     "evaluate:rag:mvp": "tsx scripts/evaluate-rag-mvp.ts",
     "evaluate:safety-filtering": "tsx scripts/evaluate-safety-filtering.ts",
     "evaluate:personalization": "tsx scripts/evaluate-personalization.ts",

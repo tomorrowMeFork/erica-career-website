@@ -1,37 +1,59 @@
 {
-  "active_plan": "/Users/wantap/workspace/Capstone/New/.sisyphus/plans/referenced-info-redesign.md",
-  "started_at": "2026-05-04T08:46:54.342Z",
+  "active_plan": "/Users/jbmok/New copy/.sisyphus/plans/unified-kb-taxonomy-filtered-rag.md",
+  "started_at": "2026-05-19T15:25:36.246Z",
   "session_ids": [
-    "ses_213cc63e9ffesdj64o2Xit0tqO",
-    "ses_20dd29bcbffeq5kIgDc1ycmBrF",
-    "ses_20dd296ffffeYI67M2SFhdTKC6",
-    "ses_20dd29700ffenVljOFMNccwIDT",
-    "ses_20d52ce2cffegCeo2Cu3Im7IPJ",
-    "ses_20d52c684ffeJ90oz3MYUm3Nc1",
-    "ses_20d52c67fffeFwGNaNDgBjP1HC",
-    "ses_20d52c67fffcpaMFrrlYBAePTV"
+    "ses_1c67fbc5effeSy3lX3vsiIrbfC"
   ],
-  "session_origins": {
-    "ses_213cc63e9ffesdj64o2Xit0tqO": "direct",
-    "ses_20dd29bcbffeq5kIgDc1ycmBrF": "appended",
-    "ses_20dd296ffffeYI67M2SFhdTKC6": "appended",
-    "ses_20dd29700ffenVljOFMNccwIDT": "appended",
-    "ses_20d52ce2cffegCeo2Cu3Im7IPJ": "appended",
-    "ses_20d52c684ffeJ90oz3MYUm3Nc1": "appended",
-    "ses_20d52c67fffeFwGNaNDgBjP1HC": "appended",
-    "ses_20d52c67fffcpaMFrrlYBAePTV": "appended"
-  },
-  "plan_name": "referenced-info-redesign",
+  "plan_name": "unified-kb-taxonomy-filtered-rag",
   "agent": "atlas",
+  "session_origins": {
+    "ses_1c67fbc5effeSy3lX3vsiIrbfC": "direct"
+  },
   "task_sessions": {
+    "todo:6": {
+      "task_key": "todo:6",
+      "task_label": "6",
+      "task_title": "Add Shared Reloadable KB/Retriever Service",
+      "session_id": "ses_1be501ed1ffeMWe23xqWXAtmGf",
+      "agent": "Sisyphus-Junior",
+      "category": "deep",
+      "updated_at": "2026-05-21T16:21:33.112Z"
+    },
+    "todo:7": {
+      "task_key": "todo:7",
+      "task_label": "7",
+      "task_title": "Extend Chat and Recommendation API Filters",
+      "session_id": "ses_1b4a4c39cffeI5fYHII52pn4gF",
+      "agent": "Sisyphus-Junior",
+      "category": "deep",
+      "updated_at": "2026-05-21T16:31:15.388Z"
+    },
+    "todo:8": {
+      "task_key": "todo:8",
+      "task_label": "8",
+      "task_title": "Add Korean Category/Source Filter UI",
+      "session_id": "ses_1b49cf1bbffe7B3FcE1HdnF0R0",
+      "agent": "Sisyphus-Junior",
+      "category": "visual-engineering",
+      "updated_at": "2026-05-21T16:46:09.493Z"
+    },
+    "todo:9": {
+      "task_key": "todo:9",
+      "task_label": "9",
+      "task_title": "Add End-to-End Regression and Evaluation Coverage",
+      "session_id": "ses_1b48d3d50ffec52Z2qZtt6g502",
+      "agent": "Sisyphus-Junior",
+      "category": "unspecified-high",
+      "updated_at": "2026-05-21T17:03:46.897Z"
+    },
     "final-wave:f1": {
       "task_key": "final-wave:f1",
       "task_label": "F1",
-      "task_title": "Product/Plan Compliance Review — oracle",
-      "session_id": "ses_20d52c67fffcpaMFrrlYBAePTV",
+      "task_title": "Plan Compliance Audit — oracle",
+      "session_id": "ses_1b47152deffeM1w4ITm1QwH6wU",
       "agent": "Sisyphus-Junior",
-      "category": "unspecified-high",
-      "updated_at": "2026-05-04T11:26:05.395Z"
+      "category": "",
+      "updated_at": "2026-05-21T17:40:39.374Z"
     }
   }
 }
