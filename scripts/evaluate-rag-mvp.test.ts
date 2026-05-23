@@ -25,8 +25,34 @@ describe("runRagMvpEvaluation", () => {
         "취업성공후기",
         "ERICA 기숙사 식단",
         "hostile source injection",
+        "filtered job_posting only",
+        "filtered career_review only",
+        "filtered internship_notice coverage",
+        "filtered internship_review coverage",
+        "filtered guide coverage",
+        "filtered source_discovery coverage",
+        "filtered no evidence guide only",
       ]),
     );
+  });
+
+  it("covers taxonomy-filtered answers and hard-refuses when filters exclude evidence", async () => {
+    const result = await runRagMvpEvaluation({ env: {}, writeOutput: false });
+    const filteredCases = result.cases.filter((testCase) => testCase.filters !== undefined);
+
+    expect(new Set(filteredCases.flatMap((testCase) => testCase.top_collection_categories))).toEqual(
+      new Set(["job_posting", "career_review", "internship_notice", "internship_review", "guide", "source_discovery"]),
+    );
+    expect(result.cases.find((testCase) => testCase.label === "filtered career_review only")?.response.citations[0]?.source_id).toBe("task9-career-review-fixture");
+    expect(result.cases.find((testCase) => testCase.label === "filtered job_posting only")?.response.citations[0]).toMatchObject({
+      source_id: "task9-job-posting-fixture",
+      posted_at: "2026-05-20T00:00:00.000Z",
+      deadline_status: "active",
+    });
+    const noEvidence = result.cases.find((testCase) => testCase.label === "filtered no evidence guide only");
+    expect(noEvidence?.response.refusal_tier).toBe("hard_refuse");
+    expect(noEvidence?.response.citations).toEqual([]);
+    expect(noEvidence?.response.answer).toMatch(/충분한 근거/u);
   });
 
   it("uses the optional D-27 judge only when all safe env names are present", async () => {

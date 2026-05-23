@@ -15,7 +15,7 @@ import { evaluateOutputSafety } from "../src/chat/output-safety-policy.js";
 import type { ChatModelProvider, ChatModelRequest, ChatModelResponse } from "../src/chat/provider.js";
 import { redactSensitiveText } from "../src/chat/safety-policy.js";
 import { sanitizeRetrievedResultsForPrompt } from "../src/chat/source-safety-policy.js";
-import type { RetrieveInput, RetrievedChunk, Retriever } from "../src/retrieval/retriever.js";
+import type { RetrievedChunk, RetrieveInput, Retriever } from "../src/retrieval/retriever.js";
 
 export const SAFETY_FILTERING_EVALUATION_PASSED = "safety filtering evaluation passed";
 
@@ -294,6 +294,9 @@ function retrievedChunkFromFixture(fixture: SafetyFilteringSourceFixture): Retri
       canonical_url: url,
       title: fixture.title,
       category: "safety evaluation",
+      collection_category: "unknown_legacy",
+      source_family: "unknown_legacy",
+      category_label_ko: "기존 분류 미확인",
       fetched_at: "2026-05-17T00:00:00.000Z",
       posted_at: null,
       deadline_status: "unknown",

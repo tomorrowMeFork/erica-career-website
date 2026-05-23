@@ -2,17 +2,21 @@ import { mkdtemp, rm } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 
+import { PHASE6_REFERENCE_QA_CASES, type Phase6AnswerCheck, type Phase6QaCase } from "../data/evaluation/phase6-reference-qa.js";
 import { appendChatAuditRecord } from "../src/audit/audit-log.js";
 import type { ChatCitation, RefusalTier } from "../src/chat/chat-contract.js";
 import { ChatService } from "../src/chat/chat-service.js";
 import type { ChatModelProvider, ChatModelRequest, ChatModelResponse } from "../src/chat/provider.js";
+import { retrieveRoleAwareEvidence } from "../src/chat/role-aware-retrieval.js";
 import type { KnowledgeChunk } from "../src/ingestion/normalized-record.js";
 import { loadKnowledgeBaseChunks } from "../src/knowledge-base/jsonl-loader.js";
+import { type CollectionCategory, getCategoryLabelKo, type SourceFamily } from "../src/knowledge-base/taxonomy.js";
 import { Bm25Retriever } from "../src/retrieval/bm25-retriever.js";
 import type { RetrievedChunk } from "../src/retrieval/retriever.js";
-import { PHASE6_REFERENCE_QA_CASES, type Phase6AnswerCheck, type Phase6QaCase } from "../data/evaluation/phase6-reference-qa.js";
 import { runPersonalizationEvaluation } from "./evaluate-personalization.js";
-import { runRagMvpEvaluation } from "./evaluate-rag-mvp.js";
+import { runRagMvpEvaluation, taxonomyEvaluationChunks } from "./evaluate-rag-mvp.js";
+
+type PublicReleaseChatFilters = Pick<NonNullable<Phase6QaCase["expected_retrieval"]["filters"]>, "collection_categories" | "source_families" | "deadline_statuses">;
 
 type SafeEnv = Record<string, string | undefined>;
 
@@ -21,6 +25,8 @@ export type ReleaseReadinessCaseResult = {
   category: Phase6QaCase["category"];
   top_chunk_ids: string[];
   top_source_ids: string[];
+  top_collection_categories: string[];
+  filters?: Phase6QaCase["expected_retrieval"]["filters"];
   metadata: Array<{ chunk_id: string; source_id: string; fetched_at: string; posted_at: string | null; deadline_status: string }>;
   response: {
     answer: string;
@@ -59,25 +65,32 @@ export async function runReleaseReadinessEvaluation(options: RunReleaseReadiness
   const env = options.env ?? {};
   const judgeEnabled = hasJudgeEnv(env);
   const cases = options.cases ?? PHASE6_REFERENCE_QA_CASES;
-  const chunks = [...(options.chunks ?? loadKnowledgeBaseChunks()), hostileSourceChunk()];
-  const retriever = new Bm25Retriever(chunks);
+  const loadedChunks = options.chunks ?? loadKnowledgeBaseChunks();
+  const coreChunks = options.chunks === undefined ? phase6CoreChunks() : [];
+  const hostileChunk = hostileSourceChunk();
+  const baseChunks = [...loadedChunks, ...coreChunks, hostileChunk];
+  const baseRetriever = new Bm25Retriever(baseChunks);
+  const filteredRetriever = new Bm25Retriever([...baseChunks, ...taxonomyEvaluationChunks()]);
+  const noAnswerRetriever = new Bm25Retriever(options.chunks === undefined ? [...coreChunks, hostileChunk] : baseChunks);
   const failures: string[] = [];
   const caseResults: ReleaseReadinessCaseResult[] = [];
   const tempDir = await mkdtemp(join(tmpdir(), "release-readiness-eval-"));
 
   try {
     for (const [index, qaCase] of cases.entries()) {
+      const retriever = selectRetrieverForCase(qaCase, { baseRetriever, filteredRetriever, noAnswerRetriever });
       const topResults = await retrieveForCase(retriever, qaCase);
+      const responseResults = await retrieveForPublicChat(retriever, qaCase);
       const response = await askWithDeterministicProvider({
         retriever,
         qaCase,
         provider: options.provider ?? new DeterministicReleaseReadinessProvider(),
         auditPath: join(tempDir, `case-${index}.jsonl`),
       });
-      const caseFailures = verifyReleaseCase(qaCase, topResults, response);
+      const caseFailures = verifyReleaseCase(qaCase, topResults, responseResults, response);
 
       if (judgeEnabled && options.judgeComplete !== undefined && response.refusal_tier !== "hard_refuse") {
-        caseFailures.push(...(await runJudge(qaCase, response, topResults, options.judgeComplete)));
+        caseFailures.push(...(await runJudge(qaCase, response, responseResults, options.judgeComplete)));
       }
 
       failures.push(...caseFailures);
@@ -86,6 +99,8 @@ export async function runReleaseReadinessEvaluation(options: RunReleaseReadiness
         category: qaCase.category,
         top_chunk_ids: topResults.map((result) => result.chunk.chunk_id),
         top_source_ids: topResults.map((result) => result.chunk.source_id),
+        top_collection_categories: topResults.map((result) => result.chunk.collection_category),
+        ...(qaCase.expected_retrieval.filters !== undefined ? { filters: qaCase.expected_retrieval.filters } : {}),
         metadata: topResults.slice(0, qaCase.expected_retrieval.top_k).map((result) => ({
           chunk_id: result.chunk.chunk_id,
           source_id: result.chunk.source_id,
@@ -123,8 +138,17 @@ export async function runReleaseReadinessEvaluation(options: RunReleaseReadiness
   return result;
 }
 
+function selectRetrieverForCase(
+  qaCase: Phase6QaCase,
+  retrievers: { baseRetriever: Bm25Retriever; filteredRetriever: Bm25Retriever; noAnswerRetriever: Bm25Retriever },
+): Bm25Retriever {
+  if (qaCase.expected_retrieval.filters !== undefined) return retrievers.filteredRetriever;
+  if (qaCase.expected_retrieval.no_answer_expected) return retrievers.noAnswerRetriever;
+  return retrievers.baseRetriever;
+}
+
 async function retrieveForCase(retriever: Bm25Retriever, qaCase: Phase6QaCase): Promise<RetrievedChunk[]> {
-  return retriever.retrieve({ query: qaCase.question_ko, topK: qaCase.expected_retrieval.top_k });
+  return retriever.retrieve({ query: qaCase.question_ko, topK: qaCase.expected_retrieval.top_k, ...(qaCase.expected_retrieval.filters !== undefined ? { filters: qaCase.expected_retrieval.filters } : {}) });
 }
 
 async function askWithDeterministicProvider(input: {
@@ -140,7 +164,29 @@ async function askWithDeterministicProvider(input: {
     traceIdGenerator: () => `release-${input.qaCase.id}`,
     evidencePolicyConfig: evidencePolicyForCase(input.qaCase),
   });
-  return service.ask({ query: input.qaCase.question_ko, top_k: input.qaCase.expected_retrieval.top_k });
+  return service.ask({
+    query: input.qaCase.question_ko,
+    top_k: input.qaCase.expected_retrieval.top_k,
+    ...publicChatFilters(input.qaCase.expected_retrieval.filters),
+  });
+}
+
+function publicChatFilters(filters: Phase6QaCase["expected_retrieval"]["filters"]): PublicReleaseChatFilters {
+  return {
+    ...(filters?.collection_categories !== undefined ? { collection_categories: filters.collection_categories } : {}),
+    ...(filters?.source_families !== undefined ? { source_families: filters.source_families } : {}),
+    ...(filters?.deadline_statuses !== undefined ? { deadline_statuses: filters.deadline_statuses } : {}),
+  };
+}
+
+async function retrieveForPublicChat(retriever: Bm25Retriever, qaCase: Phase6QaCase): Promise<RetrievedChunk[]> {
+  const filters = publicChatFilters(qaCase.expected_retrieval.filters);
+  return retrieveRoleAwareEvidence({
+    retriever,
+    query: qaCase.question_ko,
+    topK: qaCase.expected_retrieval.top_k,
+    ...(Object.keys(filters).length > 0 ? { filters } : {}),
+  });
 }
 
 function evidencePolicyForCase(qaCase: Phase6QaCase): ConstructorParameters<typeof ChatService>[0]["evidencePolicyConfig"] {
@@ -150,7 +196,7 @@ function evidencePolicyForCase(qaCase: Phase6QaCase): ConstructorParameters<type
   return undefined;
 }
 
-function verifyReleaseCase(qaCase: Phase6QaCase, topResults: readonly RetrievedChunk[], response: ReleaseReadinessCaseResult["response"]): string[] {
+function verifyReleaseCase(qaCase: Phase6QaCase, topResults: readonly RetrievedChunk[], responseResults: readonly RetrievedChunk[], response: ReleaseReadinessCaseResult["response"]): string[] {
   const failures: string[] = [];
   const label = qaCase.id;
 
@@ -161,14 +207,55 @@ function verifyReleaseCase(qaCase: Phase6QaCase, topResults: readonly RetrievedC
     if (!topResults.some((result) => result.chunk.chunk_id === expectedChunkId)) failures.push(`${label}: expected chunk ${expectedChunkId} in top results`);
   }
 
+  if (qaCase.expected_retrieval.filters !== undefined) verifyFilteredCase(qaCase, topResults, responseResults, response, failures);
+
   if (response.refusal_tier !== qaCase.expected_answer.refusal_tier) failures.push(`${label}: expected refusal_tier ${qaCase.expected_answer.refusal_tier}`);
 
-  for (const check of qaCase.required_answer_checks) verifyAnswerCheck(check, qaCase, topResults, response, failures);
+  for (const check of qaCase.required_answer_checks) verifyAnswerCheck(check, qaCase, responseResults, response, failures);
 
   for (const pattern of qaCase.expected_answer.must_not_match) {
     if (new RegExp(pattern, "u").test(response.answer)) failures.push(`${label}: answer contains prohibited pattern ${pattern}`);
   }
   return failures;
+}
+
+function verifyFilteredCase(qaCase: Phase6QaCase, topResults: readonly RetrievedChunk[], responseResults: readonly RetrievedChunk[], response: ReleaseReadinessCaseResult["response"], failures: string[]): void {
+  const label = qaCase.id;
+  const filters = qaCase.expected_retrieval.filters;
+  if (filters === undefined) return;
+
+  for (const result of topResults) {
+    if (!matchesFilters(result.chunk, filters)) failures.push(`${label}: retrieved chunk ${result.chunk.chunk_id} does not match requested filters`);
+  }
+
+  if (response.refusal_tier === "hard_refuse") return;
+
+  const responseFilters = publicChatFilters(filters);
+  for (const citation of response.citations) {
+    const citedResult = responseResults.find((result) => result.chunk.chunk_id === citation.chunk_id);
+    if (citedResult === undefined) {
+      failures.push(`${label}: citation ${citation.citation_id} does not map to public filtered retrieval results`);
+      continue;
+    }
+    if (!matchesFilters(citedResult.chunk, responseFilters)) failures.push(`${label}: citation ${citation.citation_id} cites evidence outside requested filters`);
+    if (citation.posted_at === null || !/^\d{4}-\d{2}-\d{2}T/u.test(citation.posted_at)) failures.push(`${label}: filtered citation ${citation.citation_id} lacks posted_at`);
+    if (!/^\d{4}-\d{2}-\d{2}T/u.test(citation.fetched_at)) failures.push(`${label}: filtered citation ${citation.citation_id} lacks fetched_at`);
+    if (citation.deadline_status !== "active" && citation.deadline_status !== "expired" && citation.deadline_status !== "unknown") failures.push(`${label}: filtered citation ${citation.citation_id} lacks deadline_status`);
+    if (!citation.url.startsWith("https://")) failures.push(`${label}: filtered citation ${citation.citation_id} lacks HTTPS source URL`);
+  }
+}
+
+function matchesFilters(chunk: KnowledgeChunk, filters: NonNullable<Phase6QaCase["expected_retrieval"]["filters"]>): boolean {
+  return (
+    matchesFilterValues(filters.collection_categories, chunk.collection_category) &&
+    matchesFilterValues(filters.source_families, chunk.source_family) &&
+    matchesFilterValues(filters.source_ids, chunk.source_id) &&
+    matchesFilterValues(filters.deadline_statuses, chunk.deadline_status)
+  );
+}
+
+function matchesFilterValues<T extends string>(values: readonly T[] | undefined, candidate: T): boolean {
+  return values === undefined || values.length === 0 || values.includes(candidate);
 }
 
 function verifyAnswerCheck(check: Phase6AnswerCheck, qaCase: Phase6QaCase, topResults: readonly RetrievedChunk[], response: ReleaseReadinessCaseResult["response"], failures: string[]): void {
@@ -209,6 +296,88 @@ async function runJudge(qaCase: Phase6QaCase, response: ReleaseReadinessCaseResu
 
 function hasJudgeEnv(env: SafeEnv): boolean {
   return requiredEnvNames.every((name) => env[name] !== undefined && env[name]?.trim().length !== 0);
+}
+
+function phase6CoreChunks(): KnowledgeChunk[] {
+  return [
+    phase6CoreChunk({
+      chunkId: "ef90e3bf96cdec67d1679c38ee78d83a9ff2d3977ae66ed14597c09163e63004",
+      sourceId: "cdp-root",
+      sourceFamily: "cdp",
+      collectionCategory: "guide",
+      title: "CDP 상담예약 컨설팅룸예약 이용 안내",
+      text: "CDP에서 상담예약과 컨설팅룸예약 메뉴 위치를 확인하고 공식 페이지에서 최신 이용 방법을 다시 확인합니다.",
+      deadlineStatus: "unknown",
+      postedAt: "2026-05-20T00:00:00.000Z",
+    }),
+    phase6CoreChunk({
+      chunkId: "3986f65fde23212320ca478290394113c27ffaa776f8de59f7e292989ee8f270",
+      sourceId: "ibus-employment-board",
+      sourceFamily: "ibus",
+      collectionCategory: "job_posting",
+      title: "ERICA 경상대학 현장실습 참여기업 백엔드 인턴 모집 공고",
+      text: "ERICA 경상대학 현장실습 참여기업 모집 공고는 컴퓨터학부 백엔드 인턴 관심 학생이 공식 출처로 확인할 수 있으며 채용시까지 진행되는 active 마감 상태의 공식 채용공고입니다.",
+      deadlineStatus: "active",
+      deadlineRawText: "채용시까지",
+      postedAt: "2026-05-01T00:00:00.000Z",
+    }),
+    phase6CoreChunk({
+      chunkId: "d4ffbc432c8b14f8cf4bca864255c6017c079d998ee92f492b5dbb398fcd4695",
+      sourceId: "book-success-story-viewer",
+      sourceFamily: "book",
+      collectionCategory: "career_review",
+      title: "취업성공후기 선배 사례 공식 출처",
+      text: "취업성공후기 선배 사례는 공식 자료집 뷰어에서 제목과 출처 중심으로 확인할 수 있습니다.",
+      deadlineStatus: "unknown",
+      postedAt: "2026-05-20T00:00:00.000Z",
+    }),
+    phase6CoreChunk({
+      chunkId: "3922685430fbeab75aa8e8baf7e2cfb2cdec093485d8605f512d98846049e1c4",
+      sourceId: "cdp-student-guide-pdf",
+      sourceFamily: "cdp",
+      collectionCategory: "guide",
+      title: "CDP 학생 가이드북 PDF 공식 출처",
+      text: "CDP 학생 가이드북 PDF는 학생 경력관리와 CDP 이용 절차를 확인하는 공식 PDF 가이드입니다.",
+      deadlineStatus: "unknown",
+      postedAt: "2026-05-20T00:00:00.000Z",
+    }),
+  ];
+}
+
+function phase6CoreChunk(input: {
+  chunkId: string;
+  sourceId: string;
+  sourceFamily: SourceFamily;
+  collectionCategory: CollectionCategory;
+  title: string;
+  text: string;
+  deadlineStatus: KnowledgeChunk["deadline_status"];
+  deadlineRawText?: string;
+  postedAt: string;
+}): KnowledgeChunk {
+  const url = `https://www.hanyang.ac.kr/${input.sourceId}/${input.chunkId}`;
+  return {
+    chunk_id: input.chunkId,
+    record_id: `${input.chunkId}-record`,
+    source_id: input.sourceId,
+    source_name: `Task 9 release fixture ${input.sourceId}`,
+    source_url: url,
+    canonical_url: url,
+    title: input.title,
+    category: getCategoryLabelKo(input.collectionCategory),
+    collection_category: input.collectionCategory,
+    source_family: input.sourceFamily,
+    category_label_ko: getCategoryLabelKo(input.collectionCategory),
+    fetched_at: "2026-05-22T00:00:00.000Z",
+    posted_at: input.postedAt,
+    deadline_status: input.deadlineStatus,
+    deadline_raw_text: input.deadlineRawText ?? "",
+    content_hash: "d".repeat(64),
+    citation_anchors: [{ url, label: input.title }],
+    source_text_trust: "untrusted_source_text",
+    chunk_ordinal: 0,
+    text: input.text,
+  };
 }
 
 class DeterministicReleaseReadinessProvider implements ChatModelProvider {
@@ -261,6 +430,9 @@ function hostileSourceChunk(): KnowledgeChunk {
     canonical_url: "https://www.hanyang.ac.kr/phase6-hostile-source-fixture",
     title: "hostile source containment fixture",
     category: "Phase 6 evaluation",
+    collection_category: "unknown_legacy",
+    source_family: "unknown_legacy",
+    category_label_ko: "기존 분류 미확인",
     fetched_at: "2026-05-04T00:00:00.000Z",
     posted_at: null,
     deadline_status: "unknown",
