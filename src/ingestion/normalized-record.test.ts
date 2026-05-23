@@ -1,11 +1,18 @@
 import { describe, expect, it } from "vitest";
+
+import {
+  CategoryLabelKoByCollectionCategory,
+  CollectionCategoryValues,
+  getCategoryLabelKo,
+  SourceFamilyValues,
+} from "../knowledge-base/taxonomy.js";
 import {
   CitationAnchorSchema,
   IngestionRunManifestSchema,
-  KnowledgeChunkSchema,
-  NormalizedRecordSchema,
   type KnowledgeChunk,
+  KnowledgeChunkSchema,
   type NormalizedRecord,
+  NormalizedRecordSchema,
 } from "./normalized-record.js";
 
 const contentHash = "a".repeat(64);
@@ -18,6 +25,9 @@ const validHtmlRecord: NormalizedRecord = {
   canonical_url: "https://ibus.hanyang.ac.kr/front/recruit/r-1/view?id=123",
   title: "ERICA 채용 공고",
   category: "취업정보",
+  collection_category: "job_posting",
+  source_family: "ibus",
+  category_label_ko: "채용공고",
   fetched_at: "2026-05-03T00:00:00.000Z",
   posted_at: "2026-05-01T00:00:00.000Z",
   deadline_status: "active",
@@ -43,6 +53,9 @@ const validPdfRecord: NormalizedRecord = {
   canonical_url: "https://cdp.hanyang.ac.kr/office/%EB%A7%A4%EB%89%B4%EC%96%BC_%ED%95%99%EC%83%9D.pdf#page=3",
   title: "CDP 학생 매뉴얼 3쪽",
   category: "학생 매뉴얼",
+  collection_category: "guide",
+  source_family: "cdp",
+  category_label_ko: "가이드",
   posted_at: null,
   deadline_status: "unknown",
   deadline_raw_text: "",
@@ -64,6 +77,9 @@ const validChunk: KnowledgeChunk = {
   canonical_url: validHtmlRecord.canonical_url,
   title: validHtmlRecord.title,
   category: validHtmlRecord.category,
+  collection_category: validHtmlRecord.collection_category,
+  source_family: validHtmlRecord.source_family,
+  category_label_ko: validHtmlRecord.category_label_ko,
   fetched_at: validHtmlRecord.fetched_at,
   posted_at: validHtmlRecord.posted_at,
   deadline_status: validHtmlRecord.deadline_status,
@@ -82,6 +98,55 @@ describe("NormalizedRecordSchema", () => {
 
   it("accepts a valid PDF page record with page_number and #page= citation anchor", () => {
     expect(NormalizedRecordSchema.safeParse(validPdfRecord).success).toBe(true);
+  });
+
+  it("accepts every canonical collection category with its Korean label", () => {
+    for (const collectionCategory of CollectionCategoryValues) {
+      expect(
+        NormalizedRecordSchema.safeParse({
+          ...validHtmlRecord,
+          collection_category: collectionCategory,
+          category_label_ko: getCategoryLabelKo(collectionCategory),
+        }).success,
+      ).toBe(true);
+    }
+  });
+
+  it("accepts every canonical source family", () => {
+    for (const sourceFamily of SourceFamilyValues) {
+      expect(NormalizedRecordSchema.safeParse({ ...validHtmlRecord, source_family: sourceFamily }).success).toBe(true);
+    }
+  });
+
+  it("rejects raw Korean taxonomy enum values while preserving category as a breadcrumb", () => {
+    expect(
+      NormalizedRecordSchema.safeParse({
+        ...validHtmlRecord,
+        category: "취업 > 채용공고 > 2026 상반기",
+      }).success,
+    ).toBe(true);
+
+    expect(
+      NormalizedRecordSchema.safeParse({
+        ...validHtmlRecord,
+        collection_category: "취업",
+        category_label_ko: "취업",
+      }).success,
+    ).toBe(false);
+    expect(NormalizedRecordSchema.safeParse({ ...validHtmlRecord, source_family: "한양대" }).success).toBe(false);
+  });
+
+  it("rejects category_label_ko values that do not match the canonical collection category", () => {
+    const result = NormalizedRecordSchema.safeParse({
+      ...validHtmlRecord,
+      collection_category: "career_review",
+      category_label_ko: CategoryLabelKoByCollectionCategory.job_posting,
+    });
+
+    expect(result.success).toBe(false);
+    if (!result.success) {
+      expect(result.error.issues.some((issue) => issue.path.join(".") === "category_label_ko")).toBe(true);
+    }
   });
 
   it("rejects records without citation anchors", () => {
@@ -143,6 +208,19 @@ describe("CitationAnchorSchema", () => {
 describe("KnowledgeChunkSchema", () => {
   it("preserves source metadata, citation anchors, content hash, and source text trust", () => {
     expect(KnowledgeChunkSchema.safeParse(validChunk).success).toBe(true);
+  });
+
+  it("requires canonical taxonomy fields while leaving category free-form", () => {
+    expect(
+      KnowledgeChunkSchema.safeParse({
+        ...validChunk,
+        category: "취업 > 추천 채용",
+        collection_category: "job_posting",
+        source_family: "ibus",
+        category_label_ko: "채용공고",
+      }).success,
+    ).toBe(true);
+    expect(KnowledgeChunkSchema.safeParse({ ...validChunk, collection_category: "취업" }).success).toBe(false);
   });
 
   it("rejects chunks without the untrusted source text marker", () => {

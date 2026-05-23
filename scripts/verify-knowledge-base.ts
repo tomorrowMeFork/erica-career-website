@@ -1,8 +1,9 @@
 import { existsSync, readFileSync } from "node:fs";
 import { join } from "node:path";
-import { z } from "zod";
-import { IngestionRunManifestSchema, KnowledgeChunkSchema, NormalizedRecordSchema, type KnowledgeChunk, type NormalizedRecord } from "../src/ingestion/normalized-record.js";
+import type { z } from "zod";
+import { IngestionRunManifestSchema, type KnowledgeChunk, KnowledgeChunkSchema, type NormalizedRecord, NormalizedRecordSchema } from "../src/ingestion/normalized-record.js";
 import { KnowledgeBaseManifestFileSchema } from "../src/ingestion/write-jsonl-kb.js";
+import { backfillLegacyTaxonomy } from "../src/knowledge-base/legacy-taxonomy.js";
 
 const failures: string[] = [];
 
@@ -56,7 +57,7 @@ function readJsonl<T>(outputDir: string, fileName: string, schema: z.ZodType<T>)
   const lines = text.split("\n").filter((line) => line.length > 0);
   for (const [index, line] of lines.entries()) {
     try {
-      const parsed = JSON.parse(line);
+      const parsed = backfillLegacyTaxonomy(JSON.parse(line));
       const result = schema.safeParse(parsed);
       if (!result.success) {
         failures.push(`${path}:${index + 1} schema invalid: ${summarizeZodError(result.error)}`);

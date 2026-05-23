@@ -1,5 +1,5 @@
 import { createHash } from "node:crypto";
-import { KnowledgeChunkSchema, NormalizedRecordSchema, type KnowledgeChunk, type NormalizedRecord } from "./normalized-record.js";
+import { type KnowledgeChunk, KnowledgeChunkSchema, type NormalizedRecord, NormalizedRecordSchema } from "./normalized-record.js";
 
 export type ChunkNormalizedRecordOptions = {
   max_characters?: number;
@@ -58,6 +58,9 @@ export function chunkNormalizedRecord(
       canonical_url: record.canonical_url,
       title: record.title,
       category: record.category,
+      collection_category: record.collection_category,
+      source_family: record.source_family,
+      category_label_ko: record.category_label_ko,
       fetched_at: record.fetched_at,
       posted_at: record.posted_at,
       deadline_status: record.deadline_status,

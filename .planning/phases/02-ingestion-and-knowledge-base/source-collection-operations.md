@@ -1,6 +1,6 @@
 # Source Collection Operations
 
-**Updated:** 2026-05-17  
+**Updated:** 2026-05-22  
 **Scope:** Phase 2 source ingestion and local JSONL knowledge-base generation
 
 This document explains how each approved source family is collected, which command runs it, where output is written, and which safety constraints apply. Generated outputs under `data/knowledge-base/` are local artifacts and are ignored by git unless intentionally force-added.
@@ -19,17 +19,60 @@ Validate any generated directory with:
 npm run verify:knowledge-base -- <output-dir>
 ```
 
-The default RAG loader currently includes:
+## Unified Runtime Knowledge Base
 
-- `data/knowledge-base/fixture-ibus`
+RAG uses one unified in-memory knowledge base loaded through `src/knowledge-base/dataset-registry.ts` and `src/knowledge-base/jsonl-loader.ts`. The loader does not maintain separate retrievers per source family; it resolves dataset directories, validates every `chunks.jsonl`, backfills known legacy taxonomy fields, then builds one BM25 retriever over all loadable chunks.
+
+Registry states:
+
+- `active`: included in the default RAG loader.
+- `legacy_fallback`: included only when split replacement outputs are absent.
+- `disabled`: known optional output is absent or superseded.
+- `blocked`: known output exists as a collection target but is intentionally excluded from default RAG.
+
+Default active datasets:
+
+- `data/knowledge-base/ibus-employment-board`
 - `data/knowledge-base/fixture-cdp-pdf`
 - `data/knowledge-base/playwright-sources`
 - `data/knowledge-base/ewil-homepage`
-- optional, if present: `data/knowledge-base/manual-cdp-posts`
-- optional, if present: `data/knowledge-base/ewil-authenticated-sources/공지사항`
-- optional, if present: `data/knowledge-base/ewil-authenticated-sources/현장실습후기`
 
-`data/knowledge-base/cdp-authenticated-sources` is also optional manual-session output and is not automatically loaded by default.
+Optional registry behavior:
+
+- `data/knowledge-base/manual-cdp-posts` becomes `active` when `chunks.jsonl` is present.
+- `data/knowledge-base/cdp-authenticated-sources` becomes `active` when bounded manual-session output `chunks.jsonl` is present.
+- `data/knowledge-base/ewil-authenticated-sources/공지사항` becomes `active` when `chunks.jsonl` is present.
+- `data/knowledge-base/ewil-authenticated-sources/현장실습후기` becomes `active` when `chunks.jsonl` is present.
+- `data/knowledge-base/ewil-authenticated-sources` becomes `legacy_fallback` only when it has `chunks.jsonl` and the split E-WIL category outputs are absent.
+
+Runtime filter taxonomy:
+
+- `collection_category`: `job_posting`, `career_review`, `internship_notice`, `internship_review`, `career_program`, `guide`, `notice`, `source_discovery`, `unknown_legacy`.
+- `source_family`: `cdp`, `ewil`, `ibus`, `book`, `hanyang_career`, `unknown_legacy`.
+- `deadline_status`: `active`, `expired`, `unknown`.
+
+Every new chunk should carry `collection_category`, `source_family`, and Korean `category_label_ko`. Known legacy chunks without those fields are backfilled by the loader; unknown mappings fail closed instead of silently entering RAG.
+
+Verify active dataset coverage in RAG with:
+
+```bash
+npm exec -- tsx -e 'import { loadableKnowledgeBaseDirectories, resolveKnowledgeBaseDatasets } from "./src/knowledge-base/dataset-registry.ts"; const datasets = resolveKnowledgeBaseDatasets(); console.log(JSON.stringify({ datasets, loadable: loadableKnowledgeBaseDirectories(datasets) }, null, 2));'
+npm test -- src/knowledge-base/knowledge-base-loader.test.ts
+```
+
+For every directory reported as `active` or `legacy_fallback`, run:
+
+```bash
+npm run verify:knowledge-base -- <active-or-legacy-fallback-dir>
+```
+
+The shared runtime retriever is `ReloadableKnowledgeBaseRetriever`. `reload()` builds and validates the next chunk snapshot and BM25 retriever before swapping it into service, so a failed reload leaves the previous version active. Use the 100k scale benchmark to verify synthetic all-taxonomy retrieval and reload behavior without writing corpus data under `data/`:
+
+```bash
+npm run benchmark:kb:100k
+```
+
+Benchmark evidence is written to `.sisyphus/evidence/task-10-100k-benchmark.json` with cold load, memory delta, p95 unfiltered retrieval, p95 filtered retrieval, reload time, threshold pass/fail fields, and an inverted-index recommendation if thresholds fail.
 
 ## Safety Rules For All Collection
 
@@ -269,6 +312,11 @@ Default output:
 data/knowledge-base/cdp-authenticated-sources
 ```
 
+Registry behavior:
+
+- This output is included in the default runtime RAG loader when `chunks.jsonl` is present.
+- Keep the collection bounded to the approved CDP board/list URLs below; do not use this as broad CDP crawling approval.
+
 Common options:
 
 ```bash
@@ -338,7 +386,7 @@ npm run ingest:ibus:sample -- --fixture
 Bounded live options:
 
 ```bash
-npm run ingest:ibus:sample -- --pages 3 --delay 1200 --output data/knowledge-base/fixture-ibus
+npm run ingest:ibus:sample -- --pages 3 --delay 1200 --output data/knowledge-base/ibus-employment-board
 ```
 
 Environment alternatives:
@@ -350,7 +398,7 @@ COLLECT_MAX_PAGES=3 COLLECT_DELAY_MS=1200 npm run ingest:ibus:sample
 Output:
 
 ```text
-data/knowledge-base/fixture-ibus
+data/knowledge-base/ibus-employment-board
 ```
 
 Collection method:
@@ -377,7 +425,7 @@ Safety constraints:
 Verification:
 
 ```bash
-npm run verify:knowledge-base -- data/knowledge-base/fixture-ibus
+npm run verify:knowledge-base -- data/knowledge-base/ibus-employment-board
 ```
 
 ## E-WIL Public Homepage
@@ -622,7 +670,7 @@ npm run verify:source-governance
 npm run ingest:ibus:sample -- --fixture
 npm run ingest:cdp-pdf:sample -- --fixture
 npm run ingest:playwright:sources
-npm run verify:knowledge-base -- data/knowledge-base/fixture-ibus
+npm run verify:knowledge-base -- data/knowledge-base/ibus-employment-board
 npm run verify:knowledge-base -- data/knowledge-base/fixture-cdp-pdf
 npm run verify:knowledge-base -- data/knowledge-base/playwright-sources
 npm run verify:knowledge-base -- data/knowledge-base/ewil-homepage
@@ -635,7 +683,7 @@ npm run ingest:ewil:authenticated -- --source reviews --max-list-pages 1 --max-d
 npm run verify:knowledge-base -- data/knowledge-base/ewil-authenticated-sources
 ```
 
-Do not include optional authenticated E-WIL output in default runtime retrieval until the team explicitly decides how to handle access scope, privacy review, and citation behavior.
+Only generate optional authenticated E-WIL output after the team explicitly accepts the access scope, privacy review, and citation behavior. Once split E-WIL `chunks.jsonl` files are present, the registry treats those category outputs as `active` and includes them in default runtime retrieval.
 
 For manual/private-session optional CDP data, run separately and verify separately:
 
@@ -644,4 +692,4 @@ npm run ingest:cdp:authenticated -- --source all --max-list-pages 1 --max-detail
 npm run verify:knowledge-base -- data/knowledge-base/cdp-authenticated-sources
 ```
 
-Do not include optional authenticated CDP output in default runtime retrieval until the team explicitly decides how to handle access scope, privacy review, and citation behavior.
+The bounded manual-session CDP output is included in default runtime retrieval when `chunks.jsonl` is present. Keep the same safeguards: user-operated login only, no stored credentials or browser state, approved board/list URLs only, no broad crawling, and separate verification after each run.
