@@ -77,6 +77,9 @@ describe("buildCdpManualPostRecords", () => {
 		expect(record.canonical_url).toBe(record.source_url);
 		expect(record.citation_anchors[0]?.url).toBe(record.source_url);
 		expect(record.category).toBe("CDP 채용정보 > 일반채용공고");
+		expect(record.collection_category).toBe("job_posting");
+		expect(record.source_family).toBe("cdp");
+		expect(record.category_label_ko).toBe("채용공고");
 
 		const [chunk] = chunkNormalizedRecord(record);
 		expect(chunk?.source_url).toBe(record.source_url);
@@ -84,7 +87,30 @@ describe("buildCdpManualPostRecords", () => {
 		expect(chunk?.citation_anchors[0]?.url).toBe(record.source_url);
 	});
 
-	it("accepts only the two bounded CDP recruitment boards", () => {
+	it("accepts current CDP recruit popup detail URLs", () => {
+		const popupUrl =
+			"https://cdp.hanyang.ac.kr/Recruit/RecruitView.aspx?modalChk=Y&rcdx=AD86DBF4C11CD57F4FE7096348DB674842683ADF3BBF47840AA7B092090AA3A9913B9C1B0769E8EB";
+		const [record] = buildCdpManualPostRecords({
+			exported_at: "2026-05-08T00:00:00.000Z",
+			posts: [
+				{
+					board: "일반채용공고",
+					title: "ERICA 팝업 채용 공고",
+					detail_url: popupUrl,
+					posted_at: "2026-05-07T00:00:00.000Z",
+					deadline_status: "active",
+					deadline_raw_text: "~2026-05-31",
+					body_text: "팝업으로 열린 채용 공고 본문입니다.",
+				},
+			],
+		});
+
+		expect(record.source_url).toBe(popupUrl);
+		expect(record.source_id).toBe("cdp-recruit-general-board");
+		expect(record.collection_category).toBe("job_posting");
+	});
+
+	it("accepts only the bounded CDP recruitment and notice boards", () => {
 		expect(() =>
 			buildCdpManualPostRecords({
 				exported_at: "2026-05-08T00:00:00.000Z",
@@ -99,6 +125,29 @@ describe("buildCdpManualPostRecords", () => {
 				],
 			}),
 		).toThrow();
+	});
+
+	it("maps CDP NoticeList details as notice evidence", () => {
+		const [record] = buildCdpManualPostRecords({
+			exported_at: "2026-05-08T00:00:00.000Z",
+			posts: [
+				{
+					board: "공지사항",
+					title: "CDP 공지사항",
+					detail_url: "https://cdp.hanyang.ac.kr/Community/Notice/NoticeView.aspx?idx=5555",
+					posted_at: "2026-05-07T00:00:00.000Z",
+					deadline_status: "unknown",
+					deadline_raw_text: "",
+					body_text: "커리어개발센터 공지사항 본문입니다.",
+				},
+			],
+		});
+
+		expect(record.source_id).toBe("cdp-recruit-event-board");
+		expect(record.source_name).toBe("CDP 공지사항");
+		expect(record.category).toBe("CDP 채용정보 > 공지사항");
+		expect(record.collection_category).toBe("notice");
+		expect(record.category_label_ko).toBe("공지사항");
 	});
 
 	it("rejects event detail URLs mislabeled as general recruitment posts", () => {
@@ -158,6 +207,9 @@ describe("buildCdpManualPostRecords", () => {
 		);
 		expect(record.source_id).toBe("cdp-recruit-event-board");
 		expect(record.source_name).toBe("CDP 채용상담 및 설명회");
+		expect(record.collection_category).toBe("career_program");
+		expect(record.source_family).toBe("cdp");
+		expect(record.category_label_ko).toBe("취업 프로그램");
 		expect(record.cleaned_text).toContain(
 			"제목: [에프엔에스] 26년도 하반기 인턴 채용 온라인 기업설명회",
 		);
@@ -172,6 +224,13 @@ describe("buildCdpManualPostRecords", () => {
 			"http://cdp.hanyang.ac.kr/Career/Job/RecruitView.aspx?idx=12345",
 			"https://user:pass@cdp.hanyang.ac.kr/Career/Job/RecruitView.aspx?idx=12345",
 			"https://cdp.hanyang.ac.kr/Career/Job/RecruitList.aspx?rp=2",
+			"https://cdp.hanyang.ac.kr/Career/Job/MyMapView.aspx?jojik=Y",
+			"https://cdp.hanyang.ac.kr/Recruit/RecruitView.aspx?modalChk=Y&rcdx=",
+			"https://cdp.hanyang.ac.kr/Recruit/RecruitView.aspx?modalChk=Y&rcdx=NOT_A_HEX_TOKEN",
+			"https://cdp.hanyang.ac.kr/Recruit/RecruitView.aspx?modalChk=Y&rcdx=BEEF",
+			"https://cdp.hanyang.ac.kr/Career/Job/RecruitView.aspx?idx=",
+			"https://cdp.hanyang.ac.kr/Office/SiteMgr/Notice/FuncScheView.aspx?funcidx=",
+			"https://cdp.hanyang.ac.kr/Community/Notice/NoticeView.aspx?idx=",
 			"https://cdp.hanyang.ac.kr/Career/Job/RecruitView.aspx?idx=12345&token=secret",
 			"https://cdp.hanyang.ac.kr/Office/SiteMgr/Notice/FuncScheView.aspx?funcidx=4430&session=abc",
 		]) {

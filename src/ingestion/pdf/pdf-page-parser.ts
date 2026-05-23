@@ -1,9 +1,10 @@
 import { readFile } from "node:fs/promises";
 import { PDFParse, type TextResult } from "pdf-parse";
+import type { KBTaxonomyMetadata } from "../../knowledge-base/taxonomy.js";
 import type { SourceRecord } from "../../source-governance/source-registry.schema.js";
 import type { IngestionAccessDecision } from "../access-gate.js";
 import { buildRecordId, sha256 } from "../chunking.js";
-import { NormalizedRecordSchema, type NormalizedRecord } from "../normalized-record.js";
+import { type NormalizedRecord, NormalizedRecordSchema } from "../normalized-record.js";
 
 export type PdfInput = string | Uint8Array | ArrayBuffer;
 
@@ -24,6 +25,11 @@ export type BuildPdfPageRecordsInput = {
 
 const CDP_STUDENT_GUIDE_SOURCE_ID = "cdp-student-guide-pdf";
 const CDP_STUDENT_GUIDE_CATEGORY = "CDP 학생 매뉴얼";
+const CDP_STUDENT_GUIDE_TAXONOMY = {
+  collection_category: "guide",
+  source_family: "cdp",
+  category_label_ko: "가이드",
+} as const satisfies KBTaxonomyMetadata;
 const CDP_STUDENT_GUIDE_PDF_URL = "https://cdp.hanyang.ac.kr/office/%EB%A7%A4%EB%89%B4%EC%96%BC_%ED%95%99%EC%83%9D.pdf";
 const APPROVED_MANUAL_DOWNLOAD = "approved_manual_download";
 const MANUAL_PDF_DOWNLOAD = "manual_pdf_download";
@@ -162,6 +168,7 @@ function buildPdfPageRecord(source: SourceRecord, page: ExtractedPdfPage, fetche
     canonical_url: canonicalUrl,
     title,
     category: CDP_STUDENT_GUIDE_CATEGORY,
+    ...CDP_STUDENT_GUIDE_TAXONOMY,
     fetched_at: fetchedAt,
     posted_at: null,
     deadline_status: "unknown",

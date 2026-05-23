@@ -6,7 +6,7 @@
   const allowedBoards = ["채용상담 및 설명회", "일반채용공고"];
   const defaultFetchDelayMs = 1200;
   const detailPathPattern =
-    /(?:\/Career\/Job\/[A-Za-z0-9]*View\d*\.aspx|\/Office\/SiteMgr\/Notice\/FuncScheView\.aspx)$/u;
+    /(?:\/Career\/Job\/RecruitView\d*\.aspx|\/Recruit\/RecruitView\.aspx|\/Office\/SiteMgr\/Notice\/FuncScheView\.aspx)$/u;
   const listPathPattern =
     /(?:\/Career\/Job\/RecruitList\d*\.aspx|\/Community\/Notice\/RecruitEvent\.aspx)$/u;
 
@@ -54,8 +54,29 @@
     if (!url) {
       return null;
     }
-    return detailPathPattern.test(new URL(url).pathname) ? url : null;
+    const parsedUrl = new URL(url);
+    return detailPathPattern.test(parsedUrl.pathname) &&
+      hasValidDetailIdentifier(parsedUrl)
+      ? url
+      : null;
   };
+
+  const hasValidDetailIdentifier = (url) => {
+    const pathname = url.pathname.toLowerCase();
+    if (/^\/career\/job\/recruitview\d*\.aspx$/u.test(pathname)) {
+      return hasNumericSearchParam(url, ["idx", "seq", "id"]);
+    }
+    if (pathname === "/recruit/recruitview.aspx") {
+      return /^[A-Fa-f0-9]{24,}$/u.test(url.searchParams.get("rcdx") ?? "");
+    }
+    if (pathname === "/office/sitemgr/notice/funcscheview.aspx") {
+      return hasNumericSearchParam(url, ["funcidx"]);
+    }
+    return false;
+  };
+
+  const hasNumericSearchParam = (url, keys) =>
+    keys.some((key) => /^\d+$/u.test(url.searchParams.get(key) ?? ""));
 
   const toCdpListUrl = (href) => {
     const url = sanitizeCdpUrl(href);
@@ -138,7 +159,7 @@
   const detailUrlFromScriptText = (scriptText, baseUrl) => {
     const text = stripExternalAbsoluteUrls(scriptText, baseUrl);
     const directPath = text.match(
-      /(?:https?:\/\/cdp\.hanyang\.ac\.kr)?(\/(?:Career\/Job\/[A-Za-z0-9]*View\d*|Office\/SiteMgr\/Notice\/FuncScheView)\.aspx\?[^'"\s)]+)/u,
+      /(?:https?:\/\/cdp\.hanyang\.ac\.kr)?(\/(?:Career\/Job\/RecruitView\d*|Recruit\/RecruitView|Office\/SiteMgr\/Notice\/FuncScheView)\.aspx\?[^'"\s)]+)/u,
     );
     if (directPath) {
       return toCdpDetailUrl(directPath[0]);

@@ -22,6 +22,8 @@ const detailFixturePath = "fixtures/ingestion/ibus-detail.html";
 const sourceId = "ibus-employment-board";
 const boardUrl = "https://ibus.hanyang.ac.kr/front/recruit/r-1";
 const fixtureFetchedAt = "2026-05-03T00:00:00.000Z";
+const defaultLiveOutputDir = "data/knowledge-base/ibus-employment-board";
+const defaultFixtureOutputDir = "data/knowledge-base/fixture-ibus-sample";
 
 const DEFAULT_COLLECT_MAX_PAGES = 1;
 const DEFAULT_COLLECT_DELAY_MS = 1_200;
@@ -217,7 +219,7 @@ async function runBoundedMultiPageCollection(
 
 function parseArgs(argv: readonly string[]): CliArgs {
 	let fixture = false;
-	let output = "data/knowledge-base/fixture-ibus";
+	let output: string | undefined;
 	let maxPages: number | undefined;
 	let delayMs: number | undefined;
 
@@ -259,7 +261,7 @@ function parseArgs(argv: readonly string[]): CliArgs {
 
 	return {
 		fixture,
-		output,
+		output: output ?? (fixture ? defaultFixtureOutputDir : defaultLiveOutputDir),
 		max_pages:
 			maxPages ?? readEnvInt("COLLECT_MAX_PAGES", DEFAULT_COLLECT_MAX_PAGES),
 		delay_ms:

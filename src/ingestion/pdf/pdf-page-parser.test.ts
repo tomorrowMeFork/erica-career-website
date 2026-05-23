@@ -81,6 +81,9 @@ describe("buildPdfPageRecords", () => {
     expect(record?.source_url).toBe(officialPdfUrl);
     expect(record?.canonical_url).toBe(officialPdfUrl);
     expect(record?.category).toBe("CDP 학생 매뉴얼");
+    expect(record?.collection_category).toBe("guide");
+    expect(record?.source_family).toBe("cdp");
+    expect(record?.category_label_ko).toBe("가이드");
     expect(record?.fetched_at).toBe(fetchedAt);
     expect(record?.raw_text).toContain("ERICA CDP Student Guide Fixture");
     expect(record?.cleaned_text).toContain("source labels");

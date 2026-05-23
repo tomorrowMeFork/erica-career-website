@@ -147,6 +147,9 @@ describe("buildIbusNormalizedRecords", () => {
 		expect(firstRecord.source_id).toBe("ibus-employment-board");
 		expect(firstRecord.source_name).toBe("경상대학 취업정보 게시판");
 		expect(firstRecord.category).toBe("ERICA 경상대학 취업정보");
+		expect(firstRecord.collection_category).toBe("job_posting");
+		expect(firstRecord.source_family).toBe("ibus");
+		expect(firstRecord.category_label_ko).toBe("채용공고");
 		expect(firstRecord.category).not.toContain("전체");
 		expect(firstRecord.category).not.toContain("캠퍼스");
 		expect(firstRecord.source_url).toBe(detailUrl);
