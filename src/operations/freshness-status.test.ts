@@ -1,4 +1,4 @@
-import { mkdtempSync, mkdirSync, writeFileSync } from "node:fs";
+import { mkdirSync, mkdtempSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
@@ -105,6 +105,9 @@ function writeKb(root: string, options: { sourceId: string; fetchedAt: string; f
     canonical_url: "https://example.edu/source/1",
     title: "테스트 공고",
     category: "jobs",
+    collection_category: "job_posting",
+    source_family: "ibus",
+    category_label_ko: "채용공고",
     fetched_at: options.fetchedAt,
     posted_at: "2026-05-01T00:00:00.000Z",
     deadline_status: "active",

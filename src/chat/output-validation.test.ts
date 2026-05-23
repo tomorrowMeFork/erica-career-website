@@ -1,10 +1,10 @@
 import { describe, expect, it } from "vitest";
 
-import { DEFAULT_EVIDENCE_POLICY, buildHardRefusalAnswer, evaluateEvidence } from "./evidence-policy.js";
-import { validateChatResponseOutput } from "./output-validation.js";
-import type { ChatResponse } from "./chat-contract.js";
 import type { KnowledgeChunk } from "../ingestion/normalized-record.js";
 import type { RetrievedChunk } from "../retrieval/retriever.js";
+import type { ChatResponse } from "./chat-contract.js";
+import { buildHardRefusalAnswer, DEFAULT_EVIDENCE_POLICY, evaluateEvidence } from "./evidence-policy.js";
+import { validateChatResponseOutput } from "./output-validation.js";
 
 const baseChunk: KnowledgeChunk = {
   chunk_id: "chunk-1",
@@ -15,6 +15,9 @@ const baseChunk: KnowledgeChunk = {
   canonical_url: "https://cdp.hanyang.ac.kr/job/notice",
   title: "ERICA 취업 상담 안내",
   category: "career-service",
+  collection_category: "career_program",
+  source_family: "cdp",
+  category_label_ko: "취업 프로그램",
   fetched_at: "2026-05-03T00:00:00.000Z",
   posted_at: "2026-05-01T00:00:00.000Z",
   deadline_status: "active",

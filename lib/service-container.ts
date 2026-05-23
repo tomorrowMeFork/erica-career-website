@@ -1,10 +1,10 @@
 import { ChatService } from "../src/chat/chat-service.js";
 import { createOpenAiCompatibleChatProviderFromEnv } from "../src/chat/openai-compatible-provider.js";
-import { loadKnowledgeBaseChunks } from "../src/knowledge-base/jsonl-loader.js";
+import type { ReloadableKnowledgeBaseRetrieverOptions } from "../src/knowledge-base/reloadable-retriever-service.js";
+import { ReloadableKnowledgeBaseRetriever } from "../src/knowledge-base/reloadable-retriever-service.js";
 import { PreferenceService } from "../src/personalization/preference-service.js";
 import { InMemoryPreferenceStore } from "../src/personalization/preference-store.js";
 import { RecommendationService } from "../src/recommendations/recommendation-service.js";
-import { Bm25Retriever } from "../src/retrieval/bm25-retriever.js";
 
 type ChatLike = Pick<ChatService, "ask">;
 type RecommendationLike = Pick<RecommendationService, "recommend">;
@@ -16,6 +16,13 @@ let preferenceOverride: PreferenceLike | undefined;
 let chatService: ChatService | undefined;
 let recommendationService: RecommendationService | undefined;
 let preferenceService: PreferenceService | undefined;
+let knowledgeBaseRetrieverService: ReloadableKnowledgeBaseRetriever | undefined;
+let knowledgeBaseRetrieverOptionsForTest: ReloadableKnowledgeBaseRetrieverOptions | undefined;
+
+export function getKnowledgeBaseRetrieverService(): ReloadableKnowledgeBaseRetriever {
+  knowledgeBaseRetrieverService ??= new ReloadableKnowledgeBaseRetriever(knowledgeBaseRetrieverOptionsForTest);
+  return knowledgeBaseRetrieverService;
+}
 
 export function getPreferenceService(): PreferenceLike {
   if (preferenceOverride !== undefined) return preferenceOverride;
@@ -26,7 +33,7 @@ export function getPreferenceService(): PreferenceLike {
 export function getChatService(): ChatLike {
   if (chatOverride !== undefined) return chatOverride;
   chatService ??= new ChatService({
-    retriever: new Bm25Retriever(loadKnowledgeBaseChunks()),
+    retriever: getKnowledgeBaseRetrieverService(),
     provider: createOpenAiCompatibleChatProviderFromEnv(process.env),
     preferenceService: getPreferenceService(),
     auditLogPath: "data/audit/phase5-chat.jsonl",
@@ -37,7 +44,7 @@ export function getChatService(): ChatLike {
 export function getRecommendationService(): RecommendationLike {
   if (recommendationOverride !== undefined) return recommendationOverride;
   recommendationService ??= new RecommendationService({
-    retriever: new Bm25Retriever(loadKnowledgeBaseChunks()),
+    retriever: getKnowledgeBaseRetrieverService(),
     preferenceService: getPreferenceService() as PreferenceService,
   });
   return recommendationService;
@@ -60,4 +67,13 @@ export function resetServiceContainerForTest() {
   chatService = undefined;
   recommendationService = undefined;
   preferenceService = undefined;
+  knowledgeBaseRetrieverService = undefined;
+  knowledgeBaseRetrieverOptionsForTest = undefined;
+}
+
+export function overrideKnowledgeBaseRetrieverForTest(options: ReloadableKnowledgeBaseRetrieverOptions) {
+  knowledgeBaseRetrieverOptionsForTest = options;
+  knowledgeBaseRetrieverService = undefined;
+  chatService = undefined;
+  recommendationService = undefined;
 }

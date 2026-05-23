@@ -48,6 +48,9 @@ function chunk(overrides: Partial<KnowledgeChunk> = {}): KnowledgeChunk {
     chunk_ordinal: 0,
     text: "ERICA 현장실습 참여기업 모집 공고입니다. 지원 전 공식 페이지에서 최신 정보를 확인하세요.",
     ...overrides,
+    collection_category: overrides.collection_category ?? "job_posting",
+    source_family: overrides.source_family ?? "ibus",
+    category_label_ko: overrides.category_label_ko ?? "채용공고",
   };
 }
 
@@ -229,6 +232,40 @@ describe("ChatService", () => {
     expect(audit[0]?.prompt_snapshot_reason).toBe("refusal");
     expect(audit[0]?.prompt_snapshot).toBeUndefined();
     expect(JSON.stringify(audit[0])).not.toContain("ERICA 기숙사 식단 알려줘");
+  });
+
+  it("passes request filters to retrieval and hard-refuses filtered no-result questions", async () => {
+    const auditPath = join(createTempDir(), "audit.jsonl");
+    const retriever = createRetriever([]);
+    const provider = createProvider(normalProviderContent("unused"));
+    const service = new ChatService({
+      retriever,
+      provider,
+      auditLogPath: auditPath,
+      traceIdGenerator: () => "trace-filtered-refusal",
+    });
+
+    const response = await service.ask({
+      query: "취업후기 중 진행 중인 채용 관련 근거 알려줘",
+      collection_categories: ["career_review"],
+      source_families: ["book"],
+      deadline_statuses: ["active"],
+    });
+
+    expect(retriever.retrieve).toHaveBeenCalledWith({
+      query: "취업후기 중 진행 중인 채용 관련 근거 알려줘",
+      topK: 5,
+      filters: {
+        collection_categories: ["career_review"],
+        source_families: ["book"],
+        deadline_statuses: ["active"],
+      },
+    });
+    expect(provider.complete).not.toHaveBeenCalled();
+    expect(response.refusal_tier).toBe("hard_refuse");
+    expect(response.answer).toContain("충분한 근거");
+    expect(response.citations).toEqual([]);
+    expect(readAudit(auditPath)[0]?.retrieved_chunks).toEqual([]);
   });
 
   it("hard-refuses unsafe input before retrieval or provider work with redacted audit metadata", async () => {
@@ -466,6 +503,24 @@ describe("ChatService", () => {
     expect(JSON.stringify(audit[0])).not.toContain("ERICA 현장실습 모집 공고 알려줘");
   });
 
+  it("falls back to a cited evidence summary when provider output lacks required citations", async () => {
+    const auditPath = join(createTempDir(), "audit.jsonl");
+    const service = new ChatService({
+      retriever: createRetriever([retrieved()]),
+      provider: createProvider("ERICA 현장실습 모집 공고를 확인할 수 있습니다."),
+      auditLogPath: auditPath,
+      traceIdGenerator: () => "trace-validation-fallback",
+    });
+
+    const response = await service.ask({ query: "ERICA 현장실습 모집 공고 알려줘" });
+
+    expect(response.refusal_tier).toBe("normal_answer");
+    expect(response.answer).toContain("현재 확인된 근거 기준");
+    expect(response.answer).toContain("[1]");
+    expect(response.citations[0]?.chunk_id).toBe("chunk-001");
+    expect(readAudit(auditPath)[0]?.guardrail_results.output_validation).toBe("failed");
+  });
+
   it("does not write raw user query snapshots on provider failures", async () => {
     const auditPath = join(createTempDir(), "audit.jsonl");
     const provider: ChatModelProvider & { complete: ReturnType<typeof vi.fn> } = {
@@ -483,7 +538,9 @@ describe("ChatService", () => {
 
     const response = await service.ask({ query: "내 개인정보 010-1234-5678 포함 질문" });
 
-    expect(response.refusal_tier).toBe("hard_refuse");
+    expect(response.refusal_tier).toBe("normal_answer");
+    expect(response.answer).toContain("[1]");
+    expect(response.citations[0]?.chunk_id).toBe("chunk-001");
     const audit = readAudit(auditPath);
     expect(audit[0]?.prompt_snapshot_reason).toBe("failure");
     expect(audit[0]?.prompt_snapshot).toBeUndefined();

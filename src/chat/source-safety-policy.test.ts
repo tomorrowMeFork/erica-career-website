@@ -198,6 +198,9 @@ function retrievedChunk(overrides: Partial<KnowledgeChunk> = {}): RetrievedChunk
     chunk_ordinal: 0,
     text: "ERICA 채용 공고는 공식 페이지에서 확인해야 합니다.",
     ...overrides,
+    collection_category: overrides.collection_category ?? "job_posting",
+    source_family: overrides.source_family ?? "ibus",
+    category_label_ko: overrides.category_label_ko ?? "채용공고",
   };
 
   return {
