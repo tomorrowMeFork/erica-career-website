@@ -1,6 +1,8 @@
 # ERICA Career Chat
 
-<img src="img/Intro.png" alt="ERICA Career Chat 소개" width="720" />
+<p align="center">
+  <img src="img/Intro.png" alt="ERICA Career Chat 소개" width="520" />
+</p>
 
 ERICA Career Chat은 한양대학교 ERICA 학생을 위한 한국어 우선 취업정보 RAG 상담 서비스입니다. 교내 취업정보를 통합해 검색하고, 답변에 사용된 출처와 최신성 정보를 함께 확인할 수 있도록 설계되었습니다.
 
