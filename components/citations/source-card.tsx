@@ -10,7 +10,7 @@ export function SourceCard({ citation, selected = false }: { citation: ChatCitat
   const sourceLabel = getSourceDisplayLabel(citation.source_id, citation.url);
   const deadlineLabel = getDeadlineBadgeLabel(citation.deadline_status);
   return (
-    <Card role="article" data-selected={selected ? "true" : "false"} aria-label={`${citation.title} 출처 카드`} className="gap-4 overflow-hidden border-0 bg-card py-0 shadow-none ring-1 ring-primary/15 data-[selected=true]:bg-[var(--color-surface-primary-muted)] data-[selected=true]:ring-[var(--hanyang-retro-mint)]/70">
+    <Card role="article" data-selected={selected ? "true" : "false"} aria-label={`${citation.title} 출처 카드`} className="erica-surface gap-4 overflow-hidden py-0 ring-1 ring-primary/15 data-[selected=true]:bg-[var(--erica-surface-strong)] data-[selected=true]:ring-[var(--hanyang-retro-mint)]/70">
       <CardHeader className="gap-3 border-t-4 border-t-accent px-5 pt-5 pb-0">
         <div className="flex flex-wrap items-center gap-2">
           <Badge className="border-[var(--hanyang-yellow-green)]/55 bg-[var(--hanyang-yellow-green)]/15 text-primary" variant="outline">답변 근거</Badge>

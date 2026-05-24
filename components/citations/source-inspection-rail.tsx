@@ -8,7 +8,7 @@ import { SourceCard } from "./source-card.js";
 export function SourceInspectionRail({ citations, selectedCitation, onSelect, onClose }: { citations: ChatCitation[]; selectedCitation?: ChatCitation; onSelect?: (citation: ChatCitation) => void; onClose: () => void }) {
   const selected = selectedCitation ?? citations[0];
   return (
-    <Card className="sticky top-24 w-full min-w-0 max-h-[calc(100vh-var(--space-section))] overflow-hidden border-primary/15 bg-muted/70 py-0 shadow-[var(--shadow-soft)]">
+    <Card className="erica-surface-strong sticky top-24 w-full min-w-0 max-h-[calc(100vh-var(--space-section))] overflow-hidden border-primary/15 py-0">
       <aside aria-label="답변 출처">
         <CardHeader className="gap-3 px-4 pt-4 pb-0">
           <div className="flex items-center justify-between gap-3">
@@ -19,7 +19,7 @@ export function SourceInspectionRail({ citations, selectedCitation, onSelect, on
         </CardHeader>
         <CardContent className="grid min-w-0 gap-4 px-4 pb-4">
           <Separator />
-          <ScrollArea className="max-h-36 rounded-lg border border-primary/15 bg-card/80">
+          <ScrollArea className="erica-surface-muted max-h-36 rounded-lg border border-primary/15">
             <div className="grid gap-2 p-2">
               {citations.map((citation, index) => (
                 <Button key={`${citation.citation_id}-${citation.chunk_id}-${index}`} type="button" variant={citation === selected ? "secondary" : "ghost"} size="sm" data-selected={citation === selected ? "true" : "false"} className="h-auto min-h-11 justify-start rounded-lg px-3 py-2 text-left whitespace-normal data-[selected=true]:border data-[selected=true]:border-primary/20 data-[selected=true]:text-primary" onClick={() => onSelect?.(citation)}>
@@ -28,7 +28,7 @@ export function SourceInspectionRail({ citations, selectedCitation, onSelect, on
               ))}
             </div>
           </ScrollArea>
-          {selected !== undefined ? <SourceCard citation={selected} selected /> : <p className="rounded-lg border border-dashed border-primary/25 bg-card px-4 py-5 text-sm text-muted-foreground">선택된 출처가 없어요.</p>}
+          {selected !== undefined ? <SourceCard citation={selected} selected /> : <p className="erica-surface-muted rounded-lg border border-dashed border-primary/25 px-4 py-5 text-sm text-muted-foreground">선택된 출처가 없어요.</p>}
         </CardContent>
       </aside>
     </Card>
