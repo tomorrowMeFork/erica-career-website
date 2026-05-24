@@ -59,7 +59,7 @@ All registry source records remain constrained to their exact approved method an
 - The user confirmed: `Approve two, hold rest`.
 - The user later superseded the held decision by instructing: `robot.txt 가 있는 사이트는 playwright 기반 크롤링을 통해서라도 반드시 Phase2 완성해`.
 - The user clarified that collection remains limited to original `sources.txt` seed sources only; no broader crawling or inferred URLs are approved.
-- `ibus-employment-board` is approved only for bounded public HTML sample ingestion from the registered board seed URL.
+- `ibus-employment-board` is approved only for bounded public HTML board ingestion from the registered board seed URL.
 - `cdp-student-guide-pdf` is approved only for manual PDF download/sample ingestion from the registered direct PDF seed URL with page-level citation preservation.
 - CDP root/category sources and the book viewer are approved only for bounded public Playwright collection from exact registered or observed same-host URLs.
 - CDP authenticated manual-session collection is approved only for the two exact user-requested board/list pages. The user must complete login manually in a headed ephemeral Playwright browser. The script may only collect same-host detail pages discovered from those exact approved lists and must not automate login, persist authentication state, store credentials/cookies/localStorage/HAR/traces/screenshots, infer unrelated URLs, crawl broadly, or schedule recurring jobs.

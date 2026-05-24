@@ -95,7 +95,7 @@
 ### ibus-employment-board
 
 - Observed URL: `https://ibus.hanyang.ac.kr/front/recruit/r-1`
-- Parser eligibility: allowed for approved bounded public HTML sample ingestion from the original seed URL only.
+- Parser eligibility: allowed for approved bounded public HTML board ingestion from the original seed URL only.
 - Auth boundary: public; response type: html.
 - Robots/ToS: allow_empty_disallow / not_reviewed.
 - Registry note: robots.txt returns an empty Disallow: line (allowing all). Board is publicly reachable with Korean title '취업정보', 12 listings per page, dates, hit counts, detail links (/front/recruit/r-1/view?id=...), and pagination to at least page 163. No ToS page located. Faculty-specific scope for ERICA College of Business and Economics; do not treat as campus-wide. Detail URLs should be recorded as patterns but not bulk-ingested during discovery.

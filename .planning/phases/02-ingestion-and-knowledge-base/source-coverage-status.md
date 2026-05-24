@@ -14,7 +14,7 @@ Every `sources.txt` source intent now has an approved bounded collection path. T
 | 3 | `cdp-recruit-category-discovery` | CDP 채용정보 하위항목 전체 | implemented bounded collector | `npm run ingest:playwright:sources` collects `https://cdp.hanyang.ac.kr/Career/Job/RecruitList.aspx` |
 | 4 | `book-success-story-viewer` | 취업성공후기 | implemented bounded collector | `npm run ingest:playwright:sources` collects `https://book.hanyang.ac.kr/Viewer/YKCF2I67RO4B` |
 | 5 | `cdp-student-guide-pdf` | 커리어개발센터 가이드북 | implemented bounded collector | `npm run ingest:cdp-pdf:sample` fixture/live manual PDF path |
-| 6 | `ibus-employment-board` | 경상대학 취업정보 게시판 | implemented bounded collector | `npm run ingest:ibus:sample` fixture/live bounded board path |
+| 6 | `ibus-employment-board` | 경상대학 취업정보 게시판 | implemented bounded collector | `npm run ingest:ibus` fixture/live bounded board path |
 | 7 | `ewil-internship-system` | 현장실습 지원 시스템 | public landing page indexed | Static reviewed public landing-page KB under `data/knowledge-base/ewil-homepage` |
 | 8 | `ewil-notice-board` | E-WIL 공지사항/인턴공고 | manual authenticated exact-URL collector | `npm run ingest:ewil:authenticated` opens a headed ephemeral browser; user logs in manually; collector visits only `data/list.do?type=NOTICE` |
 | 9 | `ewil-info-board` | E-WIL 설명회 | manual authenticated exact-URL collector | `npm run ingest:ewil:authenticated` visits only `data/list.do?type=INFO` after manual login |
@@ -41,7 +41,7 @@ npm run typecheck
 npm test
 npm run validate:sources
 npm run verify:source-governance
-npm run ingest:ibus:sample -- --fixture
+npm run ingest:ibus -- --fixture
 npm run ingest:cdp:manual-posts -- --input fixtures/ingestion/cdp-manual-posts.example.json --output /tmp/manual-cdp-posts
 npm run ingest:cdp:authenticated -- --source all --max-list-pages 1 --max-detail-pages 10
 npm run ingest:cdp-pdf:sample -- --fixture

@@ -374,25 +374,25 @@ Source ID:
 Command:
 
 ```bash
-npm run ingest:ibus:sample
+npm run ingest:ibus
 ```
 
 Fixture mode:
 
 ```bash
-npm run ingest:ibus:sample -- --fixture
+npm run ingest:ibus -- --fixture
 ```
 
 Bounded live options:
 
 ```bash
-npm run ingest:ibus:sample -- --pages 3 --delay 1200 --output data/knowledge-base/ibus-employment-board
+npm run ingest:ibus -- --pages 20 --delay 1200 --output data/knowledge-base/ibus-employment-board
 ```
 
 Environment alternatives:
 
 ```bash
-COLLECT_MAX_PAGES=3 COLLECT_DELAY_MS=1200 npm run ingest:ibus:sample
+COLLECT_MAX_PAGES=20 COLLECT_DELAY_MS=1200 npm run ingest:ibus
 ```
 
 Output:
@@ -406,12 +406,12 @@ Collection method:
 - Public HTML board at `https://ibus.hanyang.ac.kr/front/recruit/r-1`.
 - Fixture mode reads sanitized local listing/detail HTML fixtures.
 - Default live mode collects one listing page and the first detail entry.
-- Bounded live mode can collect up to five listing pages.
+- Bounded live mode can collect up to twenty listing pages.
 - For each listing entry, the script fetches the detail page and builds normalized records with title, posted text, deadline/status signals, source URL, and citation anchors.
 
 Bounds:
 
-- `--pages` / `COLLECT_MAX_PAGES` must be `<= 5`.
+- `--pages` / `COLLECT_MAX_PAGES` must be `<= 20`.
 - Live `--delay` / `COLLECT_DELAY_MS` must be `>= 1200` ms.
 - Fixture mode does not support `--pages > 1`.
 
@@ -667,7 +667,7 @@ For a clean local rebuild of currently scripted KB artifacts:
 ```bash
 npm run validate:sources
 npm run verify:source-governance
-npm run ingest:ibus:sample -- --fixture
+npm run ingest:ibus -- --fixture
 npm run ingest:cdp-pdf:sample -- --fixture
 npm run ingest:playwright:sources
 npm run verify:knowledge-base -- data/knowledge-base/ibus-employment-board
