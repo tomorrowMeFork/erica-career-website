@@ -12,8 +12,8 @@ type StatusBadgeDeadline = "open" | "closing_soon" | "closed" | "unknown";
 export function ReferenceCard({ item }: { item: SessionReferenceItem }) {
   return (
     <article data-deadline_status={item.deadlineStatus} aria-label={`${item.title} 참고한 정보`}>
-      <Card className="h-full overflow-hidden border-0 bg-card/90 shadow-none ring-1 ring-primary/15 transition-all hover:-translate-y-0.5 hover:shadow-[var(--shadow-soft)] hover:ring-primary/30">
-        <CardHeader className="gap-4 border-t-4 border-t-[var(--hanyang-orange)] pb-0">
+      <Card className="erica-surface h-full overflow-hidden transition-all hover:-translate-y-0.5 hover:shadow-[var(--erica-surface-shadow-strong)] hover:ring-primary/30">
+        <CardHeader className="gap-4 pb-0">
           <div className="grid gap-3">
             <div className="flex flex-wrap items-center gap-2">
               <StatusBadge kind="source" label={item.sourceLabel} />

@@ -13,7 +13,7 @@ export function ListingCard({ item }: { item: RecommendationItem }) {
 
   return (
     <article data-deadline_status={item.deadline_status} aria-label={`${item.title} 추천 정보`}>
-      <Card className="overflow-hidden border-border/80 bg-card/95 shadow-sm transition-colors hover:border-primary/35">
+      <Card className="erica-surface overflow-hidden transition-colors hover:border-primary/35">
         <CardHeader className="gap-4 sm:grid-cols-[1fr_auto]">
           <div className="grid gap-3">
             <div className="flex flex-wrap items-center gap-2">
@@ -41,7 +41,7 @@ export function ListingCard({ item }: { item: RecommendationItem }) {
               { label: "마감 상태", value: <DeadlineStatusBadge status={item.deadline_status} /> },
             ]}
           />
-          {citationTitles.length > 0 ? <p className="rounded-lg bg-secondary px-4 py-3 text-sm leading-6 text-secondary-foreground">참고 출처: {citationTitles.join(" · ")}</p> : null}
+          {citationTitles.length > 0 ? <p className="rounded-lg bg-[var(--erica-surface-muted)] px-4 py-3 text-sm leading-6 text-secondary-foreground">참고 출처: {citationTitles.join(" · ")}</p> : null}
         </CardContent>
         <CardFooter>
           <Button asChild>

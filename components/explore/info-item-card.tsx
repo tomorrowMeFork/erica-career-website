@@ -8,7 +8,7 @@ import { DeadlineStatusBadge } from "../listings/deadline-status-badge.js";
 export function InfoItemCard({ item }: { item: RecommendationItem }) {
   return (
     <article data-deadline_status={item.deadline_status} aria-label={`${item.title} 정보 카드`}>
-      <Card className="gap-4 border-border/80 bg-card shadow-sm">
+      <Card className="erica-surface gap-4 border-border/80">
         <CardHeader className="gap-3 sm:grid-cols-[minmax(0,1fr)_auto]">
           <div className="grid gap-2">
             <CardTitle className="text-xl tracking-tight text-foreground"><h3>{item.title}</h3></CardTitle>
