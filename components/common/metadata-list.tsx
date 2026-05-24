@@ -19,10 +19,10 @@ export function MetadataList({ rows, emptyFallback = null, className, ...props }
   if (visibleRows.length === 0) return emptyFallback;
 
   return (
-    <dl className={cn("grid gap-0 overflow-hidden rounded-lg border border-primary/10 bg-background/45 text-sm", className)} {...props}>
+    <dl className={cn("grid gap-0 overflow-hidden border erica-surface-muted text-sm", className)} {...props}>
       {visibleRows.map((row, index) => (
         <React.Fragment key={`${row.label}-${index}`}>
-          <div className={cn("grid gap-1 px-3 py-3 sm:grid-cols-[7rem_minmax(0,1fr)] sm:gap-4", index > 0 ? "border-t border-primary/15" : null)}>
+          <div className={cn("grid gap-1 px-3 py-3 sm:grid-cols-[7rem_minmax(0,1fr)] sm:gap-4", index > 0 ? "border-t border-border/70" : null)}>
             <dt className="font-medium text-[var(--hanyang-gold)]">{row.label}</dt>
             <dd className="min-w-0 text-foreground">{renderValue(row)}</dd>
           </div>

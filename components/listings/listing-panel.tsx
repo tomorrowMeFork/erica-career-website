@@ -12,7 +12,7 @@ export function ListingPanel({ items, activeFilter, onFilterChange, onRefresh, s
   const filtered = filterItems(items, activeFilter);
   return (
     <section aria-label="추천 및 최신 공고">
-      <Card className="border-border/80 bg-secondary/60 shadow-sm">
+      <Card className="erica-surface-muted border-border/80">
         <CardHeader className="gap-4">
           <div className="flex flex-wrap items-start justify-between gap-3">
             <div className="grid gap-2">

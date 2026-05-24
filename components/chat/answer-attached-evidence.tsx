@@ -15,7 +15,7 @@ export function AnswerAttachedEvidence({ items }: { items: RecommendationItem[] 
       <h3 id={titleId} className="text-base font-semibold tracking-tight text-foreground">답변에 참고한 정보</h3>
       {items.map((item) => (
         <article key={item.recommendation_id} aria-label={`${item.title} 참고 정보`}>
-          <Card className="gap-4 border-border/80 bg-background/70 py-4 shadow-none">
+          <Card className="gap-4 erica-surface-muted py-4">
             <CardHeader className="flex-row items-start justify-between gap-3 px-4">
               <div className="grid gap-2">
                 <StatusBadge kind="source" label={getSourceDisplayLabel(item.source_id, item.url)} className="w-fit" />

@@ -229,7 +229,7 @@ export default function ConsultationPage() {
       }}
     >
       <Card
-        className="relative overflow-hidden border-primary/20 bg-card/95 shadow-[var(--shadow-brand)] before:pointer-events-none before:absolute before:inset-x-0 before:top-0 before:h-2 before:bg-[var(--surface-brand-gradient)] after:pointer-events-none after:absolute after:-right-20 after:-top-24 after:size-64 after:rounded-full after:bg-[var(--surface-warm-gradient)] after:opacity-25 after:blur-2xl"
+        className="erica-surface-strong relative overflow-hidden border-primary/20 before:pointer-events-none before:absolute before:inset-x-0 before:top-0 before:h-2 before:bg-[var(--surface-brand-gradient)] after:pointer-events-none after:absolute after:-right-20 after:-top-24 after:size-64 after:rounded-full after:bg-[var(--surface-warm-gradient)] after:opacity-25 after:blur-2xl"
         aria-labelledby="consultationTitle"
       >
         <CardHeader className="relative z-10 gap-5 md:grid-cols-[minmax(0,1fr)_auto] md:items-start">
@@ -271,7 +271,7 @@ export default function ConsultationPage() {
       >
         <DisclaimerNotice />
 
-        <Card className="overflow-hidden border-primary/15 bg-card/95 shadow-[var(--shadow-soft)]">
+        <Card className="erica-surface overflow-hidden border-primary/15">
           <CardContent className="grid gap-4 px-5 pt-5">
             <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
               <div className="grid gap-2">
@@ -326,10 +326,10 @@ export default function ConsultationPage() {
         }
       >
         <Card
-          className="min-w-0 overflow-hidden border-primary/15 bg-card/95 py-0 shadow-[var(--shadow-card)]"
+          className="erica-surface-strong min-w-0 overflow-hidden border-primary/15 py-0"
           aria-label="채팅"
         >
-          <CardContent className="grid min-w-0 gap-5 p-4 sm:p-5 lg:p-6">
+          <CardContent className="grid min-w-0 gap-5 p-5 sm:p-6 lg:p-7">
             <ChatMessageList
               messages={messages}
               onOpenCitation={openCitation}

@@ -13,7 +13,7 @@ type LoadingStateProps = React.ComponentProps<"div"> & {
 export function LoadingState({ title = "정보를 확인하고 있어요", statusText = "관련 출처를 확인하고 답변을 준비하고 있어요…", mode = "skeleton", className, ...props }: LoadingStateProps) {
   if (mode === "alert") {
     return (
-      <Alert role="status" aria-live="polite" className={cn("border-primary/20 bg-secondary/70", className)} {...props}>
+      <Alert role="status" aria-live="polite" className={cn("erica-surface-muted", className)} {...props}>
         <AlertTitle>{title}</AlertTitle>
         <AlertDescription>{statusText}</AlertDescription>
       </Alert>
@@ -21,7 +21,7 @@ export function LoadingState({ title = "정보를 확인하고 있어요", statu
   }
 
   return (
-    <div role="status" aria-live="polite" className={cn("grid gap-3 rounded-xl border border-border/80 bg-card p-6 shadow-sm", className)} {...props}>
+    <div role="status" aria-live="polite" className={cn("grid gap-3 border erica-surface-muted p-6", className)} {...props}>
       <p className="text-sm font-medium text-foreground">{statusText}</p>
       <div className="grid gap-2" aria-hidden="true">
         <Skeleton className="h-4 w-3/4" />
