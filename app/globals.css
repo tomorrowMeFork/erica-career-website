@@ -61,6 +61,14 @@
   --shadow-soft: 0 14px 38px color-mix(in oklch, var(--hanyang-blue-deep), transparent 90%);
   --shadow-brand: 0 28px 90px color-mix(in oklch, var(--hanyang-blue), transparent 78%);
   --shadow-focus: 0 0 0 3px color-mix(in oklch, var(--ring), transparent 78%);
+  --erica-surface-muted: rgba(255, 255, 255, 0.68);
+  --erica-surface: rgba(255, 255, 255, 0.76);
+  --erica-surface-strong: rgba(255, 255, 255, 0.86);
+  --erica-surface-border: rgba(30, 41, 59, 0.16);
+  --erica-surface-border-strong: rgba(30, 41, 59, 0.22);
+  --erica-surface-shadow: 0 14px 36px rgba(15, 23, 42, 0.09), 0 2px 8px rgba(15, 23, 42, 0.04);
+  --erica-surface-shadow-strong: 0 18px 48px rgba(15, 23, 42, 0.13), 0 4px 14px rgba(15, 23, 42, 0.06);
+  --erica-page-wash: rgba(255, 255, 255, 0.2);
 
   --color-primary: var(--primary);
   --color-primary-active: var(--hanyang-blue-deep);
@@ -116,6 +124,7 @@ body {
   margin: 0;
   min-height: 100vh;
   background:
+    linear-gradient(var(--erica-page-wash), var(--erica-page-wash)),
     radial-gradient(circle at 8% 8%, color-mix(in oklch, var(--hanyang-blue), transparent 82%) 0 22rem, transparent 34rem),
     radial-gradient(circle at 92% 12%, color-mix(in oklch, var(--hanyang-retro-mint), transparent 80%) 0 18rem, transparent 32rem),
     radial-gradient(circle at 85% 88%, color-mix(in oklch, var(--hanyang-orange), transparent 86%) 0 16rem, transparent 30rem),
@@ -198,4 +207,45 @@ a:not([class]) {
 body[data-source-sheet-open="true"] nav[aria-label="모바일 주요 페이지"],
 body[data-source-sheet-open="true"] main form {
   visibility: hidden;
+}
+
+.erica-surface-muted {
+  background: var(--erica-surface-muted);
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+  border-color: var(--erica-surface-border);
+  box-shadow: 0 10px 28px rgba(15, 23, 42, 0.06);
+  border-radius: 22px;
+}
+
+.erica-surface {
+  background: var(--erica-surface);
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+  border-color: var(--erica-surface-border);
+  box-shadow: var(--erica-surface-shadow);
+  border-radius: 22px;
+}
+
+.erica-surface-strong {
+  background: var(--erica-surface-strong);
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+  border-color: var(--erica-surface-border-strong);
+  box-shadow: var(--erica-surface-shadow-strong);
+  border-radius: 22px;
+}
+
+@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+  .erica-surface-muted {
+    background: rgba(255, 255, 255, 0.76);
+  }
+
+  .erica-surface {
+    background: rgba(255, 255, 255, 0.84);
+  }
+
+  .erica-surface-strong {
+    background: rgba(255, 255, 255, 0.94);
+  }
 }
