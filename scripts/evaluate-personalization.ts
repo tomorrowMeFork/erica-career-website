@@ -1,7 +1,7 @@
 import { PreferenceService } from "../src/personalization/preference-service.js";
 import { InMemoryPreferenceStore } from "../src/personalization/preference-store.js";
-import { RecommendationService } from "../src/recommendations/recommendation-service.js";
 import type { RecommendationItem, RecommendationResponse } from "../src/recommendations/recommendation-contract.js";
+import { RecommendationService } from "../src/recommendations/recommendation-service.js";
 import type { RetrievedChunk, Retriever } from "../src/retrieval/retriever.js";
 
 export const PERSONALIZATION_EVALUATION_CASES = [
@@ -324,6 +324,9 @@ function candidate(input: CandidateInput): RetrievedChunk {
       canonical_url: sourceUrl,
       title: input.title,
       category: input.category ?? "채용",
+      collection_category: "job_posting",
+      source_family: "cdp",
+      category_label_ko: "채용공고",
       fetched_at: input.fetched_at ?? "2026-05-04T00:00:00.000Z",
       posted_at: input.posted_at ?? "2026-05-01T00:00:00.000Z",
       deadline_status: input.deadline_status ?? "active",

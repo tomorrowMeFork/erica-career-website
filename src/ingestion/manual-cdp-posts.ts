@@ -1,4 +1,5 @@
 import { z } from "zod";
+import type { KBTaxonomyMetadata } from "../knowledge-base/taxonomy.js";
 import { buildRecordId, sha256 } from "./chunking.js";
 import type { NormalizedRecord } from "./normalized-record.js";
 import {
@@ -7,9 +8,12 @@ import {
 } from "./normalized-record.js";
 
 const cdpHost = "cdp.hanyang.ac.kr";
+const cdpDetailPathPattern =
+	/(?:\/Career\/Job\/RecruitView\d*\.aspx|\/Recruit\/RecruitView\.aspx|\/Office\/SiteMgr\/Notice\/FuncScheView\.aspx|\/Community\/Notice\/NoticeView\d*\.aspx)$/u;
 
 export const CdpManualBoardSchema = z.enum([
 	"채용상담 및 설명회",
+	"공지사항",
 	"일반채용공고",
 ]);
 
@@ -59,6 +63,9 @@ function buildRecord(
 ): NormalizedRecord {
 	const detailUrl = normalizeUrl(post.detail_url);
 	const title = normalizeCdpManualPostTitle(post);
+	const sourceId = sourceIdForBoard(post.board);
+	const sourceName = sourceNameForBoard(post.board);
+	const taxonomy = taxonomyForBoard(post.board);
 	const rawText = [
 		`게시판: ${post.board}`,
 		`제목: ${title}`,
@@ -74,18 +81,19 @@ function buildRecord(
 
 	return NormalizedRecordSchema.parse({
 		record_id: buildRecordId({
-			source_id: "cdp-recruit-category-discovery",
+			source_id: sourceId,
 			canonical_url: detailUrl,
 			title: title,
 			posted_at: post.posted_at ?? null,
 			content_hash: contentHash,
 		}),
-		source_id: "cdp-recruit-category-discovery",
-		source_name: "CDP 채용정보",
+		source_id: sourceId,
+		source_name: sourceName,
 		source_url: detailUrl,
 		canonical_url: detailUrl,
 		title: title,
 		category: `CDP 채용정보 > ${post.board}`,
+		...taxonomy,
 		fetched_at: fetchedAt,
 		posted_at: post.posted_at ?? null,
 		deadline_status: post.deadline_status,
@@ -96,6 +104,39 @@ function buildRecord(
 		citation_anchors: [{ url: detailUrl, label: `원문: ${title}` }],
 		source_text_trust: "untrusted_source_text",
 	});
+}
+
+function sourceIdForBoard(board: z.infer<typeof CdpManualBoardSchema>): string {
+	if (board === "일반채용공고") return "cdp-recruit-general-board";
+	return "cdp-recruit-event-board";
+}
+
+function sourceNameForBoard(board: z.infer<typeof CdpManualBoardSchema>): string {
+	if (board === "일반채용공고") return "CDP 일반채용공고";
+	if (board === "공지사항") return "CDP 공지사항";
+	return "CDP 채용상담 및 설명회";
+}
+
+function taxonomyForBoard(
+	board: z.infer<typeof CdpManualBoardSchema>,
+): KBTaxonomyMetadata {
+	return board === "일반채용공고"
+		? {
+				collection_category: "job_posting",
+				source_family: "cdp",
+				category_label_ko: "채용공고",
+			}
+		: board === "공지사항"
+			? {
+					collection_category: "notice",
+					source_family: "cdp",
+					category_label_ko: "공지사항",
+				}
+			: {
+					collection_category: "career_program",
+					source_family: "cdp",
+					category_label_ko: "취업 프로그램",
+				};
 }
 
 function normalizeCdpManualPostTitle(
@@ -160,11 +201,44 @@ function isAllowedCdpDetailUrl(value: string): boolean {
 			url.protocol === "https:" &&
 			url.hostname === cdpHost &&
 			url.username === "" &&
-			url.password === ""
+			url.password === "" &&
+			cdpDetailPathPattern.test(url.pathname) &&
+			hasValidDetailIdentifier(url) &&
+			!hasCredentialLikeSearchParam(url)
 		);
 	} catch (_error) {
 		return false;
 	}
+}
+
+function hasCredentialLikeSearchParam(url: URL): boolean {
+	for (const key of url.searchParams.keys()) {
+		if (/token|password|passwd|session|jsessionid|authorization|auth/iu.test(key)) {
+			return true;
+		}
+	}
+	return false;
+}
+
+function hasValidDetailIdentifier(url: URL): boolean {
+	const pathname = url.pathname.toLowerCase();
+	if (pathname === "/recruit/recruitview.aspx") {
+		return /^[A-Fa-f0-9]{24,}$/u.test(url.searchParams.get("rcdx") ?? "");
+	}
+	if (/^\/career\/job\/recruitview\d*\.aspx$/u.test(pathname)) {
+		return hasNumericSearchParam(url, ["idx", "seq", "id"]);
+	}
+	if (pathname === "/office/sitemgr/notice/funcscheview.aspx") {
+		return hasNumericSearchParam(url, ["funcidx"]);
+	}
+	if (/^\/community\/notice\/noticeview\d*\.aspx$/u.test(pathname)) {
+		return hasNumericSearchParam(url, ["idx", "seq", "id"]);
+	}
+	return false;
+}
+
+function hasNumericSearchParam(url: URL, keys: readonly string[]): boolean {
+	return keys.some((key) => /^\d+$/u.test(url.searchParams.get(key) ?? ""));
 }
 
 function getExpectedBoardForDetailUrl(
@@ -179,7 +253,10 @@ function getExpectedBoardForDetailUrl(
 	if (pathname === "/office/sitemgr/notice/funcscheview.aspx") {
 		return "채용상담 및 설명회";
 	}
-	if (pathname.startsWith("/career/job/") && pathname.endsWith(".aspx")) {
+	if (pathname.startsWith("/community/notice/") && pathname.endsWith(".aspx")) {
+		return "공지사항";
+	}
+	if (pathname === "/recruit/recruitview.aspx" || /^\/career\/job\/recruitview\d*\.aspx$/u.test(pathname)) {
 		return "일반채용공고";
 	}
 	return null;

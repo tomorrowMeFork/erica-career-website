@@ -71,6 +71,54 @@ sources:
     notes: "robots.txt returns Disallow: / for User-agent: *. User explicitly approved bounded Playwright collection on 2026-05-03 for Phase 2 completion despite robots evidence. Current observed public URL for 채용정보 is /Career/Job/RecruitList.aspx. Collection is limited to this same-host URL with one ephemeral browser context, same-origin routing, no stored auth state, no scheduled crawling, and low concurrency. Freshness remains critical for recruitment listings."
     next_action: Use bounded Playwright collection only for the observed public 채용정보 URL; keep scheduled crawling disabled and preserve freshness metadata.
 
+  - source_id: cdp-recruit-general-board
+    canonical_url: https://cdp.hanyang.ac.kr/Career/Job/RecruitList.aspx
+    source_name: CDP 일반채용공고
+    source_type: board
+    content_type: html
+    category: CDP 채용정보 > 일반채용공고
+    approval_scope: seed_urls_only
+    approval_basis: user_assertion
+    approval_status: pending_review
+    auth_required: true
+    auth_mode: user_manual_login_nonpersistent
+    review_status: reviewed
+    allowed_collection_method: approved_user_manual_login_session
+    checklist_reference: source-access-review.md#cdp-authenticated-manual-session-scope
+    robots_status: disallow_all_raw_evidence
+    tos_status: not_reviewed
+    rate_limit_posture: moderate_1_2s_low_concurrency
+    refresh_cadence: daily_when_approved
+    owner_label: 한양대학교 커리어개발팀
+    last_checked_at: "2026-05-17T00:00:00Z"
+    scheduled_crawling_enabled: false
+    notes: "User explicitly approved E-WIL-style headed manual-session CDP collection on 2026-05-17. Scope is limited to the exact list URL /Career/Job/RecruitList.aspx and same-host detail pages discovered from that list. The user must operate login manually in a fresh non-persistent Playwright browser. No credential entry by script, cookies, localStorage, storageState files, HAR, traces, screenshots, broad crawling, off-host requests, or scheduled crawling are allowed."
+    next_action: Use only the headed manual-session collector for this exact CDP board URL; keep scheduled crawling disabled and preserve citation/freshness/deadline metadata.
+
+  - source_id: cdp-recruit-event-board
+    canonical_url: https://cdp.hanyang.ac.kr/Community/Notice/RecruitEvent.aspx
+    source_name: CDP 채용상담 및 설명회
+    source_type: board
+    content_type: html
+    category: CDP 채용정보 > 채용상담 및 설명회
+    approval_scope: seed_urls_only
+    approval_basis: user_assertion
+    approval_status: pending_review
+    auth_required: true
+    auth_mode: user_manual_login_nonpersistent
+    review_status: reviewed
+    allowed_collection_method: approved_user_manual_login_session
+    checklist_reference: source-access-review.md#cdp-authenticated-manual-session-scope
+    robots_status: disallow_all_raw_evidence
+    tos_status: not_reviewed
+    rate_limit_posture: moderate_1_2s_low_concurrency
+    refresh_cadence: daily_when_approved
+    owner_label: 한양대학교 커리어개발팀
+    last_checked_at: "2026-05-17T00:00:00Z"
+    scheduled_crawling_enabled: false
+    notes: "User explicitly approved E-WIL-style headed manual-session CDP collection on 2026-05-17. Scope is limited to the exact list URL /Community/Notice/RecruitEvent.aspx and same-host event/detail pages discovered from that list, including FuncScheView.aspx?funcidx=... when linked by the approved list. The user must operate login manually in a fresh non-persistent Playwright browser. No credential entry by script, cookies, localStorage, storageState files, HAR, traces, screenshots, broad crawling, off-host requests, or scheduled crawling are allowed."
+    next_action: Use only the headed manual-session collector for this exact CDP board URL; keep scheduled crawling disabled and preserve citation/freshness/deadline metadata.
+
   - source_id: book-success-story-viewer
     canonical_url: https://book.hanyang.ac.kr/Viewer/YKCF2I67RO4B
     source_name: 취업성공후기 뷰어
@@ -142,3 +190,99 @@ sources:
     scheduled_crawling_enabled: false
     notes: "robots.txt returns an empty Disallow: line (allowing all). Board is publicly reachable with Korean title '취업정보', 12 listings per page, dates, hit counts, detail links (/front/recruit/r-1/view?id=...), and pagination to at least page 163. No ToS page located. Faculty-specific scope for ERICA College of Business and Economics; do not treat as campus-wide. Detail URLs should be recorded as patterns but not bulk-ingested during discovery."
     next_action: Complete access review checklist at source-access-review.md#ibus-employment-board before enabling any collection method. Record pagination depth assumptions but do not ingest all pages during Phase 1.
+
+  - source_id: ewil-internship-system
+    canonical_url: https://e-wil.hanyang.ac.kr/index.do
+    source_name: 현장실습 지원 시스템
+    source_type: root
+    content_type: html
+    category: ERICA 현장실습 지원 시스템
+    approval_scope: seed_urls_only
+    approval_basis: user_assertion
+    approval_status: pending_review
+    auth_required: false
+    auth_mode: none
+    review_status: reviewed
+    allowed_collection_method: approved_bounded_browser_discovery
+    checklist_reference: source-access-review.md#ewil-internship-system
+    robots_status: unreachable
+    tos_status: not_reviewed
+    rate_limit_posture: moderate_1_2s_low_concurrency
+    refresh_cadence: weekly_when_approved
+    owner_label: 한양대학교 ERICA 현장실습지원센터
+    last_checked_at: "2026-05-17T00:00:00Z"
+    scheduled_crawling_enabled: false
+    notes: "User added this seed URL on 2026-05-17. The public landing page is reachable and identifies '현장실습업무지원시스템' / '한양대학교 에리카 현장실습 지원시스템 (E-WIL)' with public notices. robots.txt returned 404 during review. The page states service use requires login and login buttons route to portal/login areas; do not collect authenticated student/professor, institution, or support-center content. Collection scope is limited to the public index.do landing page text, no stored auth state, no broader crawling, no scheduled crawling, and low concurrency."
+    next_action: Use only the public index.do landing page as source evidence; keep login-only service areas out of ingestion unless separate explicit approval and secret-handling records are added.
+
+  - source_id: ewil-notice-board
+    canonical_url: https://e-wil.hanyang.ac.kr/data/list.do?type=NOTICE
+    source_name: E-WIL 공지사항
+    source_type: board
+    content_type: html
+    category: ERICA 현장실습 지원 시스템 > 공지사항/인턴공고
+    approval_scope: seed_urls_only
+    approval_basis: user_assertion
+    approval_status: pending_review
+    auth_required: true
+    auth_mode: user_manual_login_nonpersistent
+    review_status: reviewed
+    allowed_collection_method: approved_user_manual_login_session
+    checklist_reference: source-access-review.md#ewil-internship-system-authenticated-manual-session-scope
+    robots_status: unreachable
+    tos_status: not_reviewed
+    rate_limit_posture: moderate_1_2s_low_concurrency
+    refresh_cadence: daily_when_approved
+    owner_label: 한양대학교 ERICA 현장실습지원센터
+    last_checked_at: "2026-05-17T00:00:00Z"
+    scheduled_crawling_enabled: false
+    notes: "User explicitly approved E-WIL authenticated manual-session collection on 2026-05-17. Scope is limited to the exact NOTICE list URL and same-host detail pages discovered from that approved list. The user must operate login manually in a fresh non-persistent Playwright browser. No credential entry by script, cookies, localStorage, storageState files, HAR, traces, screenshots, broad crawling, off-host requests, or scheduled crawling are allowed."
+    next_action: Use only the headed manual-session collector for this exact E-WIL board URL; keep scheduled crawling disabled and preserve citation/freshness/deadline metadata.
+
+  - source_id: ewil-info-board
+    canonical_url: https://e-wil.hanyang.ac.kr/data/list.do?type=INFO
+    source_name: E-WIL 설명회
+    source_type: board
+    content_type: html
+    category: ERICA 현장실습 지원 시스템 > 설명회
+    approval_scope: seed_urls_only
+    approval_basis: user_assertion
+    approval_status: pending_review
+    auth_required: true
+    auth_mode: user_manual_login_nonpersistent
+    review_status: reviewed
+    allowed_collection_method: approved_user_manual_login_session
+    checklist_reference: source-access-review.md#ewil-internship-system-authenticated-manual-session-scope
+    robots_status: unreachable
+    tos_status: not_reviewed
+    rate_limit_posture: moderate_1_2s_low_concurrency
+    refresh_cadence: daily_when_approved
+    owner_label: 한양대학교 ERICA 현장실습지원센터
+    last_checked_at: "2026-05-17T00:00:00Z"
+    scheduled_crawling_enabled: false
+    notes: "User explicitly approved E-WIL authenticated manual-session collection on 2026-05-17. Scope is limited to the exact INFO list URL and same-host detail pages discovered from that approved list. The user must operate login manually in a fresh non-persistent Playwright browser. No credential entry by script, cookies, localStorage, storageState files, HAR, traces, screenshots, broad crawling, off-host requests, or scheduled crawling are allowed."
+    next_action: Use only the headed manual-session collector for this exact E-WIL board URL; keep scheduled crawling disabled and preserve citation/freshness/deadline metadata.
+
+  - source_id: ewil-internship-reviews
+    canonical_url: https://e-wil.hanyang.ac.kr/internphoto/compList.do
+    source_name: E-WIL 실습 후기
+    source_type: board
+    content_type: html
+    category: ERICA 현장실습 지원 시스템 > 실습 후기
+    approval_scope: seed_urls_only
+    approval_basis: user_assertion
+    approval_status: pending_review
+    auth_required: true
+    auth_mode: user_manual_login_nonpersistent
+    review_status: reviewed
+    allowed_collection_method: approved_user_manual_login_session
+    checklist_reference: source-access-review.md#ewil-internship-system-authenticated-manual-session-scope
+    robots_status: unreachable
+    tos_status: not_reviewed
+    rate_limit_posture: moderate_1_2s_low_concurrency
+    refresh_cadence: weekly_when_approved
+    owner_label: 한양대학교 ERICA 현장실습지원센터
+    last_checked_at: "2026-05-17T00:00:00Z"
+    scheduled_crawling_enabled: false
+    notes: "User explicitly approved E-WIL authenticated manual-session collection on 2026-05-17. Scope is limited to the exact internphoto company-list URL, same-host company pages discovered from that list, and same-host review detail URLs generated as /internphoto/view.do?jid_seq=<reviewId>&jim_seq=<companyId>. The user must operate login manually in a fresh non-persistent Playwright browser. No credential entry by script, cookies, localStorage, storageState files, HAR, traces, screenshots, broad crawling, off-host requests, or scheduled crawling are allowed."
+    next_action: Use only the headed manual-session collector for this exact E-WIL review URL; keep scheduled crawling disabled and preserve citation/freshness metadata.

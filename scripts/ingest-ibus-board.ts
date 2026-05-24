@@ -22,10 +22,12 @@ const detailFixturePath = "fixtures/ingestion/ibus-detail.html";
 const sourceId = "ibus-employment-board";
 const boardUrl = "https://ibus.hanyang.ac.kr/front/recruit/r-1";
 const fixtureFetchedAt = "2026-05-03T00:00:00.000Z";
+const defaultLiveOutputDir = "data/knowledge-base/ibus-employment-board";
+const defaultFixtureOutputDir = "data/knowledge-base/fixture-ibus-board";
 
 const DEFAULT_COLLECT_MAX_PAGES = 1;
 const DEFAULT_COLLECT_DELAY_MS = 1_200;
-const MAX_COLLECT_MAX_PAGES = 5;
+const MAX_COLLECT_MAX_PAGES = 20;
 const MIN_COLLECT_DELAY_MS = 1_200;
 
 type CliArgs = {
@@ -84,7 +86,7 @@ async function runSingleSampleCollection(
 			});
 	const [selectedEntry] = parseIbusListingPage(listingHtml, boardUrl);
 	if (!selectedEntry) {
-		throw new Error("No ibus listing entries found for sample ingestion");
+		throw new Error("No ibus listing entries found for board ingestion");
 	}
 
 	const detailHtml = args.fixture
@@ -110,15 +112,15 @@ async function runSingleSampleCollection(
 		outputDir: args.output,
 		manifest: {
 			run_id: args.fixture
-				? "fixture-ibus-sample"
-				: `live-ibus-r1-sample-${fetchedAt}`,
+				? "fixture-ibus-board"
+				: `live-ibus-r1-board-${fetchedAt}`,
 			generated_at: fetchedAt,
 			source_ids: [sourceId],
 		},
 	});
 
 	console.log(
-		`ibus sample ingestion wrote ${manifest.record_count} records and ${manifest.chunk_count} chunks to ${args.output}`,
+		`ibus board ingestion wrote ${manifest.record_count} records and ${manifest.chunk_count} chunks to ${args.output}`,
 	);
 }
 
@@ -217,7 +219,7 @@ async function runBoundedMultiPageCollection(
 
 function parseArgs(argv: readonly string[]): CliArgs {
 	let fixture = false;
-	let output = "data/knowledge-base/fixture-ibus";
+	let output: string | undefined;
 	let maxPages: number | undefined;
 	let delayMs: number | undefined;
 
@@ -259,7 +261,7 @@ function parseArgs(argv: readonly string[]): CliArgs {
 
 	return {
 		fixture,
-		output,
+		output: output ?? (fixture ? defaultFixtureOutputDir : defaultLiveOutputDir),
 		max_pages:
 			maxPages ?? readEnvInt("COLLECT_MAX_PAGES", DEFAULT_COLLECT_MAX_PAGES),
 		delay_ms:

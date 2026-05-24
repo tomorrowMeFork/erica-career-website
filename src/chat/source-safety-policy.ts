@@ -195,8 +195,16 @@ function isUnsafeMarkdownUrl(value: string): boolean {
     const parsedUrl = new URL(value);
     return (parsedUrl.protocol !== "https:" && parsedUrl.protocol !== "http:") || parsedUrl.username.length > 0 || parsedUrl.password.length > 0;
   } catch (_error) {
-    return value.startsWith("//") || value.includes("\\") || /[\u0000-\u001F\u007F]/u.test(value);
+    return value.startsWith("//") || value.includes("\\") || hasControlCharacter(value);
   }
+}
+
+function hasControlCharacter(value: string): boolean {
+  for (let index = 0; index < value.length; index += 1) {
+    const code = value.charCodeAt(index);
+    if (code <= 31 || code === 127) return true;
+  }
+  return false;
 }
 
 function validateCitationAnchors(anchors: readonly CitationAnchor[]): "valid" | "empty" | "invalid" {

@@ -21,13 +21,19 @@ export const SourceRecordSchema = z.object({
 		"blocked",
 	]),
 	auth_required: z.boolean(),
-	auth_mode: z.enum(["none", "env_credentials", "unknown"]),
+	auth_mode: z.enum([
+		"none",
+		"env_credentials",
+		"user_manual_login_nonpersistent",
+		"unknown",
+	]),
 	review_status: z.enum(["pending", "reviewed", "blocked"]),
 	allowed_collection_method: z.enum([
 		"none_until_review",
 		"manual_discovery_only",
 		"approved_bounded_browser_discovery",
 		"approved_manual_download",
+		"approved_user_manual_login_session",
 	]),
 	checklist_reference: z.string().min(1),
 	robots_status: z.enum([

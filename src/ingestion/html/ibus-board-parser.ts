@@ -1,4 +1,5 @@
 import * as cheerio from "cheerio";
+import type { KBTaxonomyMetadata } from "../../knowledge-base/taxonomy.js";
 import type { IngestionAccessDecision } from "../access-gate.js";
 import { buildRecordId, sha256 } from "../chunking.js";
 import { classifyDeadlineStatus } from "../deadline-status.js";
@@ -39,6 +40,11 @@ export type BuildIbusNormalizedRecordsInput = {
 const IBUS_SOURCE_ID = "ibus-employment-board";
 const IBUS_SOURCE_NAME = "경상대학 취업정보 게시판";
 const IBUS_CATEGORY = "ERICA 경상대학 취업정보";
+const IBUS_TAXONOMY = {
+	collection_category: "job_posting",
+	source_family: "ibus",
+	category_label_ko: "채용공고",
+} as const satisfies KBTaxonomyMetadata;
 const IBUS_BOARD_URL = "https://ibus.hanyang.ac.kr/front/recruit/r-1";
 const IBUS_HOST = "ibus.hanyang.ac.kr";
 
@@ -179,6 +185,7 @@ export function buildIbusNormalizedRecords(
 			canonical_url: detail.canonical_url,
 			title,
 			category: IBUS_CATEGORY,
+			...IBUS_TAXONOMY,
 			fetched_at: fetchedAt,
 			posted_at: postedAt,
 			deadline_status: detail.deadline_status,

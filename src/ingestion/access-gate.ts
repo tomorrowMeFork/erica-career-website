@@ -2,7 +2,11 @@ import { readFileSync } from "node:fs";
 import { parse } from "yaml";
 import { SourceRegistrySchema, type SourceRecord, type SourceRegistry } from "../source-governance/source-registry.schema.js";
 
-export type IngestionCollectionMethod = "public_html" | "manual_pdf_download" | "structure_observation_only";
+export type IngestionCollectionMethod =
+  | "public_html"
+  | "manual_pdf_download"
+  | "manual_login_session"
+  | "structure_observation_only";
 
 export type IngestionAccessDecision = {
   source_id: string;
@@ -34,6 +38,10 @@ function methodForSource(source: IngestionAccessSource, requestedMethod: Ingesti
 function requiredRegistryMethod(requestedMethod: IngestionCollectionMethod): SourceRecord["allowed_collection_method"] {
   if (requestedMethod === "manual_pdf_download") {
     return "approved_manual_download";
+  }
+
+  if (requestedMethod === "manual_login_session") {
+    return "approved_user_manual_login_session";
   }
 
   if (requestedMethod === "structure_observation_only") {
@@ -114,6 +122,14 @@ export function evaluateIngestionAccess(
 
   if (requestedMethod === "manual_pdf_download" && source.content_type !== "pdf") {
     reasons.push(`requested method mismatch: manual_pdf_download cannot collect ${source.content_type}`);
+  }
+
+  if (requestedMethod === "manual_login_session" && source.content_type !== "html") {
+    reasons.push(`requested method mismatch: manual_login_session cannot collect ${source.content_type}`);
+  }
+
+  if (requestedMethod === "manual_login_session" && source.auth_mode !== "user_manual_login_nonpersistent") {
+    reasons.push("manual_login_session requires auth_mode user_manual_login_nonpersistent");
   }
 
   if (requestedMethod === "structure_observation_only" && !observationOnlySourceTypes.has(source.source_type)) {

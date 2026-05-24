@@ -15,4 +15,6 @@ https://cdp.hanyang.ac.kr/office/%EB%A7%A4%EB%89%B4%EC%96%BC_%ED%95%99%EC%83%9D.
 https://ibus.hanyang.ac.kr/front/recruit/r-1
 경상대학 취업정보 게시판
 
+https://e-wil.hanyang.ac.kr/index.do
+현장실습 지원 시스템
 

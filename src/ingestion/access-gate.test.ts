@@ -100,6 +100,20 @@ describe("evaluateIngestionAccess", () => {
       }),
     ],
     [
+      "cdp-recruit-general-board",
+      "manual_login_session",
+      reviewedSource({
+        source_id: "cdp-recruit-general-board",
+        canonical_url: "https://cdp.hanyang.ac.kr/Career/Job/RecruitList.aspx",
+        source_name: "CDP 일반채용공고",
+        source_type: "board",
+        content_type: "html",
+        auth_required: true,
+        auth_mode: "user_manual_login_nonpersistent",
+        allowed_collection_method: "approved_user_manual_login_session",
+      }),
+    ],
+    [
       "cdp-student-guide-pdf",
       "manual_pdf_download",
       reviewedSource({
@@ -142,21 +156,30 @@ describe("source registry gate coverage", () => {
     { source_id: "cdp-root", method: "public_html" as IngestionCollectionMethod },
     { source_id: "cdp-career-category-discovery", method: "public_html" as IngestionCollectionMethod },
     { source_id: "cdp-recruit-category-discovery", method: "public_html" as IngestionCollectionMethod },
+    { source_id: "cdp-recruit-general-board", method: "manual_login_session" as IngestionCollectionMethod },
+    { source_id: "cdp-recruit-event-board", method: "manual_login_session" as IngestionCollectionMethod },
     { source_id: "book-success-story-viewer", method: "public_html" as IngestionCollectionMethod },
     { source_id: "ibus-employment-board", method: "public_html" as IngestionCollectionMethod },
     { source_id: "cdp-student-guide-pdf", method: "manual_pdf_download" as IngestionCollectionMethod },
+    { source_id: "ewil-internship-system", method: "public_html" as IngestionCollectionMethod },
+    { source_id: "ewil-notice-board", method: "manual_login_session" as IngestionCollectionMethod },
+    { source_id: "ewil-info-board", method: "manual_login_session" as IngestionCollectionMethod },
+    { source_id: "ewil-internship-reviews", method: "manual_login_session" as IngestionCollectionMethod },
   ];
 
   it.each(approvedSourceIds)("allows approved source $source_id for $method collection", ({ source_id, method }) => {
     const source = registry.sources.find((candidate) => candidate.source_id === source_id);
     expect(source).toBeDefined();
+    if (source === undefined) {
+      throw new Error(`Missing registry source ${source_id}`);
+    }
 
-    const decision = evaluateIngestionAccess(source!, method);
+    const decision = evaluateIngestionAccess(source, method);
     expect(decision.status).toBe("allowed");
     expect(decision.reasons).toEqual([]);
   });
 
-  it("ensures all six registry sources have scheduled_crawling_enabled false", () => {
+  it("ensures all registry sources have scheduled_crawling_enabled false", () => {
     for (const source of registry.sources) {
       expect(source.scheduled_crawling_enabled).toBe(false);
     }

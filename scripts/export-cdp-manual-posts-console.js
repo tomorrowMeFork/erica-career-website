@@ -6,9 +6,9 @@
   const allowedBoards = ["채용상담 및 설명회", "일반채용공고"];
   const defaultFetchDelayMs = 1200;
   const detailPathPattern =
-    /(?:\/Career\/Job\/[A-Za-z0-9]*View\d*\.aspx|\/Office\/SiteMgr\/Notice\/FuncScheView\.aspx)$/u;
+    /(?:\/Career\/Job\/RecruitView\d*\.aspx|\/Recruit\/RecruitView\.aspx|\/Office\/SiteMgr\/Notice\/FuncScheView\.aspx)$/u;
   const listPathPattern =
-    /(?:\/Career\/Job\/(?:RecruitList\d*|AlbaList|RecruitEvent)\.aspx|\/Office\/SiteMgr\/Notice\/FuncScheList\.aspx|\/Community\/Notice\/RecruitEvent\.aspx)$/u;
+    /(?:\/Career\/Job\/RecruitList\d*\.aspx|\/Community\/Notice\/RecruitEvent\.aspx)$/u;
 
   if (window.location.hostname !== allowedHost) {
     throw new Error(`CDP export script must run on ${allowedHost}.`);
@@ -35,19 +35,48 @@
       }
       url.username = "";
       url.password = "";
+      if (hasCredentialLikeSearchParam(url)) {
+        return null;
+      }
       return url.toString();
     } catch (_error) {
       return null;
     }
   };
 
+  const hasCredentialLikeSearchParam = (url) =>
+    Array.from(url.searchParams.keys()).some((key) =>
+      /token|password|passwd|session|jsessionid|authorization|auth/iu.test(key),
+    );
+
   const toCdpDetailUrl = (href) => {
     const url = sanitizeCdpUrl(href);
     if (!url) {
       return null;
     }
-    return detailPathPattern.test(new URL(url).pathname) ? url : null;
+    const parsedUrl = new URL(url);
+    return detailPathPattern.test(parsedUrl.pathname) &&
+      hasValidDetailIdentifier(parsedUrl)
+      ? url
+      : null;
   };
+
+  const hasValidDetailIdentifier = (url) => {
+    const pathname = url.pathname.toLowerCase();
+    if (/^\/career\/job\/recruitview\d*\.aspx$/u.test(pathname)) {
+      return hasNumericSearchParam(url, ["idx", "seq", "id"]);
+    }
+    if (pathname === "/recruit/recruitview.aspx") {
+      return /^[A-Fa-f0-9]{24,}$/u.test(url.searchParams.get("rcdx") ?? "");
+    }
+    if (pathname === "/office/sitemgr/notice/funcscheview.aspx") {
+      return hasNumericSearchParam(url, ["funcidx"]);
+    }
+    return false;
+  };
+
+  const hasNumericSearchParam = (url, keys) =>
+    keys.some((key) => /^\d+$/u.test(url.searchParams.get(key) ?? ""));
 
   const toCdpListUrl = (href) => {
     const url = sanitizeCdpUrl(href);
@@ -57,8 +86,24 @@
     return listPathPattern.test(new URL(url).pathname) ? url : null;
   };
 
+  if (!toCdpListUrl(window.location.href)) {
+    throw new Error(
+      "CDP export script must start from an approved CDP board list URL: /Career/Job/RecruitList.aspx or /Community/Notice/RecruitEvent.aspx.",
+    );
+  }
+
+  const stripExternalAbsoluteUrls = (scriptText, baseUrl) =>
+    (scriptText ?? "").replace(/https?:\/\/[^'"\s)]+/giu, (candidate) => {
+      const sanitized = sanitizeCdpUrl(candidate);
+      if (!sanitized) {
+        return "";
+      }
+      const url = new URL(sanitized, baseUrl);
+      return `${url.pathname}${url.search}`;
+    });
+
   const listUrlFromScriptText = (scriptText, baseUrl) => {
-    const text = scriptText ?? "";
+    const text = stripExternalAbsoluteUrls(scriptText, baseUrl);
     const hcSubmit = text.match(
       /hcSubmit\s*\(\s*['"]([^'"]+\.aspx\?[^'"]*)['"]/iu,
     );
@@ -112,9 +157,9 @@
   };
 
   const detailUrlFromScriptText = (scriptText, baseUrl) => {
-    const text = scriptText ?? "";
+    const text = stripExternalAbsoluteUrls(scriptText, baseUrl);
     const directPath = text.match(
-      /(?:https?:\/\/cdp\.hanyang\.ac\.kr)?(\/(?:Career\/Job\/[A-Za-z0-9]*View\d*|Office\/SiteMgr\/Notice\/FuncScheView)\.aspx\?[^'"\s)]+)/u,
+      /(?:https?:\/\/cdp\.hanyang\.ac\.kr)?(\/(?:Career\/Job\/RecruitView\d*|Recruit\/RecruitView|Office\/SiteMgr\/Notice\/FuncScheView)\.aspx\?[^'"\s)]+)/u,
     );
     if (directPath) {
       return toCdpDetailUrl(directPath[0]);
@@ -769,7 +814,7 @@
     );
 
   const extractVisiblePagePost = (board, exportedAt) => {
-    const currentUrl = sanitizeCdpUrl(window.location.href);
+    const currentUrl = toCdpDetailUrl(window.location.href);
     if (!currentUrl) {
       return null;
     }

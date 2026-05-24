@@ -8,6 +8,14 @@ const discoveryNotesPath = ".planning/phases/01-source-discovery-and-governance/
 const discoveryHelperPath = "scripts/discover-cdp-seed-scope.ts";
 
 const failures: string[] = [];
+const requiredSeedSourceIds = [
+  "cdp-root",
+  "cdp-career-category-discovery",
+  "cdp-recruit-category-discovery",
+  "book-success-story-viewer",
+  "cdp-student-guide-pdf",
+  "ibus-employment-board",
+] as const;
 
 function readExistingFile(path: string): string | undefined {
   if (!existsSync(path)) {
@@ -41,8 +49,15 @@ function verifyRegistry(): void {
   }
 
   const registry: SourceRegistry = validationResult.data;
-  if (registry.sources.length !== 6) {
-    failures.push(`source-registry.yaml must contain exactly six records; found ${registry.sources.length}`);
+  if (registry.sources.length < requiredSeedSourceIds.length) {
+    failures.push(`source-registry.yaml must contain at least ${requiredSeedSourceIds.length} records; found ${registry.sources.length}`);
+  }
+
+  const sourceIds = new Set(registry.sources.map((source) => source.source_id));
+  for (const sourceId of requiredSeedSourceIds) {
+    if (!sourceIds.has(sourceId)) {
+      failures.push(`source-registry.yaml is missing required seed source: ${sourceId}`);
+    }
   }
 
   registry.sources.forEach((source) => {

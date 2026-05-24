@@ -59,4 +59,17 @@ describe("Phase 6 reference QA dataset", () => {
     expect(hostile?.required_answer_checks).toEqual(expect.arrayContaining(["hostile_source_contained", "no_official_endorsement", "no_guaranteed_outcome"]));
     expect(hostile?.synthetic_hostile_metadata?.chunk_id).toBe("phase6-hostile-source-injection");
   });
+
+  it("locks taxonomy-filtered release regression cases", () => {
+    const filteredCases = PHASE6_REFERENCE_QA_CASES.filter((qaCase) => qaCase.expected_retrieval.filters !== undefined);
+
+    expect(filteredCases.map((qaCase) => qaCase.id).sort()).toEqual([
+      "phase6-taxonomy-career-review-filter",
+      "phase6-taxonomy-filter-no-evidence",
+      "phase6-taxonomy-job-posting-filter",
+    ]);
+    expect(filteredCases.find((qaCase) => qaCase.id === "phase6-taxonomy-career-review-filter")?.expected_retrieval.filters).toMatchObject({ collection_categories: ["career_review"] });
+    expect(filteredCases.find((qaCase) => qaCase.id === "phase6-taxonomy-job-posting-filter")?.expected_retrieval.filters).toMatchObject({ collection_categories: ["job_posting"] });
+    expect(filteredCases.find((qaCase) => qaCase.id === "phase6-taxonomy-filter-no-evidence")?.expected_answer.refusal_tier).toBe("hard_refuse");
+  });
 });

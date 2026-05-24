@@ -1,9 +1,14 @@
 import * as cheerio from "cheerio";
 import { chromium, type BrowserContext, type Page } from "playwright";
-import { assertCanIngestSource, loadSourceRegistryForIngestion, type IngestionAccessDecision } from "../src/ingestion/access-gate.js";
+import {
+  assertCanIngestSource,
+  loadSourceRegistryForIngestion,
+  type IngestionAccessDecision,
+} from "../src/ingestion/access-gate.js";
 import { buildRecordId, chunkNormalizedRecord, sha256 } from "../src/ingestion/chunking.js";
 import { NormalizedRecordSchema, type NormalizedRecord } from "../src/ingestion/normalized-record.js";
 import { writeKnowledgeBaseJsonl } from "../src/ingestion/write-jsonl-kb.js";
+import type { KBTaxonomyMetadata } from "../src/knowledge-base/taxonomy.js";
 import type { SourceRecord } from "../src/source-governance/source-registry.schema.js";
 
 const registryPath = ".planning/phases/01-source-discovery-and-governance/source-registry.yaml";
@@ -106,6 +111,7 @@ function buildHtmlRecord(source: SourceRecord, decision: IngestionAccessDecision
     canonical_url: decision.observed_url,
     title,
     category: source.category,
+    ...taxonomyForPlaywrightSource(source.source_id),
     fetched_at: fetchedAt,
     posted_at: null,
     deadline_status: "unknown",
@@ -116,6 +122,21 @@ function buildHtmlRecord(source: SourceRecord, decision: IngestionAccessDecision
     citation_anchors: [{ url: decision.observed_url, label: `공식 출처: ${source.source_name}` }],
     source_text_trust: "untrusted_source_text",
   });
+}
+
+function taxonomyForPlaywrightSource(sourceId: string): KBTaxonomyMetadata {
+  if (sourceId === "book-success-story-viewer") {
+    return {
+      collection_category: "career_review",
+      source_family: "book",
+      category_label_ko: "취업후기",
+    };
+  }
+  return {
+    collection_category: "source_discovery",
+    source_family: "cdp",
+    category_label_ko: "출처 탐색",
+  };
 }
 
 function cleanInlineText(value: string): string {

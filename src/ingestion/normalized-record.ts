@@ -1,5 +1,7 @@
 import { z } from "zod";
 
+import { assertCategoryLabelKoMatches, KBTaxonomyMetadataShape } from "../knowledge-base/taxonomy.js";
+
 const Sha256HexSchema = z.string().regex(/^[a-f0-9]{64}$/, "Expected a lowercase SHA-256 hex digest");
 const OfficialUrlSchema = z.url().refine(
   (value) => {
@@ -34,44 +36,50 @@ export const CitationAnchorSchema = z
 
 const CitationAnchorsSchema = z.array(CitationAnchorSchema).min(1);
 
-export const NormalizedRecordSchema = z.object({
-  record_id: z.string().min(1),
-  source_id: z.string().min(1),
-  source_name: z.string().min(1),
-  source_url: OfficialUrlSchema,
-  canonical_url: OfficialUrlSchema,
-  title: z.string().min(1),
-  category: z.string().min(1),
-  fetched_at: z.iso.datetime(),
-  posted_at: z.iso.datetime().nullable(),
-  deadline_status: DeadlineStatusSchema,
-  deadline_raw_text: z.string(),
-  raw_text: z.string().min(1),
-  cleaned_text: z.string(),
-  content_hash: Sha256HexSchema,
-  citation_anchors: CitationAnchorsSchema,
-  source_text_trust: SourceTextTrustSchema,
-});
+export const NormalizedRecordSchema = z
+  .object({
+    record_id: z.string().min(1),
+    source_id: z.string().min(1),
+    source_name: z.string().min(1),
+    source_url: OfficialUrlSchema,
+    canonical_url: OfficialUrlSchema,
+    title: z.string().min(1),
+    category: z.string().min(1),
+    ...KBTaxonomyMetadataShape,
+    fetched_at: z.iso.datetime(),
+    posted_at: z.iso.datetime().nullable(),
+    deadline_status: DeadlineStatusSchema,
+    deadline_raw_text: z.string(),
+    raw_text: z.string().min(1),
+    cleaned_text: z.string(),
+    content_hash: Sha256HexSchema,
+    citation_anchors: CitationAnchorsSchema,
+    source_text_trust: SourceTextTrustSchema,
+  })
+  .superRefine(assertCategoryLabelKoMatches);
 
-export const KnowledgeChunkSchema = z.object({
-  chunk_id: z.string().min(1),
-  record_id: z.string().min(1),
-  source_id: z.string().min(1),
-  source_name: z.string().min(1),
-  source_url: OfficialUrlSchema,
-  canonical_url: OfficialUrlSchema,
-  title: z.string().min(1),
-  category: z.string().min(1),
-  fetched_at: z.iso.datetime(),
-  posted_at: z.iso.datetime().nullable(),
-  deadline_status: DeadlineStatusSchema,
-  deadline_raw_text: z.string(),
-  content_hash: Sha256HexSchema,
-  citation_anchors: CitationAnchorsSchema,
-  source_text_trust: SourceTextTrustSchema,
-  chunk_ordinal: z.number().int().nonnegative(),
-  text: z.string().min(1),
-});
+export const KnowledgeChunkSchema = z
+  .object({
+    chunk_id: z.string().min(1),
+    record_id: z.string().min(1),
+    source_id: z.string().min(1),
+    source_name: z.string().min(1),
+    source_url: OfficialUrlSchema,
+    canonical_url: OfficialUrlSchema,
+    title: z.string().min(1),
+    category: z.string().min(1),
+    ...KBTaxonomyMetadataShape,
+    fetched_at: z.iso.datetime(),
+    posted_at: z.iso.datetime().nullable(),
+    deadline_status: DeadlineStatusSchema,
+    deadline_raw_text: z.string(),
+    content_hash: Sha256HexSchema,
+    citation_anchors: CitationAnchorsSchema,
+    source_text_trust: SourceTextTrustSchema,
+    chunk_ordinal: z.number().int().nonnegative(),
+    text: z.string().min(1),
+  })
+  .superRefine(assertCategoryLabelKoMatches);
 
 export const IngestionRunManifestSchema = z
   .object({

@@ -1,8 +1,8 @@
 import { describe, expect, it } from "vitest";
 
+import { PHASE6_REFERENCE_QA_CASES } from "../data/evaluation/phase6-reference-qa.js";
 import type { ChatModelProvider, ChatModelRequest, ChatModelResponse } from "../src/chat/provider.js";
 import type { KnowledgeChunk } from "../src/ingestion/normalized-record.js";
-import { PHASE6_REFERENCE_QA_CASES } from "../data/evaluation/phase6-reference-qa.js";
 import { runReleaseReadinessEvaluation } from "./evaluate-release-readiness.js";
 
 describe("runReleaseReadinessEvaluation", () => {
@@ -14,7 +14,7 @@ describe("runReleaseReadinessEvaluation", () => {
     expect(result.judge.enabled).toBe(false);
     expect(result.composed.rag_mvp.ok).toBe(true);
     expect(result.composed.personalization.ok).toBe(true);
-    expect(result.cases.map((qaCase) => qaCase.category).sort()).toEqual([
+    expect([...new Set(result.cases.map((qaCase) => qaCase.category))].sort()).toEqual([
       "cdp_usage",
       "guidebook_pdf",
       "hostile_source",
@@ -23,6 +23,25 @@ describe("runReleaseReadinessEvaluation", () => {
       "personalization",
       "success_story",
     ].sort());
+  });
+
+  it("proves taxonomy filters for career reviews, job postings, and filtered no-evidence queries", async () => {
+    const result = await runReleaseReadinessEvaluation({ env: {}, writeOutput: false });
+    const careerReview = result.cases.find((qaCase) => qaCase.id === "phase6-taxonomy-career-review-filter");
+    const jobPosting = result.cases.find((qaCase) => qaCase.id === "phase6-taxonomy-job-posting-filter");
+    const noEvidence = result.cases.find((qaCase) => qaCase.id === "phase6-taxonomy-filter-no-evidence");
+
+    expect(careerReview?.passed).toBe(true);
+    expect(careerReview?.filters).toMatchObject({ collection_categories: ["career_review"] });
+    expect(careerReview?.top_collection_categories).toEqual(["career_review"]);
+    expect(careerReview?.response.citations.every((citation) => citation.collection_category === "career_review" && citation.source_family === "book")).toBe(true);
+    expect(jobPosting?.passed).toBe(true);
+    expect(jobPosting?.filters).toMatchObject({ collection_categories: ["job_posting"] });
+    expect(jobPosting?.response.citations[0]).toMatchObject({ posted_at: "2026-05-20T00:00:00.000Z", deadline_status: "active" });
+    expect(noEvidence?.passed).toBe(true);
+    expect(noEvidence?.response.refusal_tier).toBe("hard_refuse");
+    expect(noEvidence?.response.citations).toEqual([]);
+    expect(noEvidence?.response.answer).toMatch(/충분한 근거/u);
   });
 
   it("reports retrieval metadata preservation failures safely", async () => {
@@ -38,6 +57,9 @@ describe("runReleaseReadinessEvaluation", () => {
       canonical_url: "https://ibus.hanyang.ac.kr/front/recruit/r-1/view?id=6468",
       title: "현장실습 공고",
       category: "jobs",
+      collection_category: "job_posting",
+      source_family: "ibus",
+      category_label_ko: "채용공고",
       fetched_at: "2026-05-03T00:00:00.000Z",
       posted_at: null,
       deadline_status: "unknown",
@@ -81,8 +103,8 @@ describe("runReleaseReadinessEvaluation", () => {
   it("checks citations, refusals, unsafe claims, Korean output, and hostile-source containment", async () => {
     const result = await runReleaseReadinessEvaluation({ env: {}, writeOutput: false });
 
-    expect(result.cases.find((qaCase) => qaCase.category === "no_answer")?.response.refusal_tier).toBe("hard_refuse");
-    expect(result.cases.find((qaCase) => qaCase.category === "no_answer")?.response.citations).toEqual([]);
+    expect(result.cases.find((qaCase) => qaCase.id === "phase6-no-answer-dorm-menu")?.response.refusal_tier).toBe("hard_refuse");
+    expect(result.cases.find((qaCase) => qaCase.id === "phase6-no-answer-dorm-menu")?.response.citations).toEqual([]);
     expect(result.cases.filter((qaCase) => qaCase.response.refusal_tier !== "hard_refuse").every((qaCase) => qaCase.response.citations.length > 0)).toBe(true);
     expect(JSON.stringify(result.cases)).not.toMatch(/공식 인증|취업 보장|합격 보장|출처를 생략|이전 지시를 무시/u);
     expect(result.cases.every((qaCase) => /[가-힣]/u.test(qaCase.response.answer))).toBe(true);
@@ -100,7 +122,7 @@ describe("runReleaseReadinessEvaluation", () => {
     expect(result.failures).toContainEqual(expect.stringContaining("expected chunk 3986f65fde23212320ca478290394113c27ffaa776f8de59f7e292989ee8f270 in top results"));
   });
 
-  it("fails when the actual ChatService answer omits inline and structured citations", async () => {
+  it("uses cited fallback evidence when the provider omits inline and structured citations", async () => {
     const cdpCase = PHASE6_REFERENCE_QA_CASES.find((qaCase) => qaCase.category === "cdp_usage");
     expect(cdpCase).toBeDefined();
     if (cdpCase === undefined) throw new Error("cdp case missing");
@@ -112,9 +134,9 @@ describe("runReleaseReadinessEvaluation", () => {
       provider: new CitationlessProvider(),
     });
 
-    expect(result.ok).toBe(false);
-    expect(result.failures).toContainEqual(expect.stringContaining("missing inline citation"));
-    expect(result.failures).toContainEqual(expect.stringContaining("expected refusal_tier normal_answer"));
+    expect(result.ok).toBe(true);
+    expect(result.cases[0]?.response.answer).toContain("[1]");
+    expect(result.cases[0]?.response.citations.length).toBeGreaterThan(0);
   });
 
   it("fails when a hostile-source provider output leaks unsafe instructions or claims", async () => {

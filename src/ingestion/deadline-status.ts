@@ -21,7 +21,7 @@ const shortDeadlinePattern = new RegExp(
 const closedPattern =
 	/(?<!일)(?:접수\s*)?마감(?:됨|완료)?(?!\s*(?:일|기한|기간))/u;
 const labelledFullDatePattern = new RegExp(
-	`(?:마감(?:일)?|접수\\s*(?:기한|마감)|일시)\\s*[:：]?\\s*(?:20\\d{2})[.\\-/년]\\s*(?:0?[1-9]|1[0-2])[.\\-/월]\\s*${dayPattern}(?:일)?`,
+	`(?:(?:~\\s*|마감(?:일)?\\s*[:：]?\\s*|접수\\s*(?:기한|마감)\\s*[:：]?\\s*|일시\\s*[:：]?\\s*)(?:20\\d{2})[.\\-/년]\\s*(?:0?[1-9]|1[0-2])[.\\-/월]\\s*${dayPattern}(?:일)?|(?:20\\d{2})[.\\-/년]\\s*(?:0?[1-9]|1[0-2])[.\\-/월]\\s*${dayPattern}(?:일)?\\s*마감)`,
 	"u",
 );
 const ambiguousMonthDayPattern = new RegExp(
@@ -72,14 +72,6 @@ export function classifyDeadlineStatus(
 		});
 	}
 
-	const closedMatch = normalizedText.match(closedPattern);
-	if (closedMatch?.[0]) {
-		return ClassifiedDeadlineStatusSchema.parse({
-			status: "expired",
-			deadline_raw_text: closedMatch[0].replace(/\s+/gu, " ").trim(),
-		});
-	}
-
 	const fullDateMatch = normalizedText.match(labelledFullDatePattern);
 	if (fullDateMatch?.[0]) {
 		const deadlineDate = normalizeFullDate(fullDateMatch[0]);
@@ -97,6 +89,14 @@ export function classifyDeadlineStatus(
 		});
 	}
 
+	const closedMatch = normalizedText.match(closedPattern);
+	if (closedMatch?.[0]) {
+		return ClassifiedDeadlineStatusSchema.parse({
+			status: "expired",
+			deadline_raw_text: closedMatch[0].replace(/\s+/gu, " ").trim(),
+		});
+	}
+
 	const ambiguousMonthDayMatch = normalizedText.match(ambiguousMonthDayPattern);
 	if (ambiguousMonthDayMatch?.[0]) {
 		return ClassifiedDeadlineStatusSchema.parse({
@@ -106,6 +106,18 @@ export function classifyDeadlineStatus(
 	}
 
 	return { status: "unknown" };
+}
+
+export function resolveEffectiveDeadlineStatus(input: {
+	deadline_raw_text: string;
+	deadline_status: "active" | "expired" | "unknown";
+	referenceDate?: Date;
+}): "active" | "expired" | "unknown" {
+	const classified = classifyDeadlineStatus(
+		input.deadline_raw_text,
+		input.referenceDate ?? new Date(),
+	);
+	return classified.status === "unknown" ? input.deadline_status : classified.status;
 }
 
 function normalizeFullDate(rawDate: string): string | undefined {

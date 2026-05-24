@@ -1,18 +1,20 @@
 import { randomUUID } from "node:crypto";
 import type { z } from "zod";
 
+import { extractRetrieveFilters } from "../chat/chat-contract.js";
+import type { CollectionCategory } from "../knowledge-base/taxonomy.js";
 import type { PreferenceProfile, PreferenceState } from "../personalization/preference-contract.js";
 import type { PreferenceService } from "../personalization/preference-service.js";
-import type { Retriever } from "../retrieval/retriever.js";
+import { MAX_RETRIEVE_TOP_K, type Retriever } from "../retrieval/retriever.js";
 import { buildMatchReasons, validateRecommendationReasons } from "./match-reasons.js";
+import { rankRecommendationCandidates } from "./ranking.js";
 import {
-  RecommendationRequestSchema,
-  RecommendationResponseSchema,
   type RecommendationItem,
   type RecommendationRequest,
+  RecommendationRequestSchema,
   type RecommendationResponse,
+  RecommendationResponseSchema,
 } from "./recommendation-contract.js";
-import { rankRecommendationCandidates } from "./ranking.js";
 
 export type RecommendationServiceInput = z.input<typeof RecommendationRequestSchema>;
 
@@ -49,7 +51,12 @@ export class RecommendationService {
     const resolvedProfile = await this.resolveProfile(request);
     const preferenceRankingEnabled = resolvedProfile.profile !== undefined;
     const retrievalQuery = preferenceRankingEnabled ? buildProfileQuery(resolvedProfile.profile, request.query) : request.query ?? NO_PREFERENCE_QUERY;
-    const candidates = await this.retriever.retrieve({ query: retrievalQuery, topK: request.limit });
+    const filters = buildRecommendationFilters(extractRetrieveFilters(request), retrievalQuery, resolvedProfile.profile);
+    const candidates = await this.retriever.retrieve({
+      query: retrievalQuery,
+      topK: recommendationCandidatePoolSize(request.limit),
+      ...(filters !== undefined ? { filters } : {}),
+    });
     const ranked = rankRecommendationCandidates({
       candidates,
       profile: resolvedProfile.profile,
@@ -86,6 +93,30 @@ export class RecommendationService {
 
     return { profileSource: "none", storageScope: "none" };
   }
+}
+
+function recommendationCandidatePoolSize(limit: number): number {
+  return Math.min(MAX_RETRIEVE_TOP_K, Math.max(limit, limit * 3));
+}
+
+function buildRecommendationFilters(filters: ReturnType<typeof extractRetrieveFilters>, query: string, profile: PreferenceProfile | undefined) {
+  if (filters?.collection_categories !== undefined && filters.collection_categories.length > 0) {
+    return filters;
+  }
+
+  const categories: CollectionCategory[] = hasInternshipSignal(query, profile)
+    ? ["job_posting", "career_program", "internship_notice"]
+    : ["job_posting", "career_program"];
+
+  return {
+    ...(filters ?? {}),
+    collection_categories: categories,
+  };
+}
+
+function hasInternshipSignal(query: string, profile: PreferenceProfile | undefined): boolean {
+  const text = [query, ...(profile?.employment_type ?? [])].join(" ").toLocaleLowerCase("ko-KR");
+  return /인턴|인턴십|현장실습|실습/u.test(text);
 }
 
 function withMatchReasons(recommendation: RecommendationItem, citationId: number, profile?: PreferenceProfile): RecommendationItem {

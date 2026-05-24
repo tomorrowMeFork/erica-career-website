@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { classifyDeadlineStatus } from "./deadline-status.js";
+import { classifyDeadlineStatus, resolveEffectiveDeadlineStatus } from "./deadline-status.js";
 
 const referenceDate = new Date("2026-05-03T00:00:00.000Z");
 
@@ -76,6 +76,27 @@ describe("classifyDeadlineStatus", () => {
 		});
 	});
 
+	it("normalizes tilde-prefixed full dates and compares them to the reference date", () => {
+		expect(classifyDeadlineStatus("~ 2026-05-31", referenceDate)).toEqual({
+			status: "active",
+			deadline_raw_text: "~ 2026-05-31",
+			deadline_date: "2026-05-31",
+		});
+		expect(classifyDeadlineStatus("~2026.04.30", referenceDate)).toEqual({
+			status: "expired",
+			deadline_raw_text: "~2026.04.30",
+			deadline_date: "2026-04-30",
+		});
+	});
+
+	it("normalizes full dates followed by a deadline label", () => {
+		expect(classifyDeadlineStatus("2026-06-01 마감", referenceDate)).toEqual({
+			status: "active",
+			deadline_raw_text: "2026-06-01 마감",
+			deadline_date: "2026-06-01",
+		});
+	});
+
 	it("does not treat generic posted dates as deadline evidence", () => {
 		expect(
 			classifyDeadlineStatus(
@@ -109,5 +130,27 @@ describe("classifyDeadlineStatus", () => {
 			deadline_raw_text: "~5/14",
 			deadline_date: "2026-05-14",
 		});
+	});
+});
+
+describe("resolveEffectiveDeadlineStatus", () => {
+	it("recomputes stored active deadlines against the current reference date", () => {
+		expect(
+			resolveEffectiveDeadlineStatus({
+				deadline_status: "active",
+				deadline_raw_text: "~5/14",
+				referenceDate: new Date("2026-05-22T00:00:00.000Z"),
+			}),
+		).toBe("expired");
+	});
+
+	it("falls back to stored status when raw deadline text has no parseable date", () => {
+		expect(
+			resolveEffectiveDeadlineStatus({
+				deadline_status: "active",
+				deadline_raw_text: "추후 공지",
+				referenceDate,
+			}),
+		).toBe("active");
 	});
 });

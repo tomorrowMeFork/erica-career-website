@@ -66,11 +66,14 @@ describe("CDP manual browser exporter pagination", () => {
 	});
 
 	it("follows hcSubmit pagination for 일반채용공고 pages", async () => {
+		const popupUrl =
+			"https://cdp.hanyang.ac.kr/Recruit/RecruitView.aspx?modalChk=Y&rcdx=AD86DBF4C11CD57F4FE7096348DB674842683ADF3BBF47840AA7B092090AA3A9913B9C1B0769E8EB";
 		const result = await runExporterFixture({
 			board: "일반채용공고",
 			startUrl: "https://cdp.hanyang.ac.kr/Career/Job/RecruitList.aspx",
 			initialHtml: listPageHtml({
 				detailHref: "/Career/Job/RecruitView.aspx?idx=1111",
+				extraBody: `<a href="${popupUrl}">팝업 공고</a>`,
 				nextOnclick:
 					"hcSubmit('/Career/Job/RecruitList.aspx?rp=2', 'Widget1_List','form1')",
 			}),
@@ -87,6 +90,7 @@ describe("CDP manual browser exporter pagination", () => {
 					"https://cdp.hanyang.ac.kr/Career/Job/RecruitView.aspx?idx=2222",
 					detailPageHtml("일반채용공고 B", "두 번째 채용공고 본문입니다."),
 				],
+				[popupUrl, detailPageHtml("팝업 채용공고", "팝업 채용공고 본문입니다.")],
 			]),
 		});
 
@@ -96,6 +100,7 @@ describe("CDP manual browser exporter pagination", () => {
 		expect(result.output.posts.map((post) => post.detail_url).sort()).toEqual([
 			"https://cdp.hanyang.ac.kr/Career/Job/RecruitView.aspx?idx=1111",
 			"https://cdp.hanyang.ac.kr/Career/Job/RecruitView.aspx?idx=2222",
+			popupUrl,
 		]);
 	});
 
@@ -130,6 +135,77 @@ describe("CDP manual browser exporter pagination", () => {
 		expect(result.fetchedUrls).toContain(
 			"https://cdp.hanyang.ac.kr/Community/Notice/RecruitEvent.aspx?rp=2",
 		);
+	});
+
+	it("rejects non-approved CDP start pages", async () => {
+		await expect(
+			runExporterFixture({
+				board: "일반채용공고",
+				startUrl: "https://cdp.hanyang.ac.kr/Main/default.aspx",
+				initialHtml: listPageHtml({
+					detailHref: "/Career/Job/RecruitView.aspx?idx=1111",
+				}),
+				fetchedHtmlByUrl: new Map(),
+			}),
+		).rejects.toThrow(/approved CDP board list URL/u);
+	});
+
+	it("skips external absolute and credential-like detail URLs", async () => {
+		const result = await runExporterFixture({
+			board: "일반채용공고",
+			startUrl: "https://cdp.hanyang.ac.kr/Career/Job/RecruitList.aspx",
+			initialHtml: `
+				<html>
+					<body>
+						<a href="/Career/Job/RecruitView.aspx?idx=1111">정상</a>
+						<a href="/Career/Job/RecruitView.aspx?idx=">빈 idx</a>
+						<a href="/Recruit/RecruitView.aspx?modalChk=Y&rcdx=">빈 rcdx</a>
+						<a href="/Recruit/RecruitView.aspx?modalChk=Y&rcdx=NOT_A_HEX_TOKEN">비정상 rcdx</a>
+						<a href="/Recruit/RecruitView.aspx?modalChk=Y&rcdx=BEEF">짧은 rcdx</a>
+						<a href="/Career/Job/RecruitView.aspx?idx=2222&token=secret">토큰</a>
+						<a href="/Career/Job/MyMapView.aspx?jojik=Y">조직도</a>
+						<button onclick="open('/Career/Job/MyMapView.aspx?jojik=Y')">조직도 스크립트</button>
+						<button onclick="open('https://example.com/Career/Job/RecruitView.aspx?idx=3333')">외부</button>
+						<button data-url="https://example.com/Office/SiteMgr/Notice/FuncScheView.aspx?funcidx=4444">외부</button>
+					</body>
+				</html>
+			`,
+			fetchedHtmlByUrl: new Map([
+				[
+					"https://cdp.hanyang.ac.kr/Career/Job/RecruitView.aspx?idx=1111",
+					detailPageHtml("정상 공고", "정상 본문입니다."),
+				],
+			]),
+		});
+
+		expect(result.output.posts.map((post) => post.detail_url)).toEqual([
+			"https://cdp.hanyang.ac.kr/Career/Job/RecruitView.aspx?idx=1111",
+		]);
+		expect(result.fetchedUrls).toEqual([
+			"https://cdp.hanyang.ac.kr/Career/Job/RecruitView.aspx?idx=1111",
+		]);
+	});
+
+	it("skips external absolute pagination scripts", async () => {
+		const result = await runExporterFixture({
+			board: "일반채용공고",
+			startUrl: "https://cdp.hanyang.ac.kr/Career/Job/RecruitList.aspx",
+			initialHtml: listPageHtml({
+				detailHref: "/Career/Job/RecruitView.aspx?idx=1111",
+				nextHref:
+					"javascript:hcSubmit('https://example.com/Career/Job/RecruitList.aspx?rp=2', 'Widget1_List','form1')",
+			}),
+			fetchedHtmlByUrl: new Map([
+				[
+					"https://cdp.hanyang.ac.kr/Career/Job/RecruitView.aspx?idx=1111",
+					detailPageHtml("정상 공고", "정상 본문입니다."),
+				],
+			]),
+		});
+
+		expect(result.fetchedUrls).toEqual([
+			"https://cdp.hanyang.ac.kr/Career/Job/RecruitView.aspx?idx=1111",
+		]);
 	});
 });
 
@@ -204,6 +280,7 @@ async function runExporterFixture(input: {
 
 function listPageHtml(input: {
 	detailHref: string;
+	extraBody?: string;
 	nextHref?: string;
 	nextOnclick?: string;
 }): string {
@@ -216,6 +293,7 @@ function listPageHtml(input: {
 		<html>
 			<body>
 				<a href="${input.detailHref}">자세히 보기</a>
+				${input.extraBody ?? ""}
 				<ul class="pagination justify-content-center">${nextLink}</ul>
 			</body>
 		</html>

@@ -15,10 +15,15 @@ This inventory converts `sources.txt` into traceable planning inputs. These sour
 | `https://book.hanyang.ac.kr/Viewer/YKCF2I67RO4B` | 취업성공후기 | Retrieve success stories as qualitative advice and examples | Viewer/PDF extraction may require document parsing; cite exact source title/page when possible |
 | `https://cdp.hanyang.ac.kr/office/%EB%A7%A4%EB%89%B4%EC%96%BC_%ED%95%99%EC%83%9D.pdf` | Career Development Center student guidebook | Ground answers about CDP usage, student processes, and official guidance | PDF parsing needs page-level citations and refresh checks |
 | `https://ibus.hanyang.ac.kr/front/recruit/r-1` | Hanyang ERICA College of Business and Economics employment board | Supplementary college-level job board; visible public listing includes titles, dates, detail links, and pagination | Faculty-specific scope; do not treat as campus-wide unless validated |
+| `https://e-wil.hanyang.ac.kr/index.do` | ERICA field-practice support system (E-WIL) | Ground answers about the existence/location of the 현장실습 지원 시스템 and public homepage notices | Homepage is public, but service usage/login paths require authentication; index only public landing-page text unless separate approval is recorded |
 
 ## Direct Fetch Notes
 
 `ibus.hanyang.ac.kr/front/recruit/r-1` was reachable and exposes a paginated Korean employment board with job-post titles, dates, hit counts, and detail links. Example current page entries include public-sector and institution recruitment notices with deadline text embedded in the title.
+
+`e-wil.hanyang.ac.kr/index.do` was reachable as a public landing page for `현장실습업무지원시스템` / `한양대학교 에리카 현장실습 지원시스템 (E-WIL)`. The page displays login-required service areas and a small public notice list. Treat the public landing page as source evidence only; do not collect authenticated student/professor, institution, or support-center content.
+
+For CDP login-gated/manual-session collection, the broad seed wording “취업정보/채용정보 하위항목 전체” is not collection approval. The approved manual-session scope is limited to explicitly listed CDP board URLs in the Phase 2 approval record and same-host detail pages discovered from those approved lists. Do not use manual login to crawl unrelated CDP areas.
 
 The root CDP page failed through the generic markdown fetcher during initialization, so source discovery must use browser automation, targeted HTTP inspection, or manual sitemap exploration in Phase 1.
 

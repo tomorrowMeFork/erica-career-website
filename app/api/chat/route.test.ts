@@ -22,10 +22,29 @@ describe("/api/chat", () => {
     const ask = vi.fn().mockResolvedValue({ answer: "채용 공고입니다 [1]", citations: [citation], refusal_tier: "normal_answer", confidence: 0.8, trace_id: "trace-chat" });
     overrideServicesForTest({ chat: { ask } });
 
-    const response = await POST(new Request("https://app.test/api/chat", { method: "POST", body: JSON.stringify({ query: "채용 공고 알려줘", top_k: 5, session_key: " session-a " }) }));
+    const response = await POST(
+      new Request("https://app.test/api/chat", {
+        method: "POST",
+        body: JSON.stringify({
+          query: "채용 공고 알려줘",
+          top_k: 5,
+          session_key: " session-a ",
+          collection_categories: ["job_posting"],
+          source_families: ["ibus"],
+          deadline_statuses: ["active"],
+        }),
+      }),
+    );
     expect(response.status).toBe(200);
     await expect(response.json()).resolves.toMatchObject({ trace_id: "trace-chat", citations: [citation] });
-    expect(ask).toHaveBeenCalledWith({ query: "채용 공고 알려줘", top_k: 5, session_key: "session-a" });
+    expect(ask).toHaveBeenCalledWith({
+      query: "채용 공고 알려줘",
+      top_k: 5,
+      session_key: "session-a",
+      collection_categories: ["job_posting"],
+      source_families: ["ibus"],
+      deadline_statuses: ["active"],
+    });
   });
 
   it("converts setup errors to safe Korean 503 JSON", async () => {
@@ -42,6 +61,30 @@ describe("/api/chat", () => {
     overrideServicesForTest({ chat: { ask } });
 
     const response = await POST(new Request("https://app.test/api/chat", { method: "POST", body: JSON.stringify({ query: "", top_k: 99 }) }));
+    const text = await response.text();
+
+    expect(response.status).toBe(400);
+    expect(text).toContain("요청 형식이 올바르지 않아요");
+    expect(ask).not.toHaveBeenCalled();
+  });
+
+  it("returns 400 for invalid taxonomy filter values", async () => {
+    const ask = vi.fn();
+    overrideServicesForTest({ chat: { ask } });
+
+    const response = await POST(new Request("https://app.test/api/chat", { method: "POST", body: JSON.stringify({ query: "채용", collection_categories: ["취업"] }) }));
+    const text = await response.text();
+
+    expect(response.status).toBe(400);
+    expect(text).toContain("요청 형식이 올바르지 않아요");
+    expect(ask).not.toHaveBeenCalled();
+  });
+
+  it("returns 400 for raw source_id filters in public requests", async () => {
+    const ask = vi.fn();
+    overrideServicesForTest({ chat: { ask } });
+
+    const response = await POST(new Request("https://app.test/api/chat", { method: "POST", body: JSON.stringify({ query: "채용", source_ids: ["ibus-employment-board"] }) }));
     const text = await response.text();
 
     expect(response.status).toBe(400);

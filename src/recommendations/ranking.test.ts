@@ -37,10 +37,13 @@ function candidate(overrides: {
       canonical_url: sourceUrl,
       title: overrides.title,
       category: "채용",
+      collection_category: "job_posting",
+      source_family: "cdp",
+      category_label_ko: "채용공고",
       fetched_at: overrides.fetched_at ?? "2026-05-03T00:00:00.000Z",
       posted_at: overrides.posted_at ?? "2026-05-01T00:00:00.000Z",
       deadline_status: overrides.deadline_status ?? "active",
-      deadline_raw_text: overrides.deadline_status === "expired" ? "마감" : "2026-06-01 마감",
+      deadline_raw_text: overrides.deadline_status === "expired" ? "마감" : overrides.deadline_status === "unknown" ? "" : "2026-06-01 마감",
       content_hash: "b".repeat(64),
       citation_anchors: [
         {
@@ -194,6 +197,25 @@ describe("rankRecommendationCandidates", () => {
     const ranked = rankRecommendationCandidates({ candidates: [first, second], limit: 2, referenceDate });
 
     expect(ranked.map((item) => item.chunk_id)).toEqual(["first", "second"]);
+  });
+
+  it("preserves taxonomy metadata on recommendation items and citations", () => {
+    const ranked = rankRecommendationCandidates({
+      candidates: [candidate({ chunk_id: "taxonomy", title: "채용 공고", text: "채용 공고", normalized_score: 0.8 })],
+      limit: 1,
+      referenceDate,
+    });
+
+    expect(ranked[0]).toMatchObject({
+      collection_category: "job_posting",
+      source_family: "cdp",
+      category_label_ko: "채용공고",
+    });
+    expect(ranked[0]?.citations[0]).toMatchObject({
+      collection_category: "job_posting",
+      source_family: "cdp",
+      category_label_ko: "채용공고",
+    });
   });
 
   it("excludes only candidates whose recommendation item or citation schema parsing fails", () => {

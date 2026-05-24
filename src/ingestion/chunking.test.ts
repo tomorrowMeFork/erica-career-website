@@ -17,6 +17,9 @@ const baseRecord: NormalizedRecord = {
   canonical_url: "https://ibus.hanyang.ac.kr/front/recruit/r-1/view?id=123",
   title: "ERICA 채용 공고",
   category: "취업정보",
+  collection_category: "job_posting",
+  source_family: "ibus",
+  category_label_ko: "채용공고",
   fetched_at: "2026-05-03T00:00:00.000Z",
   posted_at: "2026-05-01T00:00:00.000Z",
   deadline_status: "active",
@@ -71,6 +74,9 @@ describe("chunkNormalizedRecord", () => {
       expect(chunk.posted_at).toBe(baseRecord.posted_at);
       expect(chunk.deadline_status).toBe(baseRecord.deadline_status);
       expect(chunk.deadline_raw_text).toBe(baseRecord.deadline_raw_text);
+      expect(chunk.collection_category).toBe(baseRecord.collection_category);
+      expect(chunk.source_family).toBe(baseRecord.source_family);
+      expect(chunk.category_label_ko).toBe(baseRecord.category_label_ko);
       expect(chunk.content_hash).toBe(baseRecord.content_hash);
       expect(chunk.citation_anchors).toEqual(baseRecord.citation_anchors);
       expect(chunk.source_text_trust).toBe("untrusted_source_text");

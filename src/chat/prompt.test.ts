@@ -149,6 +149,8 @@ describe("source-grounded prompt builder", () => {
     expect(systemDeveloperText).toContain("개인정보");
     expect(systemDeveloperText).toContain("공식 페이지");
     expect(systemDeveloperText).toContain("개인 맞춤 추천");
+    expect(systemDeveloperText).toContain("content_role");
+    expect(systemDeveloperText).toContain("취업후기와 현장실습 후기는 현재 공고처럼 제시하지 말고");
     expect(systemDeveloperText).toContain("공식 인증");
     expect(systemDeveloperText).toContain("취업을 보장");
     expect(prompt.citationMap[0]).toMatchObject({
@@ -159,6 +161,9 @@ describe("source-grounded prompt builder", () => {
       fetched_at: "2026-05-03T00:00:00.000Z",
       posted_at: "2026-05-01T00:00:00.000Z",
       deadline_status: "active",
+      collection_category: "job_posting",
+      source_family: "ibus",
+      category_label_ko: "채용공고",
     });
     expect(prompt.citationMap[0]?.page_number).toBe(1);
     expect(allPromptText).not.toContain("secret-test-key");
@@ -196,6 +201,20 @@ describe("source-grounded prompt builder", () => {
     expect(systemDeveloperText).not.toContain("IT");
   });
 
+  it("includes taxonomy metadata in retrieved evidence blocks", () => {
+    const prompt = buildChatPrompt({
+      query: "채용공고만 알려줘",
+      results: [retrievedChunk("ERICA 채용 공고는 공식 페이지에서 확인해야 합니다.")],
+      refusal_tier: "normal_answer",
+    });
+
+    const userPromptText = prompt.messages.find((message) => message.role === "user")?.content ?? "";
+    expect(userPromptText).toContain("collection_category: job_posting");
+    expect(userPromptText).toContain("content_role: opportunity");
+    expect(userPromptText).toContain("source_family: ibus");
+    expect(userPromptText).toContain("category_label_ko: 채용공고");
+  });
+
   it("omits explicit preference context when all allowed fields sanitize away", () => {
     const prompt = buildChatPrompt({
       query: "채용 알려줘",
@@ -223,6 +242,9 @@ function retrievedChunk(text: string): RetrievedChunk {
     canonical_url: "https://ibus.hanyang.ac.kr/front/recruit/r-1/view?id=123",
     title: "ERICA 채용 공고",
     category: "recruitment",
+    collection_category: "job_posting",
+    source_family: "ibus",
+    category_label_ko: "채용공고",
     fetched_at: "2026-05-03T00:00:00.000Z",
     posted_at: "2026-05-01T00:00:00.000Z",
     deadline_status: "active",

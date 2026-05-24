@@ -8,7 +8,7 @@
 
 ## Scope
 
-This checklist covers the six seed source intents registered in `source-registry.yaml`, derived from `sources.txt` and `.planning/research/seed-sources.md`. Per D-01 and D-02, the approved scope is limited to these seed URLs only. No other Hanyang domains, ERICA pages, or external sites are included.
+This checklist covers the registered seed source intents in `source-registry.yaml`, derived from `sources.txt` and `.planning/research/seed-sources.md`. Per D-01 and D-02, the approved scope is limited to these seed URLs only. No other Hanyang domains, ERICA pages, or external sites are included.
 
 The capstone approval recorded here uses `approval_basis: user_assertion`. This is **not official Hanyang authorization**. It reflects the user's statement that a capstone-design exception approval process has been completed for these seed URLs. No independently verified official authorization from Hanyang University, Hanyang ERICA, or any department has been obtained.
 
@@ -61,6 +61,15 @@ Each seed source must pass these checks before `allowed_collection_method` can b
 | freshness_assumption | daily_when_approved |
 | next_action | Held/no live ingestion approval for now; do not infer or crawl category URLs until safe public structure or explicit approved access evidence is recorded. |
 
+#### cdp-authenticated manual-session scope
+
+The user requested E-WIL-style CDP collection from these exact board/list pages while manually logged in:
+
+- `https://cdp.hanyang.ac.kr/Career/Job/RecruitList.aspx` — 일반채용공고
+- `https://cdp.hanyang.ac.kr/Community/Notice/RecruitEvent.aspx` — 채용상담 및 설명회
+
+These pages may require an authenticated CDP session for complete detail access. Any collection must therefore use a user-operated, headed browser login in a fresh ephemeral Playwright context. The script may navigate only to the exact URLs above after manual login, may collect only same-host detail pages discovered from those approved lists, must not automate login, must not persist cookies/localStorage/storageState/HAR/traces/screenshots/credentials, must block off-host requests, and must keep `scheduled_crawling_enabled: false`.
+
 ### book-success-story-viewer
 
 | Field | Value |
@@ -97,6 +106,28 @@ Each seed source must pass these checks before `allowed_collection_method` can b
 | freshness_assumption | daily_when_approved |
 | next_action | Approved by user for original `sources.txt` seed URL only: bounded public HTML sample ingestion; no broader crawling, inferred URLs, bulk pagination, or scheduled crawling. |
 
+### ewil-internship-system
+
+| Field | Value |
+|-------|-------|
+| review_status | reviewed |
+| allowed_collection_method | approved_bounded_browser_discovery |
+| robots_status | unreachable |
+| tos_status | not_reviewed |
+| approval_basis | user_assertion |
+| freshness_assumption | weekly_when_approved |
+| next_action | Added by user on 2026-05-17 for the public `index.do` landing page and later expanded by the user to exact E-WIL authenticated pages listed below. Public text can ground answers about the E-WIL 현장실습 지원 시스템 and public notices. Authenticated collection is limited to user-manual-login, non-persistent, exact-URL collection; no credentials, cookies, storage state, broad crawling, or scheduled crawling may be stored or automated. |
+
+#### ewil-internship-system authenticated manual-session scope
+
+The user requested collection from these exact pages while already logged in:
+
+- `https://e-wil.hanyang.ac.kr/data/list.do?type=NOTICE` — 공지사항/인턴공고
+- `https://e-wil.hanyang.ac.kr/data/list.do?type=INFO` — 설명회
+- `https://e-wil.hanyang.ac.kr/internphoto/compList.do` — 실습 후기
+
+These URLs return a non-public login/error boundary without an authenticated session. Any collection must therefore use a user-operated, headed browser login in a fresh ephemeral Playwright context. The script may navigate only to the exact URLs above after manual login, must not automate login, must not persist cookies/localStorage/storageState/HAR/traces/screenshots/credentials, and must keep `scheduled_crawling_enabled: false`.
+
 ## Load Posture
 
 All seed sources use `rate_limit_posture: moderate_1_2s_low_concurrency`. This means:
@@ -110,11 +141,11 @@ This posture applies regardless of robots or ToS outcomes and must be preserved 
 
 ## Auth and Secrets
 
-- No seed source currently requires authentication (`auth_required: false`, `auth_mode: none`).
-- If login is later observed for any approved seed URL, credentials must be loaded from `.env` or equivalent local secret storage.
+- CDP and E-WIL manual-session sources require a user-operated headed login but must not use script-managed credentials.
+- If login is later observed for any other approved seed URL, credentials must be loaded from `.env` or equivalent local secret storage unless the approval record explicitly requires user-manual non-persistent login instead.
 - `.env` files **must never be committed** to version control. The repository `.gitignore` already excludes `.env` and `.env.*`.
 - No secret values (passwords, tokens, session cookies) may be stored in the registry, planning docs, test fixtures, or logs.
-- Any authenticated access must remain limited to the seed URLs and must be represented as `auth_mode: env_credentials` with no secret values stored.
+- Any authenticated access must remain limited to the approved seed URLs and must be represented as either `auth_mode: env_credentials` or `auth_mode: user_manual_login_nonpersistent` with no secret values stored.
 
 ## Scheduled Crawling Gate
 

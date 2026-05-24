@@ -1,7 +1,8 @@
 import { z } from "zod";
 
-import { ChatCitationSchema } from "../chat/chat-contract.js";
+import { ChatCitationSchema, RetrieveRequestFilterFields } from "../chat/chat-contract.js";
 import { DeadlineStatusSchema } from "../ingestion/normalized-record.js";
+import { CategoryLabelKoSchema, CollectionCategorySchema, SourceFamilySchema } from "../knowledge-base/taxonomy.js";
 import { PreferenceProfileSchema } from "../personalization/preference-contract.js";
 
 export const MatchStrengthSchema = z.enum(["personalized_match", "partial_match", "general_recommendation"]);
@@ -11,6 +12,7 @@ export const RecommendationRequestSchema = z.strictObject({
   session_key: z.string().trim().min(1).max(120).optional(),
   profile: PreferenceProfileSchema.optional(),
   limit: z.number().int().min(1).max(10).default(5),
+  ...RetrieveRequestFilterFields,
 });
 
 export const RecommendationScoreBreakdownSchema = z.strictObject({
@@ -30,6 +32,9 @@ export const RecommendationItemSchema = z.strictObject({
   source_id: z.string().min(1),
   title: z.string().min(1),
   category: z.string().min(1),
+  collection_category: CollectionCategorySchema.optional(),
+  source_family: SourceFamilySchema.optional(),
+  category_label_ko: CategoryLabelKoSchema.optional(),
   url: z.url(),
   fetched_at: z.iso.datetime(),
   posted_at: z.iso.datetime().nullable(),

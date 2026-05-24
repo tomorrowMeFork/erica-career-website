@@ -27,9 +27,27 @@ describe("/api/recommendations", () => {
   it("preserves service-provided recommendation order and metadata", async () => {
     const recommend = vi.fn().mockResolvedValue({ recommendations: [item], generated_at: "2026-05-03T00:00:00.000Z", trace_id: "trace-rec", preference_mode: "preference", privacy_metadata: { preference_ranking_enabled: true, profile_source: "request_profile", storage_scope: "none" } });
     overrideServicesForTest({ recommendation: { recommend } });
-    const response = await POST(new Request("https://app.test/api/recommendations", { method: "POST", body: JSON.stringify({ query: "채용", limit: 5 }) }));
+    const response = await POST(
+      new Request("https://app.test/api/recommendations", {
+        method: "POST",
+        body: JSON.stringify({
+          query: "채용",
+          limit: 5,
+          collection_categories: ["job_posting"],
+          source_families: ["ibus"],
+          deadline_statuses: ["active"],
+        }),
+      }),
+    );
     expect(response.status).toBe(200);
     await expect(response.json()).resolves.toMatchObject({ recommendations: [item], privacy_metadata: { preference_ranking_enabled: true } });
+    expect(recommend).toHaveBeenCalledWith({
+      query: "채용",
+      limit: 5,
+      collection_categories: ["job_posting"],
+      source_families: ["ibus"],
+      deadline_statuses: ["active"],
+    });
   });
 
   it("returns 400 for invalid request schema input", async () => {
@@ -37,6 +55,30 @@ describe("/api/recommendations", () => {
     overrideServicesForTest({ recommendation: { recommend } });
 
     const response = await POST(new Request("https://app.test/api/recommendations", { method: "POST", body: JSON.stringify({ query: "채용", limit: 100 }) }));
+    const text = await response.text();
+
+    expect(response.status).toBe(400);
+    expect(text).toContain("요청 형식이 올바르지 않아요");
+    expect(recommend).not.toHaveBeenCalled();
+  });
+
+  it("returns 400 for invalid taxonomy filter values", async () => {
+    const recommend = vi.fn();
+    overrideServicesForTest({ recommendation: { recommend } });
+
+    const response = await POST(new Request("https://app.test/api/recommendations", { method: "POST", body: JSON.stringify({ query: "채용", collection_categories: ["취업"] }) }));
+    const text = await response.text();
+
+    expect(response.status).toBe(400);
+    expect(text).toContain("요청 형식이 올바르지 않아요");
+    expect(recommend).not.toHaveBeenCalled();
+  });
+
+  it("returns 400 for raw source_id filters in public requests", async () => {
+    const recommend = vi.fn();
+    overrideServicesForTest({ recommendation: { recommend } });
+
+    const response = await POST(new Request("https://app.test/api/recommendations", { method: "POST", body: JSON.stringify({ query: "채용", source_ids: ["ibus-employment-board"] }) }));
     const text = await response.text();
 
     expect(response.status).toBe(400);

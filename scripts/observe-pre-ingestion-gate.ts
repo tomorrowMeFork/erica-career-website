@@ -14,18 +14,30 @@ const expectedSeedSourceIds = [
   "cdp-root",
   "cdp-career-category-discovery",
   "cdp-recruit-category-discovery",
+  "cdp-recruit-general-board",
+  "cdp-recruit-event-board",
   "book-success-story-viewer",
   "cdp-student-guide-pdf",
   "ibus-employment-board",
+  "ewil-internship-system",
+  "ewil-notice-board",
+  "ewil-info-board",
+  "ewil-internship-reviews",
 ] as const;
 
 const parserRequestBySourceId: Record<(typeof expectedSeedSourceIds)[number], IngestionCollectionMethod> = {
   "cdp-root": "public_html",
   "cdp-career-category-discovery": "public_html",
   "cdp-recruit-category-discovery": "public_html",
+  "cdp-recruit-general-board": "manual_login_session",
+  "cdp-recruit-event-board": "manual_login_session",
   "book-success-story-viewer": "public_html",
   "cdp-student-guide-pdf": "manual_pdf_download",
   "ibus-employment-board": "public_html",
+  "ewil-internship-system": "public_html",
+  "ewil-notice-board": "manual_login_session",
+  "ewil-info-board": "manual_login_session",
+  "ewil-internship-reviews": "manual_login_session",
 };
 
 type EvidenceRow = {
@@ -136,7 +148,7 @@ function buildEvidenceMarkdown(rows: EvidenceRow[], sources: SourceRecord[]): st
 
 ## Gate Result
 
-- Evaluated all six current seed source records.
+- Evaluated all ${rows.length} current seed source records.
 - Parser-eligible records: ${eligibleCount}/${rows.length}.
 - Registry-backed access gate decisions reflect the latest approval record.
 - \`scheduled_crawling_enabled\` remains false for every source; scheduled crawling is not implemented.
@@ -177,6 +189,22 @@ ${markdownTable(rows)}
 - Robots/ToS: ${rows.find((row) => row.source_id === "cdp-recruit-category-discovery")?.robots_status} / ${rows.find((row) => row.source_id === "cdp-recruit-category-discovery")?.tos_status}.
 - Registry note: ${notesById.get("cdp-recruit-category-discovery")}
 
+### cdp-recruit-general-board
+
+- Observed URL: \`${rows.find((row) => row.source_id === "cdp-recruit-general-board")?.observed_url}\`
+- Parser eligibility: ${rows.find((row) => row.source_id === "cdp-recruit-general-board")?.parser_eligible ? "allowed for approved user-manual-login non-persistent collection from the exact 일반채용공고 board URL only" : "blocked pending explicit manual-session approval"}.
+- Auth boundary: ${rows.find((row) => row.source_id === "cdp-recruit-general-board")?.auth_boundary}; response type: ${rows.find((row) => row.source_id === "cdp-recruit-general-board")?.response_type}.
+- Robots/ToS: ${rows.find((row) => row.source_id === "cdp-recruit-general-board")?.robots_status} / ${rows.find((row) => row.source_id === "cdp-recruit-general-board")?.tos_status}.
+- Registry note: ${notesById.get("cdp-recruit-general-board")}
+
+### cdp-recruit-event-board
+
+- Observed URL: \`${rows.find((row) => row.source_id === "cdp-recruit-event-board")?.observed_url}\`
+- Parser eligibility: ${rows.find((row) => row.source_id === "cdp-recruit-event-board")?.parser_eligible ? "allowed for approved user-manual-login non-persistent collection from the exact 채용상담 및 설명회 board URL only" : "blocked pending explicit manual-session approval"}.
+- Auth boundary: ${rows.find((row) => row.source_id === "cdp-recruit-event-board")?.auth_boundary}; response type: ${rows.find((row) => row.source_id === "cdp-recruit-event-board")?.response_type}.
+- Robots/ToS: ${rows.find((row) => row.source_id === "cdp-recruit-event-board")?.robots_status} / ${rows.find((row) => row.source_id === "cdp-recruit-event-board")?.tos_status}.
+- Registry note: ${notesById.get("cdp-recruit-event-board")}
+
 ### book-success-story-viewer
 
 - Observed URL: \`${rows.find((row) => row.source_id === "book-success-story-viewer")?.observed_url}\`
@@ -196,10 +224,42 @@ ${markdownTable(rows)}
 ### ibus-employment-board
 
 - Observed URL: \`${rows.find((row) => row.source_id === "ibus-employment-board")?.observed_url}\`
-- Parser eligibility: ${rows.find((row) => row.source_id === "ibus-employment-board")?.parser_eligible ? "allowed for approved bounded public HTML sample ingestion from the original seed URL only" : "blocked pending human access review and explicit `approved_bounded_browser_discovery` registry method"}.
+- Parser eligibility: ${rows.find((row) => row.source_id === "ibus-employment-board")?.parser_eligible ? "allowed for approved bounded public HTML board ingestion from the original seed URL only" : "blocked pending human access review and explicit `approved_bounded_browser_discovery` registry method"}.
 - Auth boundary: ${rows.find((row) => row.source_id === "ibus-employment-board")?.auth_boundary}; response type: ${rows.find((row) => row.source_id === "ibus-employment-board")?.response_type}.
 - Robots/ToS: ${rows.find((row) => row.source_id === "ibus-employment-board")?.robots_status} / ${rows.find((row) => row.source_id === "ibus-employment-board")?.tos_status}.
 - Registry note: ${notesById.get("ibus-employment-board")}
+
+### ewil-internship-system
+
+- Observed URL: \`${rows.find((row) => row.source_id === "ewil-internship-system")?.observed_url}\`
+- Parser eligibility: ${rows.find((row) => row.source_id === "ewil-internship-system")?.parser_eligible ? "allowed for approved bounded public HTML collection from the public index.do landing page only" : "blocked pending human access review and explicit `approved_bounded_browser_discovery` registry method"}.
+- Auth boundary: ${rows.find((row) => row.source_id === "ewil-internship-system")?.auth_boundary}; response type: ${rows.find((row) => row.source_id === "ewil-internship-system")?.response_type}.
+- Robots/ToS: ${rows.find((row) => row.source_id === "ewil-internship-system")?.robots_status} / ${rows.find((row) => row.source_id === "ewil-internship-system")?.tos_status}.
+- Registry note: ${notesById.get("ewil-internship-system")}
+
+### ewil-notice-board
+
+- Observed URL: \`${rows.find((row) => row.source_id === "ewil-notice-board")?.observed_url}\`
+- Parser eligibility: ${rows.find((row) => row.source_id === "ewil-notice-board")?.parser_eligible ? "allowed for approved user-manual-login non-persistent collection from the exact E-WIL NOTICE URL only" : "blocked pending explicit manual-session approval"}.
+- Auth boundary: ${rows.find((row) => row.source_id === "ewil-notice-board")?.auth_boundary}; response type: ${rows.find((row) => row.source_id === "ewil-notice-board")?.response_type}.
+- Robots/ToS: ${rows.find((row) => row.source_id === "ewil-notice-board")?.robots_status} / ${rows.find((row) => row.source_id === "ewil-notice-board")?.tos_status}.
+- Registry note: ${notesById.get("ewil-notice-board")}
+
+### ewil-info-board
+
+- Observed URL: \`${rows.find((row) => row.source_id === "ewil-info-board")?.observed_url}\`
+- Parser eligibility: ${rows.find((row) => row.source_id === "ewil-info-board")?.parser_eligible ? "allowed for approved user-manual-login non-persistent collection from the exact E-WIL INFO URL only" : "blocked pending explicit manual-session approval"}.
+- Auth boundary: ${rows.find((row) => row.source_id === "ewil-info-board")?.auth_boundary}; response type: ${rows.find((row) => row.source_id === "ewil-info-board")?.response_type}.
+- Robots/ToS: ${rows.find((row) => row.source_id === "ewil-info-board")?.robots_status} / ${rows.find((row) => row.source_id === "ewil-info-board")?.tos_status}.
+- Registry note: ${notesById.get("ewil-info-board")}
+
+### ewil-internship-reviews
+
+- Observed URL: \`${rows.find((row) => row.source_id === "ewil-internship-reviews")?.observed_url}\`
+- Parser eligibility: ${rows.find((row) => row.source_id === "ewil-internship-reviews")?.parser_eligible ? "allowed for approved user-manual-login non-persistent collection from the exact E-WIL review URL only" : "blocked pending explicit manual-session approval"}.
+- Auth boundary: ${rows.find((row) => row.source_id === "ewil-internship-reviews")?.auth_boundary}; response type: ${rows.find((row) => row.source_id === "ewil-internship-reviews")?.response_type}.
+- Robots/ToS: ${rows.find((row) => row.source_id === "ewil-internship-reviews")?.robots_status} / ${rows.find((row) => row.source_id === "ewil-internship-reviews")?.tos_status}.
+- Registry note: ${notesById.get("ewil-internship-reviews")}
 
 ## Task 3 checkpoint
 

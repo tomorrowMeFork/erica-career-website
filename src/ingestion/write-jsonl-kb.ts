@@ -1,6 +1,9 @@
 import { mkdir, readFile, writeFile } from "node:fs/promises";
 import { z } from "zod";
+import { backfillLegacyTaxonomy } from "../knowledge-base/legacy-taxonomy.js";
+import type { CollectionCategory, SourceFamily } from "../knowledge-base/taxonomy.js";
 import {
+  type DeadlineStatus,
   type IngestionRunManifest,
   IngestionRunManifestSchema,
   type KnowledgeChunk,
@@ -9,14 +12,20 @@ import {
   NormalizedRecordSchema,
 } from "./normalized-record.js";
 
+const ManifestCountsSchema = z.record(z.string().min(1), z.number().int().nonnegative());
+
 export const KnowledgeBaseManifestFileSchema = z.object({
   schema_version: z.literal("phase2-jsonl-kb-v1"),
   run_id: z.string().min(1),
+  collector: z.string().min(1).optional(),
   generated_at: z.iso.datetime(),
   source_ids: z.array(z.string().min(1)),
   fetched_at: z.array(z.iso.datetime()),
   record_count: z.number().int().nonnegative(),
   chunk_count: z.number().int().nonnegative(),
+  collection_category_counts: ManifestCountsSchema.optional(),
+  source_family_counts: ManifestCountsSchema.optional(),
+  deadline_status_counts: ManifestCountsSchema.optional(),
   record_ids: z.array(z.string().min(1)),
   chunk_ids: z.array(z.string().min(1)),
 });
@@ -29,6 +38,7 @@ export type WriteKnowledgeBaseJsonlInput = {
   outputDir: string;
   manifest: Pick<IngestionRunManifest, "run_id" | "generated_at" | "source_ids"> & {
     schema_version?: "phase2-jsonl-kb-v1";
+    collector?: string;
   };
 };
 
@@ -54,11 +64,15 @@ export async function writeKnowledgeBaseJsonl(input: WriteKnowledgeBaseJsonlInpu
   const manifestFile = KnowledgeBaseManifestFileSchema.parse({
     schema_version: input.manifest.schema_version ?? "phase2-jsonl-kb-v1",
     run_id: manifestForValidation.run_id,
+    collector: input.manifest.collector ?? "writeKnowledgeBaseJsonl",
     generated_at: manifestForValidation.generated_at,
     source_ids: sourceIds,
     fetched_at: sortedUnique(records.map((record) => record.fetched_at)),
     record_count: records.length,
     chunk_count: chunks.length,
+    collection_category_counts: countBy(records, (record) => record.collection_category),
+    source_family_counts: countBy(records, (record) => record.source_family),
+    deadline_status_counts: countBy(records, (record) => record.deadline_status),
     record_ids: records.map((record) => record.record_id),
     chunk_ids: chunks.map((chunk) => chunk.chunk_id),
   });
@@ -77,8 +91,8 @@ export async function readKnowledgeBaseJsonl(outputDir: string): Promise<Knowled
     readJsonlIfExists(`${outputDir}/chunks.jsonl`),
   ]);
 
-  const records = recordLines.map((record) => NormalizedRecordSchema.parse(record));
-  const chunks = chunkLines.map((chunk) => KnowledgeChunkSchema.parse(chunk));
+  const records = recordLines.map((record) => NormalizedRecordSchema.parse(backfillLegacyTaxonomy(record)));
+  const chunks = chunkLines.map((chunk) => KnowledgeChunkSchema.parse(backfillLegacyTaxonomy(chunk)));
   assertChunkRecordLinks(records, chunks);
 
   return { records, chunks };
@@ -161,6 +175,18 @@ function compareStrings(left: string, right: string): number {
 
 function sortedUnique(values: readonly string[]): string[] {
   return [...new Set(values)].sort((left, right) => compareStrings(left, right));
+}
+
+function countBy<T, K extends CollectionCategory | SourceFamily | DeadlineStatus>(
+  values: readonly T[],
+  getKey: (value: T) => K,
+): Record<K, number> {
+  const counts = new Map<K, number>();
+  for (const value of values) {
+    const key = getKey(value);
+    counts.set(key, (counts.get(key) ?? 0) + 1);
+  }
+  return Object.fromEntries([...counts.entries()].sort(([left], [right]) => compareStrings(left, right))) as Record<K, number>;
 }
 
 function toJsonl(values: readonly unknown[]): string {

@@ -1,33 +1,31 @@
 import { randomUUID } from "node:crypto";
+import type { z } from "zod";
 
 import {
   appendChatAuditRecord,
-  hashQuery,
   type ChatAuditRecord,
+  hashQuery,
 } from "../audit/audit-log.js";
 import type { PreferenceState } from "../personalization/preference-contract.js";
 import type { Retriever } from "../retrieval/retriever.js";
-import { ChatRequestSchema, type ChatResponse } from "./chat-contract.js";
+import { ChatRequestSchema, type ChatResponse, extractRetrieveFilters } from "./chat-contract.js";
 import {
   buildHardRefusalAnswer,
   DEFAULT_EVIDENCE_POLICY,
-  evaluateEvidence,
   type EvidencePolicyConfig,
+  evaluateEvidence,
 } from "./evidence-policy.js";
 import { evaluateInputSafety } from "./input-safety-policy.js";
 import { validateChatResponseOutput } from "./output-validation.js";
-import { buildChatPrompt, PROMPT_VERSION, type ExplicitPreferencePromptContext } from "./prompt.js";
+import { buildChatPrompt, type ExplicitPreferencePromptContext, PROMPT_VERSION } from "./prompt.js";
 import type { ChatModelProvider } from "./provider.js";
+import { retrieveRoleAwareEvidence } from "./role-aware-retrieval.js";
 import { buildPolicyRefusalAnswer, normalizeSafetyText, redactSensitiveText } from "./safety-policy.js";
 import { sanitizeRetrievedResultsForPrompt } from "./source-safety-policy.js";
 
 export type ChatAuditLogger = (record: ChatAuditRecord) => Promise<void>;
 
-export type ChatServiceAskInput = {
-  query: string;
-  top_k?: number;
-  session_key?: string;
-};
+export type ChatServiceAskInput = z.input<typeof ChatRequestSchema>;
 
 export type ChatPreferenceReader = {
   readState(sessionKey: string): Promise<PreferenceState>;
@@ -101,7 +99,13 @@ export class ChatService {
     }
 
     const safeQuery = inputSafety.action === "redact" ? inputSafety.redacted_query : request.query;
-    const retrievedResults = await this.retriever.retrieve({ query: safeQuery, topK: request.top_k });
+    const filters = extractRetrieveFilters(request);
+    const retrievedResults = await retrieveRoleAwareEvidence({
+      retriever: this.retriever,
+      query: safeQuery,
+      topK: request.top_k,
+      ...(filters !== undefined ? { filters } : {}),
+    });
     const sourceSafety = sanitizeRetrievedResultsForPrompt(retrievedResults);
     const results = sourceSafety.results;
     const evidence = evaluateEvidence(results, { config: this.evidencePolicyConfig });
@@ -164,7 +168,9 @@ export class ChatService {
         return validation.response;
       }
 
-      const response = this.buildRefusalResponse(traceId, 0);
+      const response = validation.failures.some((failure) => failure.includes("output safety rejected"))
+        ? this.buildRefusalResponse(traceId, 0)
+        : buildEvidenceFallbackResponse({ traceId, confidence: evidence.confidence, citations: builtPrompt.citationMap, refusalTier: evidence.refusal_tier });
       await this.writeAudit({
         traceId,
         timestamp,
@@ -183,7 +189,7 @@ export class ChatService {
       });
       return response;
     } catch (error) {
-      const response = this.buildRefusalResponse(traceId, 0);
+      const response = buildEvidenceFallbackResponse({ traceId, confidence: evidence.confidence, citations: builtPrompt.citationMap, refusalTier: evidence.refusal_tier });
       await this.writeAudit({
         traceId,
         timestamp,
@@ -305,6 +311,41 @@ function parseJsonObject(content: string): Record<string, unknown> | undefined {
   } catch {
     return undefined;
   }
+}
+
+function buildEvidenceFallbackResponse(input: {
+  traceId: string;
+  confidence: number;
+  citations: ChatResponse["citations"];
+  refusalTier: ChatResponse["refusal_tier"];
+}): ChatResponse {
+  const citations = input.citations.slice(0, 3);
+  if (citations.length === 0 || input.refusalTier === "hard_refuse") {
+    return {
+      answer: buildHardRefusalAnswer(),
+      citations: [],
+      refusal_tier: "hard_refuse",
+      confidence: 0,
+      trace_id: input.traceId,
+    };
+  }
+
+  const evidenceLines = citations.map((citation) => {
+    const freshness = citation.posted_at !== null ? `게시일 ${citation.posted_at.slice(0, 10)}` : `수집일 ${citation.fetched_at.slice(0, 10)}`;
+    return `- ${citation.category_label_ko ?? "근거"}: ${citation.title} (${freshness}) [${citation.citation_id}]`;
+  });
+
+  return {
+    answer: [
+      "현재 확인된 근거 기준으로는 아래 자료를 먼저 참고할 수 있습니다.",
+      ...evidenceLines,
+      "세부 모집 기간, 신청 방법, 대상은 인용된 공식 페이지에서 다시 확인하세요.",
+    ].join("\n"),
+    citations,
+    refusal_tier: input.refusalTier,
+    confidence: input.confidence,
+    trace_id: input.traceId,
+  };
 }
 
 function summarizeUnknownError(error: unknown): string {
