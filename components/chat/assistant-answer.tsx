@@ -13,7 +13,7 @@ import { RefusalNoticeCard } from "./refusal-notice-card.js";
 export function AssistantAnswer({ response, recommendations = [], onOpenCitation }: { response: ChatResponse; recommendations?: RecommendationItem[]; onOpenCitation: (citation: ChatCitation, scopedCitations: ChatCitation[], opener?: HTMLElement) => void }) {
   return (
     <article aria-label="출처 기반 답변">
-      <Card className="gap-4 overflow-hidden border-primary/15 bg-card py-0 shadow-[var(--shadow-soft)]">
+      <Card className="erica-surface-strong gap-4 overflow-hidden border-primary/15 py-0">
         <CardHeader className="gap-3 border-b border-primary/10 bg-[linear-gradient(90deg,color-mix(in_oklch,var(--hanyang-blue),transparent_91%),color-mix(in_oklch,var(--hanyang-retro-mint),transparent_88%))] px-5 py-4 sm:flex sm:flex-row sm:items-center sm:justify-between">
           <div className="flex flex-wrap items-center gap-2">
             <Badge variant="outline" className="border-primary/35 bg-primary/10 text-primary">출처 기반 답변</Badge>
@@ -24,7 +24,7 @@ export function AssistantAnswer({ response, recommendations = [], onOpenCitation
             if (firstCitation !== undefined) onOpenCitation(firstCitation, response.citations, opener);
           }} />
         </CardHeader>
-        <CardContent className="grid gap-4 px-5 pb-5 pt-0">
+        <CardContent className="grid gap-4 px-5 pb-6 pt-0 sm:px-6 sm:pb-6">
           <RefusalNoticeCard refusalTier={response.refusal_tier} />
           <div className="grid gap-3 text-base leading-7 text-foreground [&_code]:rounded-[var(--radius-xs)] [&_code]:bg-muted [&_code]:px-1 [&_code]:font-mono [&_code]:text-[0.9em] [&_em]:text-foreground [&_h2]:border-l-4 [&_h2]:border-primary [&_h2]:pl-3 [&_h2]:text-lg [&_h2]:font-semibold [&_h2]:tracking-tight [&_h3]:text-base [&_h3]:font-semibold [&_h4]:text-base [&_h4]:font-semibold [&_li+li]:mt-2 [&_ol]:list-decimal [&_ol]:pl-5 [&_p]:m-0 [&_strong]:font-semibold [&_strong]:text-primary [&_ul]:list-disc [&_ul]:pl-5" data-testid="answer-body">
             <ReactMarkdown components={createMarkdownComponents(response.citations, onOpenCitation)} skipHtml>{stripUnsafeHtml(response.answer)}</ReactMarkdown>
