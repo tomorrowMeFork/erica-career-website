@@ -30,13 +30,13 @@ export default function Home() {
           <p>출처가 남는 답변 흐름으로 상담 내용을 다시 확인할 수 있게 구성했어요.</p>
           <div className="flex flex-wrap gap-2">
             <Badge variant="outline" className="border-accent/50 bg-accent/15 text-accent-foreground">출처 기반</Badge>
-            <Badge variant="outline" className="border-primary/20 bg-card text-primary">마감 재확인</Badge>
+            <Badge variant="outline" className="border-primary/20 bg-primary/10 text-primary">마감 재확인</Badge>
           </div>
         </CardContent>
       </RouteHero>
 
       <section className="grid gap-4 md:grid-cols-2" aria-label="서비스 방식">
-        <article className="relative grid gap-4 overflow-hidden rounded-xl border border-accent/35 bg-card/95 p-5 shadow-[var(--shadow-soft)] transition-colors before:absolute before:inset-y-0 before:left-0 before:w-2 before:bg-[var(--surface-accent-gradient)] hover:border-accent/55 md:p-6">
+        <article className="erica-surface relative grid gap-4 overflow-hidden rounded-xl border border-accent/35 p-5 transition-colors before:absolute before:inset-y-0 before:left-0 before:w-2 before:bg-[var(--surface-accent-gradient)] hover:border-accent/55 md:p-6">
           <div className="relative grid gap-3">
             <Badge variant="outline" className="border-accent/50 bg-accent/15 text-accent-foreground">답변 근거</Badge>
             <h2 className="text-xl font-semibold leading-tight tracking-tight text-foreground">답변에 참고한 정보와 출처를 함께 보여드려요.</h2>
@@ -47,7 +47,7 @@ export default function Home() {
           </div>
         </article>
 
-        <article className="relative grid gap-4 overflow-hidden rounded-xl border border-warning/35 bg-card/95 p-5 shadow-[var(--shadow-soft)] transition-colors before:absolute before:inset-y-0 before:left-0 before:w-2 before:bg-[var(--surface-warm-gradient)] hover:border-warning/55 md:p-6">
+        <article className="erica-surface relative grid gap-4 overflow-hidden rounded-xl border border-warning/35 p-5 transition-colors before:absolute before:inset-y-0 before:left-0 before:w-2 before:bg-[var(--surface-warm-gradient)] hover:border-warning/55 md:p-6">
           <div className="relative grid gap-3">
             <Badge variant="outline" className="border-warning/60 bg-warning/20 text-warning-foreground">마감 확인</Badge>
             <h2 className="text-xl font-semibold leading-tight tracking-tight text-foreground">게시일과 마감 상태를 함께 확인하고, 중요한 조건은 원문에서 다시 확인하도록 안내합니다.</h2>

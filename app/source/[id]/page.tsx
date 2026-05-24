@@ -24,7 +24,7 @@ export default async function SourcePage({ params }: { params: Promise<{ id: str
         }
       />
 
-      <Card aria-label="출처 확인 상세" className="border-0 bg-card/80 shadow-none ring-1 ring-border/20">
+      <Card aria-label="출처 확인 상세" className="erica-surface border-0 ring-1 ring-border/20">
         <CardHeader className="gap-4 pb-0 md:grid-cols-[minmax(0,1fr)_auto] md:items-start">
           <div className="grid gap-3">
             <Badge variant="outline" className="min-h-7 border-accent/50 bg-accent/15 px-3 text-sm text-accent-foreground">상담을 돕는 참고 정보</Badge>

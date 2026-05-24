@@ -87,7 +87,7 @@ export default function SettingsPage() {
         className="grid gap-5 lg:grid-cols-[minmax(280px,0.75fr)_minmax(0,1.55fr)] lg:items-start [&_button]:!min-h-11 [&_input]:!min-h-11 [&_textarea]:!min-h-24"
         aria-label="상담 조건과 저장 범위"
       >
-        <Card className="border-border/35 bg-secondary/25 shadow-none">
+        <Card className="erica-surface border-border/35">
           <CardHeader className="gap-4 pb-0">
             <div className="flex flex-wrap items-center gap-2">
               <Badge variant="secondary">실제 제공 기능</Badge>
