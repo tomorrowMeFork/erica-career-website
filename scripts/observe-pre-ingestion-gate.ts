@@ -224,7 +224,7 @@ ${markdownTable(rows)}
 ### ibus-employment-board
 
 - Observed URL: \`${rows.find((row) => row.source_id === "ibus-employment-board")?.observed_url}\`
-- Parser eligibility: ${rows.find((row) => row.source_id === "ibus-employment-board")?.parser_eligible ? "allowed for approved bounded public HTML sample ingestion from the original seed URL only" : "blocked pending human access review and explicit `approved_bounded_browser_discovery` registry method"}.
+- Parser eligibility: ${rows.find((row) => row.source_id === "ibus-employment-board")?.parser_eligible ? "allowed for approved bounded public HTML board ingestion from the original seed URL only" : "blocked pending human access review and explicit `approved_bounded_browser_discovery` registry method"}.
 - Auth boundary: ${rows.find((row) => row.source_id === "ibus-employment-board")?.auth_boundary}; response type: ${rows.find((row) => row.source_id === "ibus-employment-board")?.response_type}.
 - Robots/ToS: ${rows.find((row) => row.source_id === "ibus-employment-board")?.robots_status} / ${rows.find((row) => row.source_id === "ibus-employment-board")?.tos_status}.
 - Registry note: ${notesById.get("ibus-employment-board")}
