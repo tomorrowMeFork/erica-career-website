@@ -21,7 +21,7 @@ export function AppShell({ children }: { children: ReactNode }) {
   return (
     <div className="min-h-screen px-4 pt-4 pb-4 text-foreground md:px-6 md:pt-5 md:pb-6 lg:px-7 lg:pt-6">
       <header
-        className="sticky top-3 z-30 mx-auto mb-8 flex min-h-16 w-full max-w-[var(--container-max)] items-center justify-between gap-4 rounded-xl border border-border/80 bg-card/95 px-3 py-2 text-card-foreground shadow-[var(--shadow-soft)] ring-1 ring-primary/10 backdrop-blur-md"
+        className="erica-surface-strong sticky top-3 z-30 mx-auto mb-8 flex min-h-16 w-full max-w-[var(--container-max)] items-center justify-between gap-4 rounded-xl border border-border/80 px-3 py-2 text-card-foreground ring-1 ring-primary/10 backdrop-blur-md"
         aria-label="서비스 내비게이션"
       >
         <Link
@@ -61,7 +61,7 @@ export function AppShell({ children }: { children: ReactNode }) {
       <main className="mx-auto grid w-full max-w-[var(--container-max)] gap-5 pb-4 md:pb-0">{children}</main>
 
       <nav
-        className="mx-auto mt-5 grid w-full max-w-[var(--container-max)] grid-cols-3 gap-1 rounded-xl border border-border/80 bg-card/95 p-2 text-card-foreground shadow-[var(--shadow-soft)] ring-1 ring-primary/10 backdrop-blur-md md:hidden"
+        className="erica-surface-strong mx-auto mt-5 grid w-full max-w-[var(--container-max)] grid-cols-3 gap-1 rounded-xl border border-border/80 p-2 text-card-foreground ring-1 ring-primary/10 backdrop-blur-md md:hidden"
         aria-label="모바일 주요 페이지"
       >
         {navigationItems.map((item) => {
