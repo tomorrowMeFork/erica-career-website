@@ -1,6 +1,6 @@
 export function DisclaimerNotice() {
   return (
-    <section className="relative grid gap-3 overflow-hidden rounded-xl border border-warning/35 bg-card/95 p-5 text-warning-foreground shadow-[var(--shadow-soft)] before:absolute before:inset-y-0 before:left-0 before:w-2 before:bg-[var(--surface-warm-gradient)]" aria-label="안전 안내">
+    <section className="erica-surface relative grid gap-3 overflow-hidden border-warning/35 p-5 text-warning-foreground ring-1 ring-warning/20 before:absolute before:inset-y-0 before:left-0 before:w-2 before:bg-[var(--surface-warm-gradient)]" aria-label="안전 안내">
       <p className="relative text-xs font-semibold uppercase tracking-[0.18em]">참고용 안내</p>
       <h2 className="relative text-lg font-semibold tracking-tight text-foreground">답변은 취업 정보 확인을 돕는 참고용입니다.</h2>
       <p className="relative text-sm leading-6">
