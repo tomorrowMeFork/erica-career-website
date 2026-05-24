@@ -13,5 +13,3 @@ playwright-report/
 .DS_Store
 __pycache__/
 .pytest_cache/
-data/knowledge-base/
-data/audit/
