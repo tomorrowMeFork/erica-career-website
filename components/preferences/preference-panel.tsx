@@ -29,7 +29,7 @@ export function PreferencePanel({ state, sessionKey, onSet, onUpdate, onClear, o
   const canSave = major.trim().length > 0 && targetRole.trim().length > 0;
   const profile: PreferenceProfile = { major, target_role: targetRole, industry, region, employment_type: employmentType, deadline_sensitivity: deadlineSensitivity, ...(sessionText.trim().length > 0 ? { session_only_optional_text: sessionText } : {}) };
   return (
-    <Card aria-label="추천 조건" className="gap-5 border-border/45 bg-card/95 shadow-sm">
+    <Card aria-label="추천 조건" className="gap-5 erica-surface">
       <CardHeader className="gap-3 pb-0 sm:grid-cols-[1fr_auto]">
         <div className="grid gap-2">
           <CardTitle className="text-xl"><h2>입력한 조건</h2></CardTitle>

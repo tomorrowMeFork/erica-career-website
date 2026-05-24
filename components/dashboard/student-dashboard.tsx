@@ -119,7 +119,7 @@ export function StudentDashboard() {
   return (
     <main className="grid gap-5" onKeyDown={(event) => { if (event.key === "Escape") closeSource(); }}>
       <div className="grid gap-5">
-        <header className="grid gap-4 rounded-xl border border-border bg-card p-5 shadow-sm md:grid-cols-[minmax(0,1fr)_auto] md:items-start">
+        <header className="erica-surface-strong grid gap-4 rounded-xl border border-border p-5 md:grid-cols-[minmax(0,1fr)_auto] md:items-start">
           <div>
             <p className="mb-2 text-xs font-semibold uppercase tracking-[0.18em] text-primary">ERICA 커리어 데스크</p>
             <h1 className="text-2xl font-semibold tracking-tight text-foreground">출처와 마감일을 함께 확인하는 커리어 상담</h1>
@@ -149,14 +149,14 @@ export function StudentDashboard() {
             </div>
           </aside>
 
-          <section className={activePanel === "chat" ? "grid min-h-[72vh] content-between gap-4 overflow-hidden rounded-xl border border-border bg-card p-4 lg:order-1 lg:p-6" : "hidden min-h-[72vh] content-between gap-4 overflow-hidden rounded-xl border border-border bg-card p-4 lg:order-1 lg:grid lg:p-6"} aria-label="채팅">
+          <section className={activePanel === "chat" ? "erica-surface grid min-h-[72vh] content-between gap-4 overflow-hidden rounded-xl border border-border p-4 lg:order-1 lg:p-6" : "erica-surface hidden min-h-[72vh] content-between gap-4 overflow-hidden rounded-xl border border-border p-4 lg:order-1 lg:grid lg:p-6"} aria-label="채팅">
             <ChatMessageList messages={messages} onOpenCitation={openCitation} />
-            {isLoading ? <Card className="p-5">관련 출처를 확인하고 답변을 준비하고 있어요…</Card> : null}
+            {isLoading ? <Card className="erica-surface-muted p-5">관련 출처를 확인하고 답변을 준비하고 있어요…</Card> : null}
             <ChatComposer query={query} onQueryChange={setQuery} onSubmit={submitQuestion} isLoading={isLoading} />
           </section>
 
           <div className="lg:order-3">
-            {sourcePanelOpen ? <SourceInspectionRail citations={sourceCitations} selectedCitation={selectedCitation} onSelect={handleSelectCitation} onClose={closeSource} /> : <Card className="grid min-h-56 place-items-center p-5 text-center text-muted-foreground">출처 확인하기</Card>}
+            {sourcePanelOpen ? <SourceInspectionRail citations={sourceCitations} selectedCitation={selectedCitation} onSelect={handleSelectCitation} onClose={closeSource} /> : <Card className="erica-surface-muted grid min-h-56 place-items-center p-5 text-center text-muted-foreground">출처 확인하기</Card>}
           </div>
         </div>
 
