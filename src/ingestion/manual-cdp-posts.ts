@@ -66,10 +66,11 @@ function buildRecord(
 	const sourceId = sourceIdForBoard(post.board);
 	const sourceName = sourceNameForBoard(post.board);
 	const taxonomy = taxonomyForBoard(post.board);
+	const postedAt = normalizePostedAt(post.posted_at ?? null, fetchedAt);
 	const rawText = [
 		`게시판: ${post.board}`,
 		`제목: ${title}`,
-		post.posted_at ? `등록일: ${post.posted_at}` : undefined,
+		postedAt ? `등록일: ${postedAt}` : undefined,
 		post.deadline_raw_text ? `마감 정보: ${post.deadline_raw_text}` : undefined,
 		"본문:",
 		post.body_text,
@@ -80,23 +81,23 @@ function buildRecord(
 	const contentHash = sha256([rawText, detailUrl].join("\u001f"));
 
 	return NormalizedRecordSchema.parse({
-		record_id: buildRecordId({
-			source_id: sourceId,
-			canonical_url: detailUrl,
-			title: title,
-			posted_at: post.posted_at ?? null,
-			content_hash: contentHash,
-		}),
+			record_id: buildRecordId({
+				source_id: sourceId,
+				canonical_url: detailUrl,
+				title: title,
+				posted_at: postedAt,
+				content_hash: contentHash,
+			}),
 		source_id: sourceId,
 		source_name: sourceName,
 		source_url: detailUrl,
 		canonical_url: detailUrl,
 		title: title,
-		category: `CDP 채용정보 > ${post.board}`,
-		...taxonomy,
-		fetched_at: fetchedAt,
-		posted_at: post.posted_at ?? null,
-		deadline_status: post.deadline_status,
+			category: `CDP 채용정보 > ${post.board}`,
+			...taxonomy,
+			fetched_at: fetchedAt,
+			posted_at: postedAt,
+			deadline_status: post.deadline_status,
 		deadline_raw_text: post.deadline_raw_text,
 		raw_text: rawText,
 		cleaned_text: rawText,
@@ -104,6 +105,13 @@ function buildRecord(
 		citation_anchors: [{ url: detailUrl, label: `원문: ${title}` }],
 		source_text_trust: "untrusted_source_text",
 	});
+}
+
+function normalizePostedAt(postedAt: string | null, fetchedAt: string): string | null {
+	if (!postedAt) {
+		return null;
+	}
+	return postedAt > fetchedAt ? null : postedAt;
 }
 
 function sourceIdForBoard(board: z.infer<typeof CdpManualBoardSchema>): string {

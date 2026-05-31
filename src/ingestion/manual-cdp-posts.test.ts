@@ -110,6 +110,28 @@ describe("buildCdpManualPostRecords", () => {
 		expect(record.collection_category).toBe("job_posting");
 	});
 
+	it("drops impossible future posted dates from manual CDP exports", () => {
+		const [record] = buildCdpManualPostRecords({
+			exported_at: "2026-05-23T07:23:40.978Z",
+			posts: [
+				{
+					board: "일반채용공고",
+					title: "[엘에스머트리얼즈] 정보보안 신입/경력직 채용",
+					detail_url:
+						"https://cdp.hanyang.ac.kr/Recruit/RecruitView.aspx?modalChk=Y&rcdx=AD86DBF4C11CD57F4FE7096348DB674842683ADF3BBF47840AA7B092090AA3A9913B9C1B0769E8EB",
+					posted_at: "2026-05-25T00:00:00.000Z",
+					deadline_status: "active",
+					deadline_raw_text: "마감일 : 2026-05-25",
+					body_text: "본문입니다. 지원 자격과 전형 절차를 안내합니다.",
+				},
+			],
+		});
+
+		expect(record.posted_at).toBeNull();
+		expect(record.raw_text).not.toContain("등록일:");
+		expect(record.deadline_raw_text).toBe("마감일 : 2026-05-25");
+	});
+
 	it("accepts only the bounded CDP recruitment and notice boards", () => {
 		expect(() =>
 			buildCdpManualPostRecords({
