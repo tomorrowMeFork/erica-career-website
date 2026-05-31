@@ -51,8 +51,8 @@ function getSourceDisplayLabel(sourceId: string | undefined, url: string | undef
   try {
     if (url) {
       const hostname = new URL(url).hostname;
-      if ((sourceId && sourceId.includes("ibus")) || hostname === "ibus.hanyang.ac.kr") return "ERICA 취업게시판";
-      if ((sourceId && sourceId.includes("cdp")) || hostname === "cdp.hanyang.ac.kr") return "한양대학교 ERICA 커리어개발센터";
+      if (sourceId?.includes("ibus") || hostname === "ibus.hanyang.ac.kr") return "ERICA 취업게시판";
+      if (sourceId?.includes("cdp") || hostname === "cdp.hanyang.ac.kr") return "한양대학교 ERICA 커리어개발센터";
     }
   } catch {
     // URL parse failure; fall through to default
@@ -146,7 +146,7 @@ function upsertItem(items: SessionReferenceItem[], incoming: SessionReferenceIte
       sourceLabel: item.sourceLabel || incoming.sourceLabel,
       postedAt: item.postedAt ?? incoming.postedAt,
       fetchedAt: item.fetchedAt ?? incoming.fetchedAt,
-      deadlineStatus: item.deadlineStatus === "unknown" ? incoming.deadlineStatus : item.deadlineStatus,
+      deadlineStatus: incoming.deadlineStatus === "unknown" ? item.deadlineStatus : incoming.deadlineStatus,
       lastReferencedAt: incoming.lastReferencedAt,
       referenceCount: item.referenceCount + incoming.referenceCount,
       lastQuery: incoming.lastQuery ?? item.lastQuery,

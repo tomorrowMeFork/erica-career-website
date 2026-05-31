@@ -1,11 +1,11 @@
-import { describe, expect, it, vi, beforeEach, afterEach } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import {
-  SESSION_REFERENCES_KEY,
-  appendCitations,
-  appendRecommendations,
-  clearSessionReferences,
-  readSessionReferences,
+	appendCitations,
+	appendRecommendations,
+	clearSessionReferences,
+	readSessionReferences,
+	SESSION_REFERENCES_KEY,
 } from "./session-references.js";
 
 function mockStorage(items: Record<string, string> = {}): Storage {
@@ -101,7 +101,7 @@ const FORBIDDEN_SUBSTRINGS = [
 ];
 
 function assertNoRawInternalsInJson(storage: Storage) {
-  const rawJson = storage.getItem(SESSION_REFERENCES_KEY)!;
+  const rawJson = getStoredSessionReferencesJson(storage);
   for (const forbidden of FORBIDDEN_SUBSTRINGS) {
     expect(rawJson, `stored JSON must not contain "${forbidden}"`).not.toContain(forbidden);
   }
@@ -110,6 +110,22 @@ function assertNoRawInternalsInJson(storage: Storage) {
   expect(rawJson).not.toContain("0.92");
   expect(rawJson).not.toContain("0.8");
   expect(rawJson).not.toContain("0.95");
+}
+
+function getStoredSessionReferencesJson(storage: Storage): string {
+  const rawJson = storage.getItem(SESSION_REFERENCES_KEY);
+  expect(rawJson).not.toBeNull();
+  return rawJson ?? "";
+}
+
+function hideGlobalWindow(): Window | undefined {
+  const originalWindow = globalThis.window;
+  Reflect.set(globalThis, "window", undefined);
+  return originalWindow;
+}
+
+function restoreGlobalWindow(originalWindow: Window | undefined): void {
+  Reflect.set(globalThis, "window", originalWindow);
 }
 
 describe("readSessionReferences", () => {
@@ -149,14 +165,12 @@ describe("readSessionReferences", () => {
   });
 
   it("returns [] when called without storage argument and no window", () => {
-    const originalWindow = globalThis.window;
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    (globalThis as any).window = undefined;
+    const originalWindow = hideGlobalWindow();
     try {
       expect(() => readSessionReferences()).not.toThrow();
       expect(readSessionReferences()).toEqual([]);
     } finally {
-      globalThis.window = originalWindow;
+      restoreGlobalWindow(originalWindow);
     }
   });
 });
@@ -192,7 +206,7 @@ describe("appendCitations", () => {
   it("does not store raw internals as properties", () => {
     appendCitations([citation], storage);
 
-    const raw = JSON.parse(storage.getItem(SESSION_REFERENCES_KEY)!);
+    const raw = JSON.parse(getStoredSessionReferencesJson(storage));
     const stored = raw.items[0];
     expect(stored).not.toHaveProperty("citation_id");
     expect(stored).not.toHaveProperty("chunk_id");
@@ -266,14 +280,32 @@ describe("appendCitations", () => {
     expect(readSessionReferences(storage)[0].deadlineStatus).toBe("closing_soon");
   });
 
+  it("updates stale known deadline status from newer citation metadata", () => {
+    appendCitations([{ ...citation, deadline_status: "active" }], storage);
+
+    currentTime = "2026-05-04T13:00:00.000Z";
+    appendCitations([{ ...citation, deadline_status: "expired" }], storage);
+
+    const items = readSessionReferences(storage);
+    expect(items[0].deadlineStatus).toBe("closed");
+    expect(items[0].referenceCount).toBe(2);
+  });
+
+  it("does not replace known deadline status with unknown metadata", () => {
+    appendCitations([{ ...citation, deadline_status: "expired" }], storage);
+
+    currentTime = "2026-05-04T13:00:00.000Z";
+    appendCitations([{ ...citation, deadline_status: "unknown" }], storage);
+
+    expect(readSessionReferences(storage)[0].deadlineStatus).toBe("closed");
+  });
+
   it("no-op when storage is unavailable", () => {
-    const originalWindow = globalThis.window;
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    (globalThis as any).window = undefined;
+    const originalWindow = hideGlobalWindow();
     try {
       expect(() => appendCitations([citation])).not.toThrow();
     } finally {
-      globalThis.window = originalWindow;
+      restoreGlobalWindow(originalWindow);
     }
   });
 });
@@ -307,7 +339,7 @@ describe("appendRecommendations", () => {
   it("does not store raw ranking internals as properties", () => {
     appendRecommendations([recommendation], storage);
 
-    const raw = JSON.parse(storage.getItem(SESSION_REFERENCES_KEY)!);
+    const raw = JSON.parse(getStoredSessionReferencesJson(storage));
     const stored = raw.items[0];
     expect(stored).not.toHaveProperty("recommendation_id");
     expect(stored).not.toHaveProperty("chunk_id");
@@ -362,13 +394,11 @@ describe("clearSessionReferences", () => {
   });
 
   it("no-op when called without storage and no window", () => {
-    const originalWindow = globalThis.window;
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    (globalThis as any).window = undefined;
+    const originalWindow = hideGlobalWindow();
     try {
       expect(() => clearSessionReferences()).not.toThrow();
     } finally {
-      globalThis.window = originalWindow;
+      restoreGlobalWindow(originalWindow);
     }
   });
 });
@@ -397,7 +427,7 @@ describe("envelope format", () => {
     const storage = mockStorage();
     appendCitations([citation], storage);
 
-    const raw = JSON.parse(storage.getItem(SESSION_REFERENCES_KEY)!);
+    const raw = JSON.parse(getStoredSessionReferencesJson(storage));
     expect(raw._v).toBe(1);
     expect(Array.isArray(raw.items)).toBe(true);
   });
