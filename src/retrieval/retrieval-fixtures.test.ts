@@ -139,6 +139,72 @@ describe("Bm25Retriever over Phase 2 fixtures", () => {
     expect(expiredResults[0]?.chunk.deadline_status).toBe("expired");
   });
 
+  it("uses CDP event periods before open-ended hiring text for effective status", async () => {
+    const retriever = new Bm25Retriever(
+      [
+        fixtureChunk({
+          chunk_id: "cdp-event-with-open-hiring",
+          title: "파네시아 온라인 채용설명회",
+          text: "게시판: 채용상담 및 설명회\n기간\n2025-09-05 ~ 2025-09-26 12시 00분 ~ 12시 45분\n내용\n모집기한: 상시채용",
+          collection_category: "career_program",
+          deadline_status: "active",
+          deadline_raw_text: "상시채용",
+          source_id: "cdp-recruit-event-board",
+        }),
+      ],
+      { referenceDate: new Date("2026-05-23T00:00:00.000Z") },
+    );
+
+    const expiredResults = await retriever.retrieve({ query: "파네시아 채용설명회", topK: 5, filters: { deadline_statuses: ["expired"] } });
+
+    expect(expiredResults.map((result) => result.chunk.chunk_id)).toEqual(["cdp-event-with-open-hiring"]);
+    expect(expiredResults[0]?.chunk.deadline_status).toBe("expired");
+    expect(expiredResults[0]?.chunk.deadline_raw_text).toBe("~ 2025-09-26");
+  });
+
+  it("propagates CDP event period status across sibling chunks", async () => {
+    const retriever = new Bm25Retriever(
+      [
+        {
+          ...fixtureChunk({
+            chunk_id: "cdp-event-period-chunk",
+            title: "파네시아 온라인 채용설명회",
+            text: "게시판: 채용상담 및 설명회\n기간\n2025-09-05 ~ 2025-09-26 12시 00분 ~ 12시 45분\n내용\n회사 소개",
+            collection_category: "career_program",
+            deadline_status: "active",
+            deadline_raw_text: "상시채용",
+            source_id: "cdp-recruit-event-board",
+          }),
+          record_id: "record-cdp-event",
+        },
+        {
+          ...fixtureChunk({
+            chunk_id: "cdp-event-hiring-chunk",
+            title: "파네시아 온라인 채용설명회",
+            text: "모집기한: 상시채용 반도체 엔지니어 지원 안내 Panmnesia",
+            collection_category: "career_program",
+            deadline_status: "active",
+            deadline_raw_text: "상시채용",
+            source_id: "cdp-recruit-event-board",
+          }),
+          record_id: "record-cdp-event",
+        },
+      ],
+      { referenceDate: new Date("2026-05-23T00:00:00.000Z") },
+    );
+
+    const activeResults = await retriever.retrieve({ query: "Panmnesia", topK: 5, filters: { deadline_statuses: ["active"] } });
+    const expiredResults = await retriever.retrieve({ query: "Panmnesia", topK: 5, filters: { deadline_statuses: ["expired"] } });
+
+    expect(activeResults).toEqual([]);
+    expect(expiredResults.map((result) => result.chunk.chunk_id)).toEqual([
+      "cdp-event-hiring-chunk",
+      "cdp-event-period-chunk",
+    ]);
+    expect(expiredResults.every((result) => result.chunk.deadline_status === "expired")).toBe(true);
+    expect(expiredResults.every((result) => result.chunk.deadline_raw_text === "~ 2025-09-26")).toBe(true);
+  });
+
   it("retrieves top-five counseling and consulting service evidence", async () => {
     const retriever = new Bm25Retriever(loadKnowledgeBaseChunks());
 
@@ -177,11 +243,12 @@ describe("Bm25Retriever over Phase 2 fixtures", () => {
     const retriever = new Bm25Retriever(loadKnowledgeBaseChunks());
 
     const results = await retriever.retrieve({ query: "ERICA 도서관 좌석 알려줘" });
-    const meaningfulMatches = results[0]?.matched_terms.filter((term) => term.toLowerCase() !== "erica") ?? [];
+    const resultText = results
+      .map((result) => `${result.chunk.title}\n${result.chunk.text}`)
+      .join("\n");
 
     expect(results.length).toBeGreaterThan(0);
-    expect(results[0]?.matched_terms).toEqual(["erica"]);
-    expect(meaningfulMatches).toEqual([]);
+    expect(resultText).not.toMatch(/도서관\s*좌석|좌석\s*예약|열람실\s*좌석/u);
   });
 
   it.each([

@@ -1,4 +1,4 @@
-import { resolveEffectiveDeadlineStatus } from "../ingestion/deadline-status.js";
+import { extractEventPeriodDeadlineRawText, resolveEffectiveDeadlineStatus } from "../ingestion/deadline-status.js";
 import {
 	type KnowledgeChunk,
 	KnowledgeChunkSchema,
@@ -55,6 +55,7 @@ const queryFillerTerms = new Set([
 
 export class Bm25Retriever implements Retriever {
 	private readonly indexedChunks: IndexedChunk[];
+	private readonly eventDeadlineRawTextByRecordId: Map<string, string>;
 	private readonly documentFrequency: Map<string, number>;
 	private readonly averageDocumentLength: number;
 	private readonly clock: () => Date;
@@ -66,6 +67,9 @@ export class Bm25Retriever implements Retriever {
 		this.clock = options.clock ?? (() => options.referenceDate ?? new Date());
 		this.indexedChunks = chunks.map((chunk, ordinal) =>
 			indexChunk(KnowledgeChunkSchema.parse(chunk), ordinal),
+		);
+		this.eventDeadlineRawTextByRecordId = buildEventDeadlineRawTextByRecordId(
+			this.indexedChunks.map((indexedChunk) => indexedChunk.chunk),
 		);
 		this.documentFrequency = computeDocumentFrequency(this.indexedChunks);
 		this.averageDocumentLength = computeAverageDocumentLength(
@@ -84,7 +88,11 @@ export class Bm25Retriever implements Retriever {
 		const referenceDate = this.clock();
 		const effectiveChunks = this.indexedChunks.map((indexedChunk) => ({
 			...indexedChunk,
-			chunk: withEffectiveDeadlineStatus(indexedChunk.chunk, referenceDate),
+			chunk: withEffectiveDeadlineStatus(
+				indexedChunk.chunk,
+				referenceDate,
+				this.eventDeadlineRawTextByRecordId,
+			),
 		}));
 		const filteredChunks = effectiveChunks.filter((indexedChunk) => matchesRetrieveFilters(indexedChunk.chunk, input.filters));
 		if (queryTerms.length === 0 || filteredChunks.length === 0) {
@@ -187,13 +195,38 @@ function matchesRetrieveFilters(chunk: KnowledgeChunk, filters: RetrieveFilters 
 	);
 }
 
-function withEffectiveDeadlineStatus(chunk: KnowledgeChunk, referenceDate: Date): KnowledgeChunk {
+function withEffectiveDeadlineStatus(
+	chunk: KnowledgeChunk,
+	referenceDate: Date,
+	eventDeadlineRawTextByRecordId: ReadonlyMap<string, string>,
+): KnowledgeChunk {
+	const deadlineRawText =
+		chunk.source_id === "cdp-recruit-event-board"
+			? eventDeadlineRawTextByRecordId.get(chunk.record_id) ?? chunk.deadline_raw_text
+			: chunk.deadline_raw_text;
 	const deadlineStatus = resolveEffectiveDeadlineStatus({
-		deadline_raw_text: chunk.deadline_raw_text,
+		deadline_raw_text: deadlineRawText,
 		deadline_status: chunk.deadline_status,
+		posted_at: chunk.posted_at,
 		referenceDate,
 	});
-	return deadlineStatus === chunk.deadline_status ? chunk : { ...chunk, deadline_status: deadlineStatus };
+	return deadlineStatus === chunk.deadline_status && deadlineRawText === chunk.deadline_raw_text
+		? chunk
+		: { ...chunk, deadline_status: deadlineStatus, deadline_raw_text: deadlineRawText };
+}
+
+function buildEventDeadlineRawTextByRecordId(chunks: readonly KnowledgeChunk[]): Map<string, string> {
+	const deadlineRawTextByRecordId = new Map<string, string>();
+	for (const chunk of chunks) {
+		if (chunk.source_id !== "cdp-recruit-event-board" || deadlineRawTextByRecordId.has(chunk.record_id)) {
+			continue;
+		}
+		const deadlineRawText = extractEventPeriodDeadlineRawText(chunk.text);
+		if (deadlineRawText !== undefined) {
+			deadlineRawTextByRecordId.set(chunk.record_id, deadlineRawText);
+		}
+	}
+	return deadlineRawTextByRecordId;
 }
 
 function matchesFilterValues<T extends string>(values: readonly T[] | undefined, candidate: T): boolean {
