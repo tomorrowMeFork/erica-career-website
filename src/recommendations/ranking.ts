@@ -223,6 +223,7 @@ function effectiveDeadlineStatus(candidate: RetrievedChunk, referenceDate: Date)
   return resolveEffectiveDeadlineStatus({
     deadline_raw_text: candidate.chunk.deadline_raw_text,
     deadline_status: candidate.chunk.deadline_status,
+    posted_at: candidate.chunk.posted_at,
     referenceDate,
   });
 }

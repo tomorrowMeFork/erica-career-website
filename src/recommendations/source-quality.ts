@@ -75,6 +75,7 @@ export function scoreSourceQuality(candidate: RetrievedChunk, referenceDate: Dat
   const deadlineStatus = resolveEffectiveDeadlineStatus({
     deadline_raw_text: chunk.deadline_raw_text,
     deadline_status: chunk.deadline_status,
+    posted_at: chunk.posted_at,
     referenceDate,
   });
   const deadline_score = deadlineStatus === "active" ? 1 : deadlineStatus === "unknown" ? 0.45 : 0;

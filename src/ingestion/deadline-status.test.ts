@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { classifyDeadlineStatus, resolveEffectiveDeadlineStatus } from "./deadline-status.js";
+import { classifyDeadlineStatus, extractEventPeriodDeadlineRawText, resolveEffectiveDeadlineStatus } from "./deadline-status.js";
 
 const referenceDate = new Date("2026-05-03T00:00:00.000Z");
 
@@ -131,6 +131,52 @@ describe("classifyDeadlineStatus", () => {
 			deadline_date: "2026-05-14",
 		});
 	});
+
+	it("uses posted date context for yearless short deadlines", () => {
+		expect(
+			classifyDeadlineStatus(
+				"[신한은행/신한금융희망재단] 신한 커리어업 10기 교육생 모집 (~9/23)",
+				new Date("2026-05-24T00:00:00.000Z"),
+				{ postedAt: "2025-09-16T00:00:00.000Z" },
+			),
+		).toEqual({
+			status: "expired",
+			deadline_raw_text: "~9/23",
+			deadline_date: "2025-09-23",
+		});
+	});
+
+	it("prefers application period end dates over later education period dates", () => {
+		expect(
+			classifyDeadlineStatus(
+				"[LIG넥스원] 임베디드SW 스쿨 3기 모집 신청기간: 2025.10.24(금) ~ 11.10(월) 09:00 교육기간: 2025.12.01(월) ~ 2026.06.10(수)",
+				new Date("2026-05-24T00:00:00.000Z"),
+				{ postedAt: "2025-10-24T00:00:00.000Z" },
+			),
+		).toEqual({
+			status: "expired",
+			deadline_raw_text: "신청기간: 2025.10.24(금) ~ 11.10(월)",
+			deadline_date: "2025-11-10",
+		});
+	});
+
+	it("extracts event period end dates before open-ended hiring text", () => {
+		const rawEventDeadline = extractEventPeriodDeadlineRawText(
+			"행사구분\n채용설명회\n기간\n2025-09-05 ~ 2025-09-26 12시 00분 ~ 12시 45분\n내용\n모집기한: 상시채용",
+		);
+
+		expect(rawEventDeadline).toBe("~ 2025-09-26");
+		expect(
+			classifyDeadlineStatus(
+				rawEventDeadline ?? "",
+				new Date("2026-05-23T00:00:00.000Z"),
+			),
+		).toEqual({
+			status: "expired",
+			deadline_raw_text: "~ 2025-09-26",
+			deadline_date: "2025-09-26",
+		});
+	});
 });
 
 describe("resolveEffectiveDeadlineStatus", () => {
@@ -152,5 +198,16 @@ describe("resolveEffectiveDeadlineStatus", () => {
 				referenceDate,
 			}),
 		).toBe("active");
+	});
+
+	it("uses posted date context when recomputing stored active yearless deadlines", () => {
+		expect(
+			resolveEffectiveDeadlineStatus({
+				deadline_status: "active",
+				deadline_raw_text: "~9/23",
+				posted_at: "2025-09-16T00:00:00.000Z",
+				referenceDate: new Date("2026-05-24T00:00:00.000Z"),
+			}),
+		).toBe("expired");
 	});
 });
