@@ -635,7 +635,7 @@
 
   const extractPostedAt = (text) => {
     const match = text.match(
-      /(?:등록일|작성일|게시일|Date)?\s*(20\d{2})[-./년\s]+(\d{1,2})[-./월\s]+(\d{1,2})/u,
+      /(?:등록일|작성일|게시일|Date)\s*[:：]?\s*(20\d{2})[-./년\s]+(\d{1,2})[-./월\s]+(\d{1,2})/u,
     );
     if (!match) {
       return null;
@@ -661,6 +661,15 @@
     }
 
     return "";
+  };
+
+  const eventPeriodDeadlineRawText = (text) => {
+    const normalizedText = text.replace(/\r\n?/gu, "\n").trim();
+    const match = normalizedText.match(
+      /(?:^|\n)\s*기간\s*(?:\n|[:：]\s*)(20\d{2}[.\-/년]\s*\d{1,2}[.\-/월]\s*\d{1,2}(?:\.?일?)?)(?:\([^)]*\))?\s*[~–-]\s*(20\d{2}[.\-/년]\s*\d{1,2}[.\-/월]\s*\d{1,2}(?:\.?일?)?)(?:\([^)]*\))?/u,
+    );
+    const rawEndDate = match?.[2];
+    return rawEndDate ? `~ ${rawEndDate.trim()}` : undefined;
   };
 
   const parseDeadlineDate = (rawText, exportedAt) => {
@@ -721,7 +730,10 @@
       return null;
     }
     const combinedText = `${title}\n${bodyText}`;
-    const rawDeadline = deadlineRawText(combinedText);
+    const rawDeadline =
+      board === "채용상담 및 설명회"
+        ? (eventPeriodDeadlineRawText(bodyText) ?? deadlineRawText(combinedText))
+        : deadlineRawText(combinedText);
 
     return {
       board,

@@ -11,6 +11,7 @@ import {
 	loadSourceRegistryForIngestion,
 } from "../src/ingestion/access-gate.js";
 import { chunkNormalizedRecord } from "../src/ingestion/chunking.js";
+import { extractEventPeriodDeadlineRawText } from "../src/ingestion/deadline-status.js";
 import {
 	buildCdpManualPostRecords,
 	type CdpManualPostExport,
@@ -853,7 +854,10 @@ export function extractPostFromHtml(
 		return null;
 	}
 	const combinedText = `${title}\n${bodyText}`;
-	const rawDeadline = extractDeadlineRawText(combinedText);
+	const rawDeadline =
+		board === "채용상담 및 설명회"
+			? extractEventPeriodDeadlineRawText(bodyText) ?? extractDeadlineRawText(combinedText)
+			: extractDeadlineRawText(combinedText);
 	const exportedAt = new Date(exportedAtIso);
 	return {
 		board,
@@ -957,7 +961,7 @@ function isLikelyListPage($: cheerio.CheerioAPI, bodyText: string, pageUrl: stri
 
 function extractPostedAt(text: string): string | null {
 	const match = text.match(
-		/(?:등록일|작성일|게시일|Date)?\s*(20\d{2})[-./년\s]+(\d{1,2})[-./월\s]+(\d{1,2})/u,
+		/(?:등록일|작성일|게시일|Date)\s*[:：]?\s*(20\d{2})[-./년\s]+(\d{1,2})[-./월\s]+(\d{1,2})/u,
 	);
 	if (!match) return null;
 	const [, year, month, day] = match;

@@ -337,6 +337,53 @@ describe("CDP authenticated source helper behavior", () => {
 		expect(post?.deadline_raw_text).toContain("2026.05.30");
 	});
 
+	it("does not use deadline dates as posted dates when no posted-date label exists", () => {
+		const post = extractPostFromHtml(
+			`
+				<html>
+					<body>
+						<h1>[엘에스머트리얼즈] 정보보안 신입/경력직 채용</h1>
+						<main>
+							마감일 : 2026-05-25
+							본문입니다. 지원 자격과 전형 절차를 안내합니다.
+						</main>
+					</body>
+				</html>
+			`,
+			"https://cdp.hanyang.ac.kr/Recruit/RecruitView.aspx?modalChk=Y&rcdx=AD86DBF4C11CD57F4FE7096348DB674842683ADF3BBF47840AA7B092090AA3A9913B9C1B0769E8EB",
+			"일반채용공고",
+			"2026-05-23T07:23:40.978Z",
+		);
+
+		expect(post).toMatchObject({
+			posted_at: null,
+			deadline_status: "active",
+			deadline_raw_text: "마감일 : 2026-05-25",
+		});
+	});
+
+	it("uses event period end dates before open-ended hiring text for CDP events", () => {
+		const post = extractPostFromHtml(
+			`<body><h1>채용설명회</h1><main>행사구분
+채용설명회
+제목
+[주식회사 파네시아] AI 인프라 링크 솔루션 스타트업 신입 채용 · 온라인 채용설명회 (상시채용)
+기간
+2025-09-05 ~ 2025-09-26 12시 00분 ~ 12시 45분
+내용
+모집기한: 상시채용</main></body>`,
+			"https://cdp.hanyang.ac.kr/Office/SiteMgr/Notice/FuncScheView.aspx?funcidx=4266",
+			"채용상담 및 설명회",
+			"2026-05-23T07:23:40.978Z",
+		);
+
+		expect(post).toMatchObject({
+			board: "채용상담 및 설명회",
+			deadline_status: "expired",
+			deadline_raw_text: "~ 2025-09-26",
+		});
+	});
+
 	it("groups authenticated CDP records by source output directory", () => {
 		const groups = groupCdpRecordsByOutputCategory([
 			cdpRecord("general", "cdp-recruit-general-board"),
