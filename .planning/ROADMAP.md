@@ -42,6 +42,8 @@ v1.2 focuses on clean chat answer rendering and explicit prompt-context personal
 
 v1.2 must preserve citations, source labels, freshness metadata, deadlines, refusal/no-answer behavior, Korean-first copy, and the no-official-endorsement safety posture. It must not add retrieval-system scope, crawling scope, ranking algorithm changes, saved jobs, reminders, SSO, or job-board workflow features.
 
+The 2026-05-31 `feature/test` data-freshness follow-up is outside the v1.2 markdown/prompt-context milestone. It is a bounded hotfix to existing deadline/freshness behavior and reviewed CDP source snapshots, intended to correct stale or yearless deadline handling without changing v1.2's shipped/release-ready status or adding new crawling/product workflow scope.
+
 Targeted v1.2 implementation is complete. Chat answers now render with `react-markdown`, citations/freshness/refusal states are preserved, unsafe raw HTML/script/style/iframe handling is constrained, markdown images are disabled, and chat requests can use an optional `session_key` path. Server-side prompt context resolves explicit preferences and includes only minimized `major` and `target_role`, while excluding raw chat history, session-only optional text, extra preference fields, secrets, storage metadata, hidden profiling, and cleared preferences. This does not mark v1.2 as shipped or release-ready.
 
 Latest broad verification distinguishes passing infrastructure gates from failing broad Vitest/evaluation gates. `npm run typecheck -- --pretty false`, `npm run build:web`, and re-run `npm run qa:web` passed. The first `npm run qa:web` failed only because the Playwright Chromium/headless shell executable was missing locally; `npx playwright install chromium` installed the required browser artifacts before the successful 28/28 Playwright re-run. Full `npm test` still failed, so `release:ready` remains blocked/pending.
@@ -67,6 +69,7 @@ Latest broad verification distinguishes passing infrastructure gates from failin
 - [x] **Phase 12: Markdown Answer Rendering** - Chat answers render cleanly with `react-markdown` while preserving Korean readability, citations, freshness metadata, and refusal/no-answer states.
 - [x] **Phase 13: Explicit Preference Prompt Context** - Stable user-provided preferences such as 전공 and target role can be added to system/developer prompt context with data minimization and no hidden profiling.
 - [x] **Phase 14: v1.2 Regression QA and Scope Guardrails** - Targeted markdown rendering, prompt-context privacy, citations, freshness, refusal behavior, and scope exclusions are verified together. Typecheck, build, and Playwright QA pass; broad Vitest/evaluation gates still fail.
+- [x] **Post-v1.2 Data Freshness Hotfix** - Existing ingestion/retrieval deadline handling and reviewed CDP source snapshots are corrected outside v1.2 scope; this does not mark v1.2 shipped or release-ready.
 
 ## Phase Details
 

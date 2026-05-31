@@ -11,6 +11,10 @@ v1.1 UI Redesign shipped on 2026-05-04. It delivered the four-page Korean-first 
 
 Requirements for the v1.2 milestone. Each maps to roadmap phases 12 through 14. v1.2 is a chat-answer presentation and privacy-safe prompt-context milestone, not a retrieval, crawling, ranking, or job-board workflow milestone. Targeted implementation and focused verification are complete; typecheck, build, and Playwright QA pass; broad Vitest/evaluation gates still fail and block `release:ready`.
 
+### Post-v1.2 Data Freshness Hotfix Note
+
+The 2026-05-31 `feature/test` follow-up commits after v1.2 are tracked as a data freshness and deadline-correction hotfix, not as additional v1.2 milestone scope. They adjust existing ingestion/retrieval deadline handling, refresh reviewed CDP authenticated source snapshots, and add audit traces so stale or yearless deadlines are not presented as current. This does not change the v1.2 release status, does not claim `release:ready`, and does not introduce semantic retrieval, saved-job workflows, SSO, official endorsement, production crawling permission, or automated authenticated crawling.
+
 ### Markdown Answer Rendering
 
 - [x] **V12-MD-01**: Chat answers render through `react-markdown` or an equivalent React markdown rendering path so users no longer see raw markdown symbols, stray heading markers, or raw bullet syntax in normal 답변 text.
@@ -62,6 +66,7 @@ Deferred beyond v1.2. Tracked but not in this roadmap.
 
 - **RET-01**: System can add semantic or hybrid retrieval if future evaluation shows lexical retrieval is insufficient.
 - **SRC-NEW-01**: Operator can expand source coverage after renewed access review and permission checks.
+- **DATA-FRESH-01**: Operators can apply bounded hotfixes to existing source snapshots and deadline/freshness logic when verification shows stale or incorrectly classified listings.
 
 ### Product Workflow
 

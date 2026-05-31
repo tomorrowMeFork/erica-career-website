@@ -87,3 +87,8 @@
 - No semantic retrieval, ingestion expansion, production crawling, or authenticated crawling.
 - No matching/ranking algorithm changes.
 - No saved jobs, reminders, application tracking, SSO, endorsement claims, or job-board tooling.
+
+**Post-v1.2 hotfix note:**
+
+- The 2026-05-31 `feature/test` follow-up commits are treated as a bounded data freshness/deadline-correction hotfix outside the v1.2 markdown/prompt-context milestone.
+- The hotfix updates existing ingestion/retrieval deadline handling, session deadline refresh behavior, reviewed CDP authenticated source snapshots, and audit traces. It does not change the v1.2 release-ready status and does not claim production crawling permission, automated authenticated crawling, SSO, official endorsement, saved jobs, reminders, or job-board workflow scope.
