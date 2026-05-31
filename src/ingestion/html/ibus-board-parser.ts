@@ -91,6 +91,7 @@ export function parseIbusListingPage(
 export function parseIbusDetailPage(
 	html: string,
 	pageUrl: string,
+	referenceDate = new Date(),
 ): IbusDetailPage {
 	const canonicalUrl = normalizeIbusUrl(pageUrl, IBUS_BOARD_URL);
 	const $ = cheerio.load(html);
@@ -120,6 +121,7 @@ export function parseIbusDetailPage(
 			.map((element) => $(element).attr("datetime") ?? $(element).text()),
 		dateScope.text(),
 	);
+	const postedAt = parseKoreanDateToIso(postedRawText);
 	const rawText = [
 		title,
 		postedRawText ? `작성일 ${postedRawText}` : "",
@@ -129,12 +131,16 @@ export function parseIbusDetailPage(
 		.filter((part) => part.length > 0)
 		.join("\n");
 	const cleanedText = cleanBlockText(rawText);
-	const classifiedDeadline = classifyDeadlineStatus(`${title}\n${bodyText}`);
+	const classifiedDeadline = classifyDeadlineStatus(
+		`${title}\n${bodyText}`,
+		referenceDate,
+		{ postedAt },
+	);
 
 	return {
 		title,
 		canonical_url: canonicalUrl,
-		posted_at: parseKoreanDateToIso(postedRawText),
+		posted_at: postedAt,
 		posted_raw_text: postedRawText,
 		raw_text: rawText,
 		cleaned_text: cleanedText,
@@ -151,7 +157,8 @@ export function buildIbusNormalizedRecords(
 ): NormalizedRecord[] {
 	assertIbusBuildAllowed(input.access_decision, input.approval_evidence_text);
 
-	const fetchedAt = (input.fetched_at ?? new Date()).toISOString();
+	const fetchedAtDate = input.fetched_at ?? new Date();
+	const fetchedAt = fetchedAtDate.toISOString();
 	const listingEntries = parseIbusListingPage(
 		input.listing_html,
 		input.page_url ?? IBUS_BOARD_URL,
@@ -163,7 +170,11 @@ export function buildIbusNormalizedRecords(
 			throw new Error(`Missing ibus detail fixture for ${entry.canonical_url}`);
 		}
 
-		const detail = parseIbusDetailPage(detailHtml, entry.canonical_url);
+		const detail = parseIbusDetailPage(
+			detailHtml,
+			entry.canonical_url,
+			fetchedAtDate,
+		);
 		const title = detail.title.length > 0 ? detail.title : entry.title;
 		const postedAt = detail.posted_at ?? entry.posted_at;
 		const contentHash = sha256(

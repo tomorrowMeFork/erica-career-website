@@ -120,6 +120,27 @@ describe("parseIbusDetailPage", () => {
 		expect(detail.posted_raw_text).toBe("2026-04-30");
 		expect(detail.posted_at).toBe("2026-04-30T00:00:00.000Z");
 	});
+
+	it("classifies short title deadlines against the supplied fetch date", () => {
+		const liveLikeHtml = `<html><head><title>한양대학교 ERICA 경상대학</title></head><body>
+      <main>목록
+      [한국에너지공단] 청년인턴(체험형 인턴) 채용 공고(~5/13) Hit 51
+      등록일
+      2026-04-30 15:31:17
+      본문 내용
+      </main>
+    </body></html>`;
+
+		const detail = parseIbusDetailPage(
+			liveLikeHtml,
+			"https://ibus.hanyang.ac.kr/front/recruit/r-1/view?id=7001",
+			new Date("2026-05-23T00:00:00.000Z"),
+		);
+
+		expect(detail.deadline_status).toBe("expired");
+		expect(detail.deadline_raw_text).toBe("~5/13");
+		expect(detail.deadline_date).toBe("2026-05-13");
+	});
 });
 
 describe("buildIbusNormalizedRecords", () => {
