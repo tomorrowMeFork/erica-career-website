@@ -26,13 +26,13 @@ Every `sources.txt` source intent now has an approved bounded collection path. T
 
 - Playwright collection uses one ephemeral context per source, same-origin request routing, no `storageState`, no persistent profile, no traces, no screenshots, and no stored cookies.
 - The Playwright source script is fixed to four exact public URLs and inserts a 1200ms delay between source navigations.
-- CDP authenticated recruitment boards now have an optional E-WIL-style manual-session collector. It is exact-list-URL-only, requires user-manual login in a headed ephemeral Playwright context, blocks off-host requests, does not automate login, does not save storage state/cookies/traces/screenshots/HAR, and writes optional output under `data/knowledge-base/cdp-authenticated-sources`.
+- CDP authenticated recruitment boards now have an optional E-WIL-style manual-session collector. It is exact-list-URL-only, requires user-manual login in a headed ephemeral Playwright context, blocks off-host content requests except Hanyang login/OAuth endpoints needed for manual authentication, does not automate login, does not save storage state/cookies/traces/screenshots/HAR, and writes optional output under `data/knowledge-base/cdp-authenticated-sources`.
 - The older CDP manual JSON export path remains available: when the user manually provides post exports for `채용정보 > 채용상담 및 설명회` or `채용정보 > 일반채용공고`, `npm run ingest:cdp:manual-posts -- --input <manual-export.json>` can convert that local export into citation-ready records under `data/knowledge-base/manual-cdp-posts`, preserving each provided post detail URL as the primary citation anchor.
 - E-WIL public landing-page text is represented under `data/knowledge-base/ewil-homepage`.
 - E-WIL NOTICE/INFO/실습후기 collection requires user-manual login in a headed ephemeral Playwright context. The collector is exact-URL-only, does not automate login, does not save storage state/cookies/traces/screenshots/HAR, and keeps scheduled crawling disabled.
 - Ibus live collection enforces `COLLECT_MAX_PAGES <= 5`, `COLLECT_DELAY_MS >= 1200`, strict integer parsing, and delay before each detail request.
 - `scheduled_crawling_enabled` remains `false` for every source.
-- Generated JSONL outputs remain under ignored `data/knowledge-base/` paths and are not committed.
+- Generated JSONL source snapshots under `data/knowledge-base/` may be committed only when explicitly reviewed, verified, and intended as source-file evidence for the current branch. Browser/session artifacts remain excluded.
 
 ## Verification Commands
 
@@ -52,10 +52,11 @@ npm run verify:knowledge-base -- data/knowledge-base/playwright-sources
 npm run verify:knowledge-base -- data/knowledge-base/ewil-homepage
 npm run ingest:ewil:authenticated -- --output data/knowledge-base/ewil-authenticated-sources
 npm run verify:knowledge-base -- data/knowledge-base/ewil-authenticated-sources
+npm run verify:knowledge-base -- data/knowledge-base/cdp-authenticated-sources
 ```
 
 ## Constraints Maintained
 
 - Korean source labels, official URLs, citation anchors, fetched timestamps, and `source_text_trust: "untrusted_source_text"` are preserved.
 - No official Hanyang endorsement, production crawling permission, SSO access, or scheduled crawling is claimed.
-- No `.env` values, cookies, auth state, screenshots, traces, or generated live corpus are committed.
+- No `.env` values, cookies, auth state, screenshots, traces, HAR files, or browser session artifacts are committed. Committed source snapshots must remain citation-ready JSONL/manifest data with source URLs, freshness metadata, and `source_text_trust: "untrusted_source_text"`.
