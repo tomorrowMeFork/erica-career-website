@@ -1,0 +1,206 @@
+
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ERICA Career Chat | Safety Overview</title>
+    <link rel="stylesheet" href="styles.css">
+    <style>
+        .layer-list {
+            display: flex;
+            flex-direction: column;
+            gap: var(--space-4);
+            margin-top: var(--space-7);
+        }
+        .layer-item {
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            overflow: hidden;
+            cursor: pointer;
+        }
+        .layer-item:hover {
+            transform: scale(1.01);
+            background: var(--erica-surface-strong);
+        }
+        .layer-trigger {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: var(--space-3) var(--space-5);
+        }
+        .layer-meta {
+            display: flex;
+            align-items: center;
+            gap: var(--space-6);
+        }
+        .layer-id {
+            font-size: 1.1rem;
+            font-weight: 900;
+            color: var(--erica-blue);
+            width: 80px;
+        }
+        .layer-name {
+            font-size: 1.3rem;
+            font-weight: 700;
+        }
+        .layer-expand {
+            max-height: 0;
+            opacity: 0;
+            padding: 0 var(--space-5);
+            transition: all 0.4s ease;
+        }
+        .layer-item.active .layer-expand {
+            max-height: 600px;
+            opacity: 1;
+            padding-bottom: var(--space-6);
+        }
+        .layer-item.active .chevron {
+            transform: rotate(180deg);
+        }
+        .chevron {
+            transition: transform 0.3s;
+        }
+        .btn-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            margin-top: var(--space-4);
+            padding: var(--space-2) var(--space-6);
+            background: var(--erica-blue);
+            color: white;
+            text-decoration: none;
+            border-radius: var(--radius-pill);
+            font-size: 0.95rem;
+            font-weight: 700;
+        }
+        .btn-link:hover { background: var(--erica-blue-deep); }
+    </style>
+</head>
+<body>
+    <div class="container animate-in">
+        <header>
+            <a href="index.html" class="logo">
+                ERICA Career Chat
+            </a>
+            <nav>
+                <ul class="nav-links">
+                    <li><a href="index.html" class="active">Overview</a></li>
+                    <li><a href="layer1.html">Layer 1</a></li>
+                    <li><a href="layer2.html">Layer 2</a></li>
+                    <li><a href="layer3.html">Layer 3</a></li>
+                    <li><a href="layer4.html">Layer 4</a></li>
+                    <li><a href="layer5.html">Layer 5</a></li>
+                </ul>
+            </nav>
+        </header>
+
+        <main>
+            <section style="padding: var(--space-8) 0;">
+                <div class="pill">Safety Guardrail System</div>
+                <h1 class="section-title">소프트웨어 안전 장치<br>통합 아키텍처</h1>
+                <p style="font-size: 1.25rem; max-width: 850px; color: oklch(40% 0.02 250); margin-bottom: var(--space-6);">
+                    ERICA Career Chat은 학생들의 진로 데이터를 보호하고 신뢰할 수 있는 정보를 제공하기 위해 
+                    5단계의 독립적인 안전 레이어를 운영합니다. 모든 검사는 <strong>Fail-Closed</strong> 원칙을 따르며, 
+                    부적절한 요청과 답변은 실시간으로 필터링됩니다.
+                </p>
+
+                <div class="layer-list">
+                    <!-- Layer 1 -->
+                    <div class="glass-card layer-item" onclick="this.classList.toggle('active')">
+                        <div class="layer-trigger">
+                            <div class="layer-meta">
+                                <span class="layer-id">Layer 1</span>
+                                <span class="layer-name">입력 안전 검사 (Input Safety)</span>
+                            </div>
+                            <svg class="chevron" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
+                        </div>
+                        <div class="layer-expand">
+                            <p style="opacity: 0.8; margin-bottom: var(--space-4); font-size: 1.05rem;">사용자가 입력한 질문에 포함된 악의적인 의도(인젝션)와 개인정보(PII) 노출을 차단합니다. 첫 번째 관문으로서 시스템의 무결성을 유지합니다.</p>
+                            <div class="evidence-card" style="font-size: 1rem;">
+                                <strong>핵심 지표:</strong> 18개 테스트 시나리오 통과 / PII 탐지율 100% / 인젝션 방어율 100%
+                            </div>
+                            <a href="layer1.html" class="btn-link">레이어 1 사례 및 기술 상세 보기</a>
+                        </div>
+                    </div>
+
+                    <!-- Layer 2 -->
+                    <div class="glass-card layer-item" onclick="this.classList.toggle('active')">
+                        <div class="layer-trigger">
+                            <div class="layer-meta">
+                                <span class="layer-id" style="color: var(--erica-mint)">Layer 2</span>
+                                <span class="layer-name">소스 안전 정책 (Source Safety)</span>
+                            </div>
+                            <svg class="chevron" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
+                        </div>
+                        <div class="layer-expand">
+                            <p style="opacity: 0.8; margin-bottom: var(--space-4); font-size: 1.05rem;">검색된 정보(RAG Sources) 내부에 숨겨진 적대적 명령어나 안전하지 않은 링크, 불필요한 개인정보를 사전에 제거하여 모델에 전달합니다.</p>
+                            <div class="evidence-card" style="font-size: 1rem;">
+                                <strong>핵심 지표:</strong> 5개 주요 소스 정제 케이스 통과 / 악성 링크 100% 격리
+                            </div>
+                            <a href="layer2.html" class="btn-link">레이어 2 사례 및 기술 상세 보기</a>
+                        </div>
+                    </div>
+
+                    <!-- Layer 3 -->
+                    <div class="glass-card layer-item" onclick="this.classList.toggle('active')">
+                        <div class="layer-trigger">
+                            <div class="layer-meta">
+                                <span class="layer-id" style="color: var(--erica-orange)">Layer 3</span>
+                                <span class="layer-name">근거 증명 정책 (Evidence Policy)</span>
+                            </div>
+                            <svg class="chevron" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
+                        </div>
+                        <div class="layer-expand">
+                            <p style="opacity: 0.8; margin-bottom: var(--space-4); font-size: 1.05rem;">추출된 근거 자료가 사용자의 질문에 답변하기에 충분히 구체적이고 신뢰할 수 있는지 판단합니다. 근거가 부족할 경우 환각(Hallucination) 방지를 위해 답변을 거부합니다.</p>
+                            <div class="evidence-card" style="font-size: 1rem;">
+                                <strong>핵심 지표:</strong> 8개 정밀 근거 검증 통과 / 3-Tier 거부 로직 적용
+                            </div>
+                            <a href="layer3.html" class="btn-link">레이어 3 사례 및 기술 상세 보기</a>
+                        </div>
+                    </div>
+
+                    <!-- Layer 4 -->
+                    <div class="glass-card layer-item" onclick="this.classList.toggle('active')">
+                        <div class="layer-trigger">
+                            <div class="layer-meta">
+                                <span class="layer-id" style="color: var(--erica-coral)">Layer 4</span>
+                                <span class="layer-name">프롬프트 엔지니어링 가드 (Prompt Guard)</span>
+                            </div>
+                            <svg class="chevron" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
+                        </div>
+                        <div class="layer-expand">
+                            <p style="opacity: 0.8; margin-bottom: var(--space-4); font-size: 1.05rem;">모델에 전달되는 프롬프트 구조를 정교하게 설계하여, 외부 데이터(untrusted)가 시스템 지시(System Prompt)를 침범하지 못하도록 격리합니다.</p>
+                            <div class="evidence-card" style="font-size: 1rem;">
+                                <strong>핵심 지표:</strong> 8개 구조적 인젝션 테스트 통과 / 데이터 신뢰 수준(Trust Level) 마킹 적용
+                            </div>
+                            <a href="layer4.html" class="btn-link">레이어 4 사례 및 기술 상세 보기</a>
+                        </div>
+                    </div>
+
+                    <!-- Layer 5 -->
+                    <div class="glass-card layer-item" onclick="this.classList.toggle('active')">
+                        <div class="layer-trigger">
+                            <div class="layer-meta">
+                                <span class="layer-id" style="color: var(--erica-gold)">Layer 5</span>
+                                <span class="layer-name">출력 검증 (Output Validation)</span>
+                            </div>
+                            <svg class="chevron" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
+                        </div>
+                        <div class="layer-expand">
+                            <p style="opacity: 0.8; margin-bottom: var(--space-4); font-size: 1.05rem;">사용자에게 답변이 노출되기 직전의 마지막 단계로, 허위 보장, 부적절한 인증 유도, 숨겨진 인용 누락 등을 최종 검증합니다.</p>
+                            <div class="evidence-card" style="font-size: 1rem;">
+                                <strong>핵심 지표:</strong> 64개 출력 필터링 테스트 통과 / 보장성 문구 100% 탐지
+                            </div>
+                            <a href="layer5.html" class="btn-link">레이어 5 사례 및 기술 상세 보기</a>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </main>
+
+        <footer>
+            <p>© 2026 ERICA Career Chat. All Rights Reserved.</p>
+        </footer>
+    </div>
+</body>
+</html>
