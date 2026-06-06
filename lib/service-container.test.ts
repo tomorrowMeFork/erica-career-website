@@ -46,6 +46,10 @@ function serviceRetriever(service: Pick<ChatService, "ask"> | Pick<Recommendatio
   return (service as unknown as { retriever: unknown }).retriever;
 }
 
+function serviceAuditInternals(service: Pick<ChatService, "ask">): { auditLogger: unknown; auditLogPath: unknown } {
+  return service as unknown as { auditLogger: unknown; auditLogPath: unknown };
+}
+
 describe("service container shared knowledge-base retriever", () => {
   afterEach(() => {
     vi.unstubAllEnvs();
@@ -72,6 +76,8 @@ describe("service container shared knowledge-base retriever", () => {
 
     expect(serviceRetriever(chatService)).toBe(sharedService);
     expect(serviceRetriever(recommendationService)).toBe(sharedService);
+    expect(serviceAuditInternals(chatService).auditLogger).toEqual(expect.any(Function));
+    expect(serviceAuditInternals(chatService).auditLogPath).toBeUndefined();
     expect(sharedService.metadata()).toMatchObject({ version: 1, stats: { chunk_count: 1, source_family_counts: { ibus: 1 } } });
 
     sharedService.reload();

@@ -36,7 +36,7 @@ export function getChatService(): ChatLike {
     retriever: getKnowledgeBaseRetrieverService(),
     provider: createOpenAiCompatibleChatProviderFromEnv(process.env),
     preferenceService: getPreferenceService(),
-    auditLogPath: "data/audit/phase5-chat.jsonl",
+    auditLogger: async () => undefined,
   });
   return chatService;
 }
